@@ -26,7 +26,7 @@ import Checkout from './pages/Checkout';
 import Receipt from './pages/Receipt'; 
 import Messages from './pages/messages';
 import BundleDetails from './pages/BundleDetails';
-import PaymentSuccess from './pages/PaymentSuccess'; // <-- ADDED PAYMENT SUCCESS IMPORT
+import PaymentSuccess from './pages/PaymentSuccess';
 
 // VENDOR IMPORTS
 import VendorDashboard from './pages/VendorDashboard'; 
@@ -55,7 +55,7 @@ function App() {
             <Route path="/notifications" element={<NotificationPage />} />
             <Route path="/messages" element={<Messages />} />
             <Route path="/bundle-details/:id" element={<BundleDetails />} />
-            <Route path="/payment-success" element={<PaymentSuccess />} /> {/* <-- ADDED PAYMENT SUCCESS ROUTE */}
+            <Route path="/payment-success" element={<PaymentSuccess />} />
             
             {/* CLIENT ROUTES */}
             <Route 
