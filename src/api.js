@@ -1,6 +1,11 @@
 import axios from 'axios';
 
-export default axios.create({
-    baseURL: import.meta.env.VITE_API_URL,
-    withCredentials: true,
+const api = axios.create({
+    baseURL: 'https://eventease-backend-l06d.onrender.com/api', // Hardcode the live URL for your consultation
+    headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+    }
 });
+
+export default api;
