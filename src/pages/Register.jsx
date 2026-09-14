@@ -249,7 +249,7 @@ const modalStyles = {
     padding: '16px 24px',
     borderTop: '1px solid #e2e8f0',
     display: 'flex',
-    justifyFLEX: 'flex-end',
+    justifyContent: 'flex-end',
     backgroundColor: '#f8fafc'
   },
   acceptBtn: {
