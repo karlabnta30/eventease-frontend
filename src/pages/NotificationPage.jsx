@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import axios from 'axios';
+import api from '../api';
 import { Bell, Check, Trash2, ListChecks } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 

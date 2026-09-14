@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api';
 import { Package, MapPin, CheckCircle, ArrowLeft, CheckCircle2, AlertTriangle, X } from 'lucide-react';
 
 const BundleDetails = () => {

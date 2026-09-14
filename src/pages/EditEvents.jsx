@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api';
 import { toast } from 'react-hot-toast';
 import { Calendar, MapPin, Users, Wallet, ArrowLeft, Trash2, Save, Clock } from 'lucide-react';
 

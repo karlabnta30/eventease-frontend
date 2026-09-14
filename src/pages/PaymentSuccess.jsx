@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api';
 import { CheckCircle2, Loader2, ArrowRight, RefreshCw } from 'lucide-react';
 
 const PaymentSuccess = () => {

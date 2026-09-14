@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api';
 import { Send, ShieldAlert, CheckCircle2, Paperclip, X } from 'lucide-react';
 
 const Messages = () => {

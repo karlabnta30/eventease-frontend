@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api';
 import { ArrowLeft, MapPin, Calendar, Users, CreditCard, Clock, ShieldCheck, Trash2, Edit3, Lock, ShieldAlert } from 'lucide-react';
 
 // --- 1. MODAL COMPONENT ---

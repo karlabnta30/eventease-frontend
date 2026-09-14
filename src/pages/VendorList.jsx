@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import axios from 'axios';
+import api from '../api';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { MapPin, Lock, AlertCircle, Power, Star, Check, Plus, Trash2, ShieldAlert, ShieldCheck, ChevronRight, ArrowLeft } from 'lucide-react';
 import { notifyNewBooking } from '../toastUtils.jsx';

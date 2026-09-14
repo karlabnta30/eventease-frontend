@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api';
 
 const CreateBundleForm = ({ onBundleCreated }) => {
   const [bundleName, setBundleName] = useState('');
@@ -15,7 +15,7 @@ const CreateBundleForm = ({ onBundleCreated }) => {
   useEffect(() => {
     const fetchVendorServices = async () => {
       try {
-        const res = await axios.get('http://127.0.0.1:8000/api/vendor/services', {
+        const res = await api.get('/vendor/services', {
           headers: { Authorization: `Bearer ${token}` }
         });
         setAvailableServices(res.data.data || res.data || []);
@@ -25,7 +25,7 @@ const CreateBundleForm = ({ onBundleCreated }) => {
     };
 
     fetchVendorServices();
-  }, []); // <--- Make sure to include this empty array here
+  }, []);
 
   const handleCheckboxChange = (serviceId) => {
     if (selectedServices.includes(serviceId)) {
@@ -41,7 +41,7 @@ const CreateBundleForm = ({ onBundleCreated }) => {
     setMessage('');
 
     try {
-      const res = await axios.post('http://127.0.0.1:8000/api/bundles', {
+      const res = await api.post('/bundles', {
         bundle_name: bundleName,
         description,
         price,

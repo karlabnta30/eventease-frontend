@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api';
 import { notifyServiceCreated } from '../toastUtils.jsx'; 
 import { AlertCircle, ShieldCheck, Sparkles, Briefcase, Layers } from 'lucide-react';
 import CreateBundleForm from '../components/CreateBundleForm';
@@ -25,7 +25,7 @@ const AddService = () => {
     const checkVerification = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get('http://127.0.0.1:8000/api/user', {
+        const response = await api.get('/user', {
           headers: { Authorization: `Bearer ${token}` }
         });
         
@@ -52,7 +52,7 @@ const AddService = () => {
     const token = localStorage.getItem('token');
 
     try {
-      await axios.post('http://127.0.0.1:8000/api/vendors', serviceData, {
+      await api.post('/vendors', serviceData, {
         headers: { 
           'Authorization': `Bearer ${token}`,
           'Accept': 'application/json'
@@ -247,7 +247,7 @@ const AddService = () => {
               zIndex: 10,
               display: 'flex',
               flexDirection: 'column',
-              alignItem: 'center',
+              alignItems: 'center',
               justifyContent: 'center',
               textAlign: 'center',
               padding: '40px'
@@ -297,7 +297,7 @@ const inputStyle = {
   padding: '14px 16px', 
   border: '2px solid #e2e8f0', 
   borderRadius: '12px', 
-  fontSize: '0.95icon', 
+  fontSize: '0.95rem', 
   fontWeight: '500', 
   backgroundColor: '#fff', 
   color: '#0f172a',
