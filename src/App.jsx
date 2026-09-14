@@ -17,7 +17,7 @@ import BookingDetails from './pages/bookingdetails';
 import ContactPage from './pages/contactpage'; 
 import AdminDashboard from './pages/AdminDashboard'; 
 import AdminFeedback from './pages/AdminFeedback'; 
-import AboutPage from './pages/AboutPage'; 
+import AboutPage from "./pages/aboutpage";
 import UserProfile from './pages/UserProfile'; 
 import EditEvents from './pages/EditEvents'; 
 import VendorProfile from './pages/VendorProfile'; 
