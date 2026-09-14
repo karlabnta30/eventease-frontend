@@ -13,7 +13,7 @@ const Register = () => {
   const [role, setRole] = useState('client'); 
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [showTermsModal, setShowTermsModal] = useState(false); // <--- Modal State
+  const [showTermsModal, setShowTermsModal] = useState(false);
   
   const navigate = useNavigate();
 
@@ -32,12 +32,22 @@ const Register = () => {
         role 
       });
       
-      // SUCCESS: Navigate directly to OTP verification and pass the email string
       navigate('/verify-otp', { state: { email } });
       
     } catch (error) {
-      console.error("Registration Error:", error.response?.data);
-      alert(error.response?.data?.message || "Registration failed. Check console for details.");
+      console.error("Registration Error:", error.response?.data || error.message);
+      const errorData = error.response?.data;
+      let errorMsg = "Registration failed. Check console for details.";
+      
+      if (typeof errorData === 'string') {
+        errorMsg = errorData;
+      } else if (errorData?.message) {
+        errorMsg = errorData.message;
+      } else if (errorData?.errors) {
+        errorMsg = Object.values(errorData.errors).flat().join('\n');
+      }
+      
+      alert(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -239,7 +249,7 @@ const modalStyles = {
     padding: '16px 24px',
     borderTop: '1px solid #e2e8f0',
     display: 'flex',
-    justifyContent: 'flex-end',
+    justifyFLEX: 'flex-end',
     backgroundColor: '#f8fafc'
   },
   acceptBtn: {
