@@ -15,15 +15,12 @@ const PaymentPage = () => {
     if (cardNumber.length !== 16) return alert("Please enter a valid 16-digit GCash Card number.");
 
     setLoading(true);
-    const token = localStorage.getItem('token');
 
     try {
-      await axios.post('http://127.0.0.1:8000/api/pay', {
+      await api.post('/pay', {
         booking_id: bookingData.bookingId,
         card_number: cardNumber,
         amount: bookingData.amount
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
       });
       
       alert("Payment Successful!");

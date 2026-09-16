@@ -92,7 +92,6 @@ const ContactPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem('token');
     
     if (!formData.subject || !formData.message) {
       alert("Please enter a subject and your feedback.");
@@ -101,12 +100,7 @@ const ContactPage = () => {
 
     setLoading(true);
     try {
-      await axios.post('http://127.0.0.1:8000/api/contact', formData, {
-        headers: { 
-          Authorization: `Bearer ${token}`,
-          Accept: 'application/json'
-        }
-      });
+      await api.post('/contact', formData);
       setIsSuccessOpen(true); 
       setFormData({ subject: '', vendor_email: '', message: '' });
     } catch (err) {

@@ -43,13 +43,10 @@ const MainDashboard = () => {
 
   const fetchData = async () => {
     setLoading(true);
-    const token = localStorage.getItem('token');
     try {
-      const endpoint = userRole === 'vendor' ? 'http://127.0.0.1:8000/api/vendor/services' : 'http://127.0.0.1:8000/api/vendors';
+      const endpoint = userRole === 'vendor' ? '/vendor/services' : '/vendors';
       
-      const servicesRes = await axios.get(endpoint, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const servicesRes = await api.get(endpoint);
       
       let allServices = [];
 
@@ -82,9 +79,7 @@ const MainDashboard = () => {
         });
 
         try {
-          const bundlesRes = await axios.get('http://127.0.0.1:8000/api/bundles', {
-            headers: { Authorization: `Bearer ${token}` }
-          });
+          const bundlesRes = await api.get('/bundles');
           const bundleList = bundlesRes.data.data || bundlesRes.data || [];
           bundleList.forEach(bundle => {
             allServices.push({
@@ -104,15 +99,12 @@ const MainDashboard = () => {
 
       setServices(allServices);
 
+      const token = localStorage.getItem('token');
       if (token && userRole !== 'admin') {
-        const bookingsRes = await axios.get('http://127.0.0.1:8000/api/bookings', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const bookingsRes = await api.get('/bookings');
         setMyBookings(bookingsRes.data.data || (Array.isArray(bookingsRes.data) ? bookingsRes.data : []));
 
-        const notifRes = await axios.get('http://127.0.0.1:8000/api/notifications', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const notifRes = await api.get('/notifications');
         const unread = notifRes.data.filter(n => !n.is_read);
         if (unread.length > 0) {
           notifyNewBooking(unread[0].message);
@@ -132,12 +124,11 @@ const MainDashboard = () => {
 
   const handleToggleStatus = async (id) => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.post(`http://127.0.0.1:8000/api/vendors/toggle/${id}`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.post(`/vendors/toggle/${id}`);
       fetchData(); 
-    } catch (error) { console.error("Toggle failed", error); }
+    } catch (error) { 
+      console.error("Toggle failed", error); 
+    }
   };
 
   const handleAddToArchitect = (service) => {
@@ -199,10 +190,7 @@ const MainDashboard = () => {
   const confirmCancelBooking = async () => {
     if (!bookingToCancel) return;
     try {
-      const token = localStorage.getItem('token');
-      await axios.delete(`http://127.0.0.1:8000/api/bookings/${bookingToCancel}`, {
-        headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' }
-      });
+      await api.delete(`/bookings/${bookingToCancel}`);
       setMyBookings(myBookings.filter(b => b.id !== bookingToCancel));
     } catch (error) { 
       alert("Failed to cancel booking."); 

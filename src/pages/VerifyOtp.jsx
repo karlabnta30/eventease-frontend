@@ -79,7 +79,7 @@ const VerifyOtp = () => {
 
     setLoading(true);
     try {
-      await axios.post('http://localhost:8000/api/auth/verify-otp', {
+      await api.post('/verify-otp', {
         email,
         otp
       });

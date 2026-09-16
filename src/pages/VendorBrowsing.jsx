@@ -23,7 +23,7 @@ const VendorBrowsing = () => {
     useEffect(() => {
         const fetchVendors = async () => {
             try {
-                const response = await axios.get('http://127.0.0.1:8000/api/vendors');
+                const response = await api.get('/vendors');
                 setVendors(response.data.data);
             } catch (error) {
                 console.error("Error fetching vendors:", error);
@@ -62,9 +62,7 @@ const VendorBrowsing = () => {
         };
 
         try {
-            await axios.post('http://127.0.0.1:8000/api/bookings', payload, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            await api.post('/bookings', payload);
             alert("Hiring request sent successfully!");
             setShowModal(false);
             navigate('/live-events');

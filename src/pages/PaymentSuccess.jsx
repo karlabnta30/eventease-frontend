@@ -15,7 +15,7 @@ const PaymentSuccess = () => {
         setError(null);
         try {
             const targetId = bookingIdToSync || resolvedBookingId;
-            const response = await axios.post('http://127.0.0.1:8000/api/verify-payment', {
+            const response = await api.post('/verify-payment', {
                 booking_id: targetId
             });
             console.log("Sync response:", response.data);
@@ -56,7 +56,7 @@ const PaymentSuccess = () => {
                     <>
                         <Loader2 size={48} className="animate-spin" style={{ margin: '0 auto 20px auto', color: '#000' }} />
                         <h2 style={{ fontSize: '1.5rem', fontWeight: '900', marginBottom: '10px' }}>Finalizing Payment...</h2>
-                        <p style={{ color: '#666', fontSize: '0.9rem' }}>Updating MySQL records...</p>
+                        <p style={{ color: '#666', fontSize: '0.9rem' }}>Updating database records...</p>
                     </>
                 ) : error ? (
                     <>
@@ -79,7 +79,7 @@ const PaymentSuccess = () => {
                         </div>
                         <h2 style={{ fontSize: '2rem', fontWeight: '900', letterSpacing: '-1px', marginBottom: '15px' }}>Payment Confirmed!</h2>
                         <p style={{ color: '#666', lineHeight: '1.6', marginBottom: '35px', fontWeight: '500', fontSize: '0.95rem' }}>
-                            Your transaction was processed successfully. Your booking is now marked as <strong>Paid</strong> in MySQL.
+                            Your transaction was processed successfully. Your booking is now marked as <strong>Paid</strong>.
                         </p>
                         <button onClick={() => navigate('/live-events')} style={{ background: '#000', color: '#fff', border: 'none', padding: '16px', borderRadius: '14px', fontWeight: '800', width: '100%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                             RETURN TO DASHBOARD <ArrowRight size={18} />

@@ -14,7 +14,6 @@ const Checkout = () => {
     const handlePayMongoCheckout = async (e) => {
         e.preventDefault();
         setLoading(true);
-        const token = localStorage.getItem('token');
         
         // Save booking ID to local storage as a fallback backup before triggering checkout
         if (bookingId) {
@@ -22,12 +21,10 @@ const Checkout = () => {
         }
         
         try {
-            const response = await axios.post('http://127.0.0.1:8000/api/create-checkout', {
+            const response = await api.post('/create-checkout', {
                 amount: amount,
                 description: `EventEase Booking #EE-${bookingId}`,
                 booking_id: bookingId
-            }, {
-                headers: { Authorization: `Bearer ${token}` }
             });
 
             const checkoutUrl = response.data.data.attributes.checkout_url;

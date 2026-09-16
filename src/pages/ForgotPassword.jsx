@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../api';
 import { Mail, Lock, KeyRound, ArrowRight, CheckCircle2 } from 'lucide-react';
-import { toast } from 'react-hot-toast'; // <--- Import toast
+import { toast } from 'react-hot-toast';
 
 const ForgotPassword = () => {
   const navigate = useNavigate();
@@ -22,7 +22,7 @@ const ForgotPassword = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post('http://127.0.0.1:8000/api/forgot-password', { email });
+      const response = await api.post('/forgot-password', { email });
       setMessage(response.data.message || 'Reset code sent to your email.');
       if (response.data.debug_code) {
         console.log("Debug Reset Code:", response.data.debug_code);
@@ -48,14 +48,13 @@ const ForgotPassword = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post('http://127.0.0.1:8000/api/reset-password', {
+      const response = await api.post('/reset-password', {
         email,
         code,
         password,
         password_confirmation: passwordConfirmation
       });
 
-      // <--- Replaced native alert() with sleek react-hot-toast notification --->
       toast.success(response.data.message || 'Password reset successfully!');
       navigate('/');
     } catch (err) {

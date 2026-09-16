@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import api from '../api';
 import { User, Mail, Phone, ShieldCheck, Camera, MapPin, Clock, AlertCircle, FileText, Upload } from 'lucide-react';
 import { toast } from 'react-hot-toast';
@@ -22,10 +22,7 @@ const UserProfile = () => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const response = await axios.get('http://127.0.0.1:8000/api/user', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const response = await api.get('/user');
         
         setUserData({
           ...response.data,
@@ -48,10 +45,7 @@ const UserProfile = () => {
     if (isEditing) {
       const loadingToast = toast.loading("Updating profile...");
       try {
-        const token = localStorage.getItem('token');
-        await axios.put('http://127.0.0.1:8000/api/user/update', userData, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        await api.put('/user/update', userData);
 
         localStorage.setItem('userName', userData.name); 
         toast.success("Profile updated successfully!", { id: loadingToast });
@@ -71,14 +65,12 @@ const UserProfile = () => {
     }
 
     setUploadingPermit(true);
-    const token = localStorage.getItem('token');
     const formData = new FormData();
     formData.append('permit', permitFile);
 
     try {
-      const res = await axios.post('http://127.0.0.1:8000/api/vendor/upload-permit', formData, {
+      const res = await api.post('/vendor/upload-permit', formData, {
         headers: { 
-          Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'
         }
       });
@@ -244,7 +236,7 @@ const UserProfile = () => {
                   {userData.permit_path && (
                     <div style={{ fontSize: '0.85rem', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <span>Current Document:</span> 
-                      <a href={`http://127.0.0.1:8000/storage/${userData.permit_path}`} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', fontWeight: '700', textDecoration: 'none' }}>
+                      <a href={`https://eventease-backend.onrender.com/storage/${userData.permit_path}`} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', fontWeight: '700', textDecoration: 'none' }}>
                         View Uploaded Permit
                       </a>
                     </div>

@@ -42,13 +42,12 @@ const BundleDetails = () => {
   const handleConfirmBooking = async (e) => {
     e.preventDefault();
     setLoading(true);
-    const token = localStorage.getItem('token');
 
     try {
       const rawId = isCustomArchitect ? null : String(service.id).replace('bundle_', '');
       const venueLocation = hasVenueService ? 'Included in Venue Service' : (location || service.location || 'Manila');
 
-      await axios.post('http://127.0.0.1:8000/api/bookings', {
+      await api.post('/bookings', {
         event_name: eventName || service.bundle_name,
         event_date: eventDate,
         location: venueLocation,
@@ -57,8 +56,6 @@ const BundleDetails = () => {
         category: service.category || (packageInclusions[0]?.category) || 'Bundle',
         vendor_id: service.vendor_id || service.vendor?.id || null,
         status: 'pending'
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
       });
 
       setModalConfig({
