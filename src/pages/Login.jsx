@@ -41,16 +41,16 @@ const Login = () => {
         localStorage.setItem('userName', response.data.user.name);
         
         if (response.data.user.role === 'admin') {
-          navigate('/admin-dashboard');
+          navigate('/admin-dashboard', { replace: true });
         } else if (response.data.user.role === 'vendor') {
-          navigate('/vendor-dashboard');
+          navigate('/vendor-dashboard', { replace: true });
         } else {
-          navigate('/main-dashboard');
+          navigate('/main-dashboard', { replace: true });
         }
       }
     } catch (err) {
       console.error("Login Error:", err.response?.data || err.message);
-      setError(err.response?.data?.message || "Login failed. Check your credentials.");
+      setError(err.response?.data?.message || err.response?.data?.error || "Login failed. Check your credentials.");
     } finally {
       setLoading(false);
     }
@@ -59,7 +59,7 @@ const Login = () => {
   return (
     <div style={styles.container}>
       
-      {/* Left Column: Enlarged containers and text/logo */}
+      {/* Left Column: Form Wrapper */}
       <div style={styles.leftColumn}>
         <div style={styles.formWrapper}>
           
@@ -124,7 +124,7 @@ const Login = () => {
         </div>
       </div>
 
-      {/* Right Column: 10-Second Auto-Switching Party Background Carousel */}
+      {/* Right Column: Background Carousel */}
       <div style={styles.rightColumn}>
         {partyImages.map((img, index) => (
           <div 
@@ -296,7 +296,7 @@ const styles = {
     bottom: '60px',
     left: '60px',
     right: '60px',
-    zIndex: 3,
+    zindex: 3,
     color: '#fff'
   },
   quoteText: {

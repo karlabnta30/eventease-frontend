@@ -44,7 +44,6 @@ const ProtectedRoute = () => {
       return;
     }
 
-    // Listens for changes to localStorage across all tabs instantly
     const handleStorageChange = (event) => {
       if (event.key === 'token' && !event.newValue) {
         localStorage.clear();
@@ -52,7 +51,6 @@ const ProtectedRoute = () => {
       }
     };
 
-    // Also double-checks when user brings the tab back into focus / pastes URL
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
         const currentToken = localStorage.getItem('token');
@@ -85,7 +83,6 @@ function App() {
   const isAuthPage = authPaths.includes(location.pathname);
   const isLandingView = location.pathname === '/';
   
-  // Dynamic role getter to prevent stale role caching upon login/logout switches
   const userRole = localStorage.getItem('userRole');
 
   const getDefaultDashboard = () => {
@@ -102,9 +99,7 @@ function App() {
       {!isAuthPage && !isLandingView ? (
         <Sidebar>
           <Routes>
-            {/* WRAP ALL PRIVATE/DASHBOARD ROUTES INSIDE PROTECTED ROUTE */}
             <Route element={<ProtectedRoute />}>
-              {/* FIXED /home ROUTE BUG */}
               <Route path="/home" element={<Navigate to={getDefaultDashboard()} replace />} />
 
               {/* SHARED ROUTES */}
@@ -119,7 +114,7 @@ function App() {
               {/* CLIENT ROUTES */}
               <Route 
                 path="/main-dashboard" 
-                element={userRole === 'client' ? <MainDashboard /> : <Navigate to={getDefaultDashboard()} />} 
+                element={!userRole || userRole === 'client' ? <MainDashboard /> : <Navigate to={getDefaultDashboard()} replace />} 
               />
               <Route path="/vendors/:id" element={<VendorProfile />} /> 
               <Route path="/create-event" element={<CreateEvent />} />
@@ -133,25 +128,25 @@ function App() {
               {/* VENDOR ROUTES */}
               <Route 
                 path="/vendor-dashboard" 
-                element={userRole === 'vendor' ? <VendorDashboard /> : <Navigate to={getDefaultDashboard()} />} 
+                element={userRole === 'vendor' ? <VendorDashboard /> : <Navigate to={getDefaultDashboard()} replace />} 
               />
               <Route 
                 path="/vendor-services" 
-                element={userRole === 'vendor' ? <VendorList /> : <Navigate to={getDefaultDashboard()} />} 
+                element={userRole === 'vendor' ? <VendorList /> : <Navigate to={getDefaultDashboard()} replace />} 
               />
               <Route 
                 path="/add-service" 
-                element={userRole === 'vendor' ? <AddService /> : <Navigate to={getDefaultDashboard()} />} 
+                element={userRole === 'vendor' ? <AddService /> : <Navigate to={getDefaultDashboard()} replace />} 
               />
 
               {/* ADMIN ROUTES */}
               <Route 
                 path="/admin-dashboard" 
-                element={userRole === 'admin' ? <AdminDashboard /> : <Navigate to={getDefaultDashboard()} />} 
+                element={userRole === 'admin' ? <AdminDashboard /> : <Navigate to={getDefaultDashboard()} replace />} 
               />
               <Route 
                 path="/admin-feedback" 
-                element={userRole === 'admin' ? <AdminFeedback /> : <Navigate to={getDefaultDashboard()} />} 
+                element={userRole === 'admin' ? <AdminFeedback /> : <Navigate to={getDefaultDashboard()} replace />} 
               />
 
               <Route path="*" element={<Navigate to={getDefaultDashboard()} replace />} />
