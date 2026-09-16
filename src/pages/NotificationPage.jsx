@@ -10,13 +10,8 @@ const NotificationPage = () => {
 
   // --- FETCH LOGIC ---
   const fetchNotifs = useCallback(async (isAutoPoll = false) => {
-    const token = localStorage.getItem('token');
-    if (!token) return;
-
     try {
-      const res = await axios.get('http://127.0.0.1:8000/api/notifications', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await api.get('/notifications');
       const data = Array.isArray(res.data) ? res.data : res.data.data || [];
       
       // Update state with fresh data
@@ -39,7 +34,7 @@ const NotificationPage = () => {
     return () => clearInterval(interval);
   }, [fetchNotifs]);
 
-  // --- EFFECT 3: Toast Trigger (The Fix for the Red Error & Double Toasts) ---
+  // --- EFFECT 3: Toast Trigger ---
   useEffect(() => {
     if (notifications.length > 0) {
       // We look at the top-most (latest) notification
@@ -66,36 +61,32 @@ const NotificationPage = () => {
 
   const markRead = async (id) => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.patch(`http://127.0.0.1:8000/api/notifications/${id}/read`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
+      await api.patch(`/notifications/${id}/read`);
       setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: 1 } : n));
-    } catch (err) { console.error("Mark Read Error:", err); }
+    } catch (err) { 
+      console.error("Mark Read Error:", err); 
+    }
   };
 
   const handleReadAll = async () => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.post('http://127.0.0.1:8000/api/notifications/read-all', {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.post('/notifications/read-all');
       setNotifications(prev => prev.map(n => ({ ...n, is_read: 1 })));
       toast.success("All notifications marked as read");
-    } catch (err) { console.error(err); }
+    } catch (err) { 
+      console.error(err); 
+    }
   };
 
   const handleDeleteAll = async () => {
     if (window.confirm("Are you sure you want to clear all notifications?")) {
       try {
-        const token = localStorage.getItem('token');
-        await axios.delete('http://127.0.0.1:8000/api/notifications/delete-all', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        await api.delete('/notifications/delete-all');
         setNotifications([]);
         toast.success("Notification inbox cleared");
-      } catch (err) { console.error(err); }
+      } catch (err) { 
+        console.error(err); 
+      }
     }
   };
 

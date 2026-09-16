@@ -42,7 +42,7 @@ const VendorList = () => {
 
     const guestCount = useMemo(() => {
         const g = searchParams.get('guest_count');
-        return g ? parseInt(g, 10) : 50; // Default baseline guests
+        return g ? parseInt(g, 10) : 50; 
     }, [searchParams]);
     
     const [vendors, setVendors] = useState([]);
@@ -50,7 +50,6 @@ const VendorList = () => {
     const [loading, setLoading] = useState(true);
     const [hiringLoading, setHiringLoading] = useState(false);
 
-    // Shared category container drill-down state updated for TA requirements
     const [activeCategoryView, setActiveCategoryView] = useState(null);
 
     const categories = ['Catering', 'Media Coverage', 'Venue', 'Random Stuff / Miscellaneous'];
@@ -66,15 +65,12 @@ const VendorList = () => {
     };
 
     const fetchVendors = async () => {
-        const token = localStorage.getItem('token');
         try {
             const endpoint = userRole === 'vendor' 
-                ? 'http://127.0.0.1:8000/api/vendor/services' 
-                : 'http://127.0.0.1:8000/api/vendors';
+                ? '/vendor/services' 
+                : '/vendors';
 
-            const res = await axios.get(endpoint, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const res = await api.get(endpoint);
             setVendors(res.data.data || []);
         } catch (err) { 
             console.error("Fetch Error:", err); 
@@ -89,17 +85,13 @@ const VendorList = () => {
 
     const handleToggleStatus = async (id) => {
         try {
-            const token = localStorage.getItem('token');
-            await axios.post(`http://127.0.0.1:8000/api/vendors/toggle/${id}`, {}, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            await api.post(`/vendors/toggle/${id}`);
             fetchVendors();
         } catch (error) { 
             console.error("Toggle failed", error); 
         }
     };
 
-    // Dynamic pricing calculation based on TA notes (Catering per-head, Hosting 4-hour base blocks)
     const calculateDynamicPrice = (vendor) => {
         const raw = vendor.starting_price || vendor.price || 0;
         const basePrice = typeof raw === 'string' ? parseFloat(raw.replace(/[^0-9.]/g,"")) : parseFloat(raw);
@@ -108,10 +100,10 @@ const VendorList = () => {
         const name = (vendor.business_name || vendor.name || '').toLowerCase();
 
         if (cat.includes('catering') || name.includes('catering')) {
-            return basePrice * guestCount; // Per-head scaling
+            return basePrice * guestCount; 
         }
         if (cat.includes('hosting') || name.includes('hosting') || name.includes('dj')) {
-            return basePrice > 0 ? basePrice : 5000; // 5000 baseline for first 4 hours
+            return basePrice > 0 ? basePrice : 5000; 
         }
         return basePrice;
     };
@@ -134,8 +126,7 @@ const VendorList = () => {
     const isCartOverBudget = userBudget > 0 && totalSelectedCost > userBudget;
 
     const handleMultiServiceCheckout = async () => {
-        const token = localStorage.getItem('token');
-        if (!token || selectedServices.length === 0) return;
+        if (selectedServices.length === 0) return;
 
         setHiringLoading(true);
         try {
@@ -145,9 +136,7 @@ const VendorList = () => {
                 services: selectedServices.map(s => Number(s.id))
             };
 
-            await axios.post(`http://127.0.0.1:8000/api/bookings/${cleanBookingId}/attach-services`, payload, {
-                headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' }
-            });
+            await api.post(`/bookings/${cleanBookingId}/attach-services`, payload);
 
             notifyNewBooking(`Successfully added ${selectedServices.length} service(s) to cart & booking!`);
             navigate('/live-events');
@@ -156,10 +145,7 @@ const VendorList = () => {
                 const cleanBookingId = String(eventIdFromUrl).split(':')[0].replace(/[^0-9]/g, '');
                 const singleVendorId = Number(selectedServices[0].id);
 
-                await axios.patch(`http://127.0.0.1:8000/api/bookings/${cleanBookingId}/assign-vendor`, 
-                    { vendor_id: singleVendorId }, 
-                    { headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' } }
-                );
+                await api.patch(`/bookings/${cleanBookingId}/assign-vendor`, { vendor_id: singleVendorId });
                 notifyNewBooking(`Hired ${selectedServices[0].business_name || selectedServices[0].name}!`);
                 navigate('/live-events');
             } else {
@@ -226,7 +212,6 @@ const VendorList = () => {
                 )}
             </div>
 
-            {/* --- CATEGORY CONTAINERS GRID VIEW --- */}
             {!activeCategoryView ? (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '30px', marginTop: '35px' }}>
                     {categories.map(cat => {
@@ -258,7 +243,6 @@ const VendorList = () => {
                     })}
                 </div>
             ) : (
-                /* --- DRILL-DOWN SERVICES LIST VIEW --- */
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '30px', marginTop: '35px' }}>
                     {filteredVendors.length > 0 ? filteredVendors.map(vendor => {
                         const dynamicPrice = calculateDynamicPrice(vendor);
@@ -352,7 +336,6 @@ const VendorList = () => {
                 </div>
             )}
 
-            {/* --- CLIENT ADD-TO-CART & CHAT BAR (TA Requirement) --- */}
             {selectedServices.length > 0 && userRole !== 'vendor' && (
                 <div style={{
                     position: 'fixed', bottom: '25px', left: '50%', transform: 'translateX(-50%)',

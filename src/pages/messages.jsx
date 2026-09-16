@@ -11,15 +11,12 @@ const Messages = () => {
   const [uploading, setUploading] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null); // Modal state for zooming pictures
   
-  const token = localStorage.getItem('token');
   const userRole = localStorage.getItem('userRole');
 
   useEffect(() => {
     const fetchContacts = async () => {
       try {
-        const res = await axios.get('http://localhost:8000/api/contacts-list', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const res = await api.get('/contacts-list');
         setConversations(res.data);
         if (res.data.length > 0) setActiveContact(res.data[0]);
       } catch (err) {
@@ -27,16 +24,14 @@ const Messages = () => {
       }
     };
     fetchContacts();
-  }, [token]);
+  }, []);
 
   useEffect(() => {
     if (!activeContact?.id) return;
 
     const fetchConversationData = async () => {
       try {
-        const res = await axios.get(`http://localhost:8000/api/messages/${activeContact.id}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const res = await api.get(`/messages/${activeContact.id}`);
         setMessages(res.data.messages || []);
         setActiveBooking(res.data.booking || null);
       } catch (err) {
@@ -47,24 +42,20 @@ const Messages = () => {
     fetchConversationData();
     const interval = setInterval(fetchConversationData, 3000); 
     return () => clearInterval(interval);
-  }, [activeContact?.id, token]);
+  }, [activeContact?.id]);
 
   const handleSend = async (e) => {
     e.preventDefault();
     if (!newMessage.trim() || userRole === 'admin' || !activeContact?.id) return;
 
     try {
-      await axios.post('http://localhost:8000/api/messages', {
+      await api.post('/messages', {
         receiver_id: activeContact.id,
         message: newMessage
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
       });
       setNewMessage('');
       
-      const res = await axios.get(`http://localhost:8000/api/messages/${activeContact.id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await api.get(`/messages/${activeContact.id}`);
       setMessages(res.data.messages || []);
       setActiveBooking(res.data.booking || null);
     } catch (err) {
@@ -86,9 +77,8 @@ const Messages = () => {
 
     setUploading(true);
     try {
-      const res = await axios.post(`http://localhost:8000/api/bookings/${activeBooking.id}/attach-document`, formData, {
+      const res = await api.post(`/bookings/${activeBooking.id}/attach-document`, formData, {
         headers: { 
-          Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'
         }
       });
@@ -98,16 +88,12 @@ const Messages = () => {
         fileUrl = fileUrl.replace('/storage/attachments/', '/uploads/');
       }
 
-      await axios.post('http://localhost:8000/api/messages', {
+      await api.post('/messages', {
         receiver_id: activeContact.id,
         message: `[Attachment]: ${fileUrl}`
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
       });
 
-      const refreshRes = await axios.get(`http://localhost:8000/api/messages/${activeContact.id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const refreshRes = await api.get(`/messages/${activeContact.id}`);
       setMessages(refreshRes.data.messages || []);
     } catch (err) {
       alert(err.response?.data?.error || "Failed to upload and attach file.");

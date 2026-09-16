@@ -23,7 +23,7 @@ const Register = () => {
 
     setLoading(true);
     try {
-      await api.post('/register', {
+      await axios.post('http://127.0.0.1:8000/api/register', {
         name,
         email,
         contact_number: contactNumber,
@@ -128,7 +128,6 @@ const Register = () => {
               />
             </div>
 
-            {/* Vendor Role Selection */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '15px 0' }}>
               <input 
                 type="checkbox" 
@@ -172,7 +171,6 @@ const Register = () => {
 
       <div className="auth-image-side party-aesthetic"></div>
 
-      {/* Terms and Conditions Modal Popup */}
       {showTermsModal && (
         <div style={modalStyles.overlay}>
           <div style={modalStyles.modal}>
@@ -185,7 +183,7 @@ const Register = () => {
             <div style={modalStyles.body}>
               <p><strong>1. Acceptance of Terms</strong><br />By creating an account and accessing EventEase, you agree to comply with and be bound by these terms and conditions.</p>
               <p><strong>2. User Accounts & Security</strong><br />You are responsible for maintaining the confidentiality of your password and account credentials. All activities under your account are your responsibility.</p>
-              <p><strong>3. Vendor & Client Bookings</strong><br />EventEase acts as a platform connecting event clients with independent vendors. We facilitate scheduling, communications, and secure payment processing (via PayMongo sandbox/live environments).</p>
+              <p><strong>3. Vendor & Client Bookings</strong><br />EventEase acts as a platform connecting event clients with independent vendors. We facilitate scheduling, communications, and secure payment processing.</p>
               <p><strong>4. Privacy Policy</strong><br />Your personal data, contact information, and event data are securely stored and handled in accordance with data privacy guidelines.</p>
             </div>
             <div style={modalStyles.footer}>

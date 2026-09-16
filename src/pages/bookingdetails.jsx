@@ -9,12 +9,12 @@ const DeleteConfirmationModal = ({ isOpen, onCancel, onConfirm }) => {
   return (
     <div style={styles.modalOverlay}>
       <div style={styles.modalContent}>
-        <div style={{ fontSize: '50px', marginBottom: '15px' }}>⚠️</div>
-        <h2 style={{ color: '#1a1a1a', fontSize: '1.5rem', fontWeight: '900', letterSpacing: '-1px' }}>Cancel Event?</h2>
-        <p style={{ color: '#666', fontSize: '0.95rem', marginBottom: '25px', lineHeight: '1.5' }}>
+        <div style={{ fontSize: '50px', marginBottom: '16px' }}>⚠️</div>
+        <h2 style={{ color: '#0f172a', fontSize: '1.75rem', fontWeight: '900', letterSpacing: '-1px', marginBottom: '10px' }}>Cancel Event?</h2>
+        <p style={{ color: '#64748b', fontSize: '0.95rem', marginBottom: '25px', lineHeight: '1.6', fontWeight: '500' }}>
           This will permanently remove <strong>booking records</strong> and notify any assigned vendors. This action cannot be undone.
         </p>
-        <div style={{ display: 'flex', gap: '15px' }}>
+        <div style={{ display: 'flex', gap: '12px' }}>
           <button onClick={onCancel} style={styles.modalCancelBtn}>No, Keep it</button>
           <button onClick={onConfirm} style={styles.modalDeleteBtn}>Yes, Cancel Event</button>
         </div>
@@ -38,15 +38,11 @@ const BookingDetails = () => {
 
   useEffect(() => {
     const fetchEventDetails = async () => {
-      const token = localStorage.getItem('token');
       const cleanId = getCleanId();
-
       if (!cleanId) return navigate('/live-events');
 
       try {
-        const res = await axios.get(`http://127.0.0.1:8000/api/bookings/${cleanId}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const res = await api.get(`/bookings/${cleanId}`);
         setEvent(res.data.data || res.data);
       } catch (err) {
         console.error("Error fetching details:", err);
@@ -69,13 +65,10 @@ const BookingDetails = () => {
         return;
     }
 
-    const token = localStorage.getItem('token');
     const cleanId = getCleanId();
     
     try {
-      await axios.delete(`http://127.0.0.1:8000/api/bookings/${cleanId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.delete(`/bookings/${cleanId}`);
       
       // Navigate back based on role
       if (userRole === 'admin') {
@@ -94,7 +87,6 @@ const BookingDetails = () => {
   if (!event) return <div style={styles.loadingState}>Event not found.</div>;
 
   // Logic check for locking the UI
-  // LOCKED if Paid AND NOT Admin
   const isPaid = event.payment_status?.toLowerCase() === 'paid';
   const isLocked = isPaid && userRole !== 'admin';
   const isAdminOverride = isPaid && userRole === 'admin';
@@ -122,22 +114,22 @@ const BookingDetails = () => {
 
           {/* Details Grid */}
           <div style={styles.gridSection}>
-            <DetailBlock label="Hired Service" icon={<ShieldCheck size={18} color="#000"/>} 
+            <DetailBlock label="Hired Service" icon={<ShieldCheck size={18} color="#2563eb"/>} 
               value={event.service?.business_name || event.service?.name || 'Awaiting Vendor'} />
             
-            <DetailBlock label="Venue / Location" icon={<MapPin size={18} color="#000"/>} 
+            <DetailBlock label="Venue / Location" icon={<MapPin size={18} color="#2563eb"/>} 
               value={event.location} />
             
-            <DetailBlock label="Event Date" icon={<Calendar size={18} color="#000"/>} 
+            <DetailBlock label="Event Date" icon={<Calendar size={18} color="#2563eb"/>} 
               value={event.event_date ? new Date(event.event_date).toDateString() : 'TBD'} />
             
-            <DetailBlock label="Duration" icon={<Clock size={18} color="#000"/>} 
+            <DetailBlock label="Duration" icon={<Clock size={18} color="#2563eb"/>} 
               value={event.end_time ? `Until ${event.end_time}` : 'Full Day Event'} />
 
-            <DetailBlock label="Guest Count" icon={<Users size={18} color="#000"/>} 
+            <DetailBlock label="Guest Count" icon={<Users size={18} color="#2563eb"/>} 
               value={`${event.guest_count || 0} Expected Guests`} />
 
-            <DetailBlock label="Financial Allocation" icon={<CreditCard size={18} color="#000"/>} 
+            <DetailBlock label="Financial Allocation" icon={<CreditCard size={18} color="#059669"/>} 
               value={`₱${parseFloat(event.budget || 0).toLocaleString()}`} />
           </div>
 
@@ -162,7 +154,7 @@ const BookingDetails = () => {
               </>
             ) : (
               <div style={styles.lockedNotice}>
-                <Lock size={20} /> 
+                <Lock size={20} color="#64748b" /> 
                 <span>This event is secured and fully paid. Planning is now finalized.</span>
               </div>
             )}
@@ -192,42 +184,40 @@ const DetailBlock = ({ label, value, icon }) => (
 
 // --- STYLES ---
 const styles = {
-  pageWrapper: { backgroundColor: '#ffffff', minHeight: '100vh', padding: '60px 20px', fontFamily: "'Inter', sans-serif" },
+  pageWrapper: { backgroundColor: '#f8fafc', minHeight: '100vh', padding: '50px 20px', fontFamily: "'Inter', sans-serif" },
   container: { maxWidth: '850px', margin: '0 auto' },
-  loadingState: { padding: '100px', textAlign: 'center', fontWeight: '800', color: '#000', letterSpacing: '-1px', fontSize: '1.5rem' },
-  backBtn: { background: 'none', border: 'none', color: '#888', fontWeight: '700', cursor: 'pointer', marginBottom: '30px', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.9rem' },
-  card: { background: 'white', padding: '50px', borderRadius: '35px', border: '1px solid #f0f0f0', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.05)' },
-  header: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '45px', borderBottom: '1px solid #f8f8f8', paddingBottom: '30px' },
-  title: { fontSize: '2.8rem', fontWeight: '900', margin: '10px 0 5px 0', color: '#000', letterSpacing: '-2px' },
-  categoryBadge: { background: '#000', color: '#fff', padding: '6px 16px', borderRadius: '12px', fontSize: '0.7rem', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '1px' },
-  idLabel: { color: '#ccc', fontWeight: '800', fontSize: '0.8rem' },
-  statusGroup: { display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'flex-end' },
-  gridSection: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px' },
-  detailBlock: { display: 'flex', flexDirection: 'column', gap: '8px' },
-  detailLabel: { color: '#aaa', fontSize: '0.7rem', textTransform: 'uppercase', fontWeight: '900', letterSpacing: '1.5px' },
-  detailValueRow: { display: 'flex', alignItems: 'center', gap: '12px' },
-  detailValue: { fontSize: '1.1rem', color: '#000', fontWeight: '800' },
-  footer: { display: 'flex', flexWrap: 'wrap', gap: '20px', marginTop: '60px', borderTop: '1px solid #f8f8f8', paddingTop: '40px' },
-  adminBanner: { width: '100%', background: '#fffbeb', color: '#92400e', padding: '15px 25px', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '12px', border: '1px solid #fef3c7', fontSize: '0.9rem', marginBottom: '10px' },
-  primaryBtn: { flex: 2, padding: '20px', background: '#000', color: 'white', border: 'none', borderRadius: '20px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', fontSize: '1rem' },
-  secondaryBtn: { flex: 1, padding: '20px', background: '#fff', color: '#ff4d4d', border: '1px solid #ffebeb', borderRadius: '20px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' },
-  lockedNotice: { flex: 1, padding: '25px', background: '#f8f9fa', color: '#666', borderRadius: '25px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '15px', fontSize: '0.95rem', fontWeight: '600', border: '1px solid #eee' },
+  loadingState: { padding: '100px', textAlign: 'center', fontWeight: '800', color: '#0f172a', letterSpacing: '-1px', fontSize: '1.25rem' },
+  backBtn: { background: 'none', border: 'none', color: '#64748b', fontWeight: '800', cursor: 'pointer', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem' },
+  card: { background: '#ffffff', padding: '40px', borderRadius: '28px', border: '1px solid #e2e8f0', boxShadow: '0 10px 30px -5px rgba(0, 0, 0, 0.04)' },
+  header: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '35px', borderBottom: '1px solid #f1f5f9', paddingBottom: '25px', flexWrap: 'wrap', gap: '20px' },
+  title: { fontSize: '2.2rem', fontWeight: '900', margin: '8px 0 4px 0', color: '#0f172a', letterSpacing: '-1.5px' },
+  categoryBadge: { background: '#0f172a', color: '#fff', padding: '5px 14px', borderRadius: '8px', fontSize: '0.7rem', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.5px' },
+  idLabel: { color: '#94a3b8', fontWeight: '800', fontSize: '0.75rem', marginTop: '4px' },
+  statusGroup: { display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' },
+  gridSection: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '30px' },
+  detailBlock: { display: 'flex', flexDirection: 'column', gap: '6px' },
+  detailLabel: { color: '#64748b', fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: '900', letterSpacing: '0.5px' },
+  detailValueRow: { display: 'flex', alignItems: 'center', gap: '10px' },
+  detailValue: { fontSize: '1.05rem', color: '#0f172a', fontWeight: '800' },
+  footer: { display: 'flex', flexWrap: 'wrap', gap: '16px', marginTop: '45px', borderTop: '1px solid #f1f5f9', paddingTop: '30px' },
+  adminBanner: { width: '100%', background: '#fffbeb', color: '#92400e', padding: '14px 20px', borderRadius: '14px', display: 'flex', alignItems: 'center', gap: '10px', border: '1px solid #fef3c7', fontSize: '0.9rem', marginBottom: '8px', fontWeight: '600' },
+  primaryBtn: { flex: 2, padding: '16px', background: '#0f172a', color: 'white', border: 'none', borderRadius: '14px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', fontSize: '0.95rem', boxShadow: '0 4px 14px rgba(15, 23, 42, 0.3)' },
+  secondaryBtn: { flex: 1, padding: '16px', background: '#fff', color: '#ef4444', border: '1px solid #fee2e2', borderRadius: '14px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '0.95rem' },
+  lockedNotice: { flex: 1, padding: '20px', background: '#f8fafc', color: '#475569', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', fontSize: '0.9rem', fontWeight: '700', border: '1px solid #e2e8f0' },
   statusIndicator: (status) => ({
-    padding: '8px 18px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: '900', textTransform: 'uppercase',
-    background: status === 'pending' ? '#fff9db' : '#000',
-    color: status === 'pending' ? '#f08c00' : '#fff',
-    border: status === 'pending' ? '1px solid #fff3bf' : 'none'
+    padding: '6px 14px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: '900', textTransform: 'uppercase',
+    background: status === 'pending' ? '#fef3c7' : '#f1f5f9',
+    color: status === 'pending' ? '#d97706' : '#0f172a'
   }),
   paymentIndicator: (pay) => ({
-    padding: '8px 18px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: '900', textTransform: 'uppercase',
-    background: pay === 'Paid' ? '#ebfbee' : '#fff0f0',
-    color: pay === 'Paid' ? '#2f9e44' : '#e03131',
-    border: `1px solid ${pay === 'Paid' ? '#d3f9d8' : '#ffc9c9'}`
+    padding: '6px 14px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: '900', textTransform: 'uppercase',
+    background: pay === 'Paid' ? '#d1fae5' : '#fee2e2',
+    color: pay === 'Paid' ? '#059669' : '#ef4444'
   }),
-  modalOverlay: { position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, backdropFilter: 'blur(10px)' },
-  modalContent: { background: 'white', padding: '50px', borderRadius: '40px', textAlign: 'center', maxWidth: '450px', boxShadow: '0 40px 100px rgba(0,0,0,0.2)' },
-  modalCancelBtn: { flex: 1, padding: '18px', borderRadius: '18px', border: 'none', background: '#f5f5f7', cursor: 'pointer', fontWeight: '900', color: '#000' },
-  modalDeleteBtn: { flex: 1, padding: '18px', borderRadius: '18px', border: 'none', background: '#000', color: 'white', cursor: 'pointer', fontWeight: '900' }
+  modalOverlay: { position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(15, 23, 42, 0.85)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, backdropFilter: 'blur(10px)' },
+  modalContent: { background: '#ffffff', padding: '40px', borderRadius: '28px', textAlign: 'center', maxWidth: '420px', width: '90%', boxShadow: '0 25px 50px rgba(0,0,0,0.25)', border: '1px solid #e2e8f0' },
+  modalCancelBtn: { flex: 1, padding: '14px', borderRadius: '14px', border: '1px solid #cbd5e1', background: '#f1f5f9', cursor: 'pointer', fontWeight: '800', color: '#475569' },
+  modalDeleteBtn: { flex: 1, padding: '14px', borderRadius: '14px', border: 'none', background: '#ef4444', color: 'white', cursor: 'pointer', fontWeight: '900', boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)' }
 };
 
 export default BookingDetails;

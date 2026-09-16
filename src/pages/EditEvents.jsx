@@ -21,10 +21,7 @@ const EditEvents = () => {
 
   const fetchEvent = useCallback(async () => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await axios.get(`http://127.0.0.1:8000/api/bookings/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await api.get(`/bookings/${id}`);
       const data = res.data.data;
       
       setFormData({
@@ -32,11 +29,10 @@ const EditEvents = () => {
         category: data.category || '',
         location: data.location || '',
         
-        // FIX 1: Ensure we only get YYYY-MM-DD for the date input
+        // Ensure we only get YYYY-MM-DD for the date input
         event_date: data.event_date ? data.event_date.split(' ')[0] : '', 
         
-        // FIX 2: Explicitly map start_time and end_time, stripping seconds
-        // This prevents "2026-" from entering the time field
+        // Explicitly map start_time and end_time, stripping seconds
         start_time: data.start_time ? data.start_time.substring(0, 5) : '',
         end_time: data.end_time ? data.end_time.substring(0, 5) : '',
         
@@ -64,14 +60,10 @@ const EditEvents = () => {
     e.preventDefault();
     const loadToast = toast.loading("Updating your event...");
     try {
-      const token = localStorage.getItem('token');
-      await axios.put(`http://127.0.0.1:8000/api/bookings/${id}`, formData, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.put(`/bookings/${id}`, formData);
       toast.success("Event updated successfully!", { id: loadToast });
       navigate(`/booking-details/${id}`);
     } catch (err) {
-      // FIX 3: Detailed error feedback for 422 validation issues
       const errMsg = err.response?.data?.message || "Update failed.";
       toast.error(errMsg, { id: loadToast });
     }
@@ -81,10 +73,7 @@ const EditEvents = () => {
     if (window.confirm("Are you sure you want to delete this event? This cannot be undone.")) {
       const loadToast = toast.loading("Deleting event...");
       try {
-        const token = localStorage.getItem('token');
-        await axios.delete(`http://127.0.0.1:8000/api/bookings/${id}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        await api.delete(`/bookings/${id}`);
         toast.success("Event deleted.", { id: loadToast });
         navigate('/live-events');
       } catch (err) {
@@ -98,7 +87,7 @@ const EditEvents = () => {
     card: { backgroundColor: '#ffffff', padding: '50px', borderRadius: '32px', border: '1px solid #f0f0f5', maxWidth: '850px', margin: '0 auto', boxShadow: '0 20px 50px rgba(0,0,0,0.03)' },
     inputGroup: { marginBottom: '10px' },
     label: { display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.7rem', fontWeight: '800', color: '#b0b0b0', textTransform: 'uppercase', marginBottom: '10px', letterSpacing: '1px' },
-    input: { width: '100%', padding: '16px 20px', borderRadius: '16px', border: '1px solid #f0f0f5', backgroundColor: '#f9f9fb', fontSize: '1rem', fontWeight: '500', outline: 'none', color: '#1a1a1a', transition: 'all 0.2s ease' },
+    input: { width: '100%', padding: '16px 20px', borderRadius: '16px', border: '1px solid #f0f0f5', backgroundColor: '#f9f9fb', fontSize: '1rem', fontWeight: '500', outline: 'none', color: '#1a1a1a', transition: 'all 0.2s ease', boxSizing: 'border-box' },
     btnContainer: { display: 'flex', gap: '20px', marginTop: '40px' },
     submitBtn: { flex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', padding: '18px', background: '#1a1a1a', color: 'white', border: 'none', borderRadius: '18px', fontWeight: '700', fontSize: '1rem', cursor: 'pointer', boxShadow: '0 10px 20px rgba(0,0,0,0.1)', transition: 'transform 0.1s ease' },
     deleteBtn: { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', padding: '18px', background: '#fff', color: '#ff4d4d', border: '1px solid #ffccd1', borderRadius: '18px', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s ease' }

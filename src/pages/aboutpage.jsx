@@ -1,96 +1,194 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ShieldCheck, Database, Layout, Users, Sparkles, ArrowRight } from 'lucide-react';
 
 const AboutPage = () => {
+  const navigate = useNavigate();
+
   const teamMembers = [
     { 
       name: "Laquisha Licuanan", 
-      role: "Team Leader & Frontend Developer", 
-      bio: "Oversees project direction and leads the React-based development of the EventEase user interface.", 
+      role: "Team Leader & Documentation", 
+      bio: "Oversees project direction, research methodology, and leads the technical documentation and reporting for the capstone study.", 
+      initials: "LL"
     },
     { 
       name: "Andria Sotelo", 
-      role: "Frontend Developer", 
-      bio: "Focuses on the implementation of Tailwind CSS and ensuring responsive design for mobile and web views.", 
+      role: "Documentation & Frontend Developer", 
+      bio: "Contributes to project documentation while assisting with UI/UX styling and responsive design implementation.", 
+      initials: "AS"
     },
     { 
       name: "Ynia Morales", 
-      role: "Backend Developer", 
-      bio: "Specializes in relational database architecture using MariaDB 10.4 and managing data integrity via HeidiSQL.", 
+      role: "Frontend Developer & Documentation", 
+      bio: "Specializes in React-based frontend component architecture, user interface workflows, and technical writing.", 
+      initials: "YM"
     },
     { 
       name: "Karl Abonita", 
-      role: "Backend Developer", 
-      bio: "Handles server-side logic and the integration of local Manila-based venue data into the system.", 
+      role: "Full-Stack Developer (Frontend & Backend)", 
+      bio: "Handles comprehensive system architecture, server-side Laravel logic, API integration, and frontend development.", 
+      initials: "KA"
     }
   ];
 
   const styles = {
-    container: { backgroundColor: '#fcfcfd', minHeight: '100vh', fontFamily: "'Inter', sans-serif", color: '#1a1a1a' },
-    heroSection: { display: 'flex', backgroundColor: '#ffffff', padding: '60px 5%', alignItems: 'center', gap: '40px', flexWrap: 'wrap', borderBottom: '1px solid #eee' },
-    heroTextSide: { flex: '1.2', minWidth: '300px' },
-    heroImageSide: { flex: '0.8', minWidth: '300px', height: '350px', backgroundColor: '#f4f1ea', borderRadius: '24px', backgroundImage: 'url("https://images.unsplash.com/photo-1511578314322-379afb476865?q=80&w=2069&auto=format&fit=crop")', backgroundSize: 'cover', backgroundPosition: 'center', boxShadow: '0 10px 30px rgba(107, 99, 130, 0.1)' },
-    philosophySection: { padding: '80px 5%', textAlign: 'center' },
-    grid3: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '25px', marginTop: '40px' },
-    phiCard: { padding: '40px', backgroundColor: '#ffffff', borderRadius: '20px', textAlign: 'left', border: '1px solid #f0f0f0', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' },
-    teamSection: { padding: '80px 5%', backgroundColor: '#fcfcfd' },
-    teamGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginTop: '40px' },
-    teamCard: { backgroundColor: '#fff', borderRadius: '16px', overflow: 'hidden', border: '1px solid #eee', transition: 'transform 0.2s ease' },
-    memberImg: { height: '280px', backgroundColor: '#6b6382', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '3rem', opacity: 0.8 },
-    memberInfo: { padding: '20px', backgroundColor: '#ffffff' } 
+    container: { backgroundColor: '#f8fafc', minHeight: '100vh', fontFamily: "'Inter', sans-serif", color: '#0f172a' },
+    heroSection: { 
+      background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', 
+      padding: '70px 8%', 
+      color: '#fff',
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      flexWrap: 'wrap',
+      gap: '40px',
+      boxShadow: '0 10px 30px rgba(0,0,0,0.1)'
+    },
+    heroTextSide: { flex: '1.2', minWidth: '320px' },
+    heroImageSide: { 
+      flex: '0.9', 
+      minWidth: '320px', 
+      height: '340px', 
+      borderRadius: '24px', 
+      backgroundImage: 'url("https://images.unsplash.com/photo-1511578314322-379afb476865?q=80&w=2069&auto=format&fit=crop")', 
+      backgroundSize: 'cover', 
+      backgroundPosition: 'center', 
+      boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3)',
+      border: '4px solid rgba(255,255,255,0.1)'
+    },
+    sectionPadding: { padding: '90px 8%' },
+    grid3: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px', marginTop: '40px' },
+    phiCard: { 
+      padding: '35px', 
+      backgroundColor: '#ffffff', 
+      borderRadius: '24px', 
+      textAlign: 'left', 
+      border: '1px solid #e2e8f0', 
+      boxShadow: '0 10px 25px -5px rgba(0,0,0,0.03)',
+      transition: 'transform 0.2s ease',
+    },
+    teamGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '25px', marginTop: '45px' },
+    teamCard: { 
+      backgroundColor: '#fff', 
+      borderRadius: '22px', 
+      overflow: 'hidden', 
+      border: '1px solid #e2e8f0', 
+      boxShadow: '0 10px 25px -5px rgba(0,0,0,0.03)',
+      display: 'flex',
+      flexDirection: 'column'
+    },
+    memberAvatar: { 
+      height: '140px', 
+      background: 'linear-gradient(135deg, #1e293b 0%, #3b82f6 100%)', 
+      width: '100%', 
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'center', 
+      color: 'white', 
+      fontSize: '2.5rem', 
+      fontWeight: '900',
+      letterSpacing: '1px'
+    },
+    memberInfo: { padding: '24px', backgroundColor: '#ffffff', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' } 
   };
 
   return (
     <div style={styles.container}>
-      {/* SECTION 1: HERO */}
+      
+      {/* SECTION 1: HERO BANNER */}
       <section style={styles.heroSection}>
         <div style={styles.heroTextSide}>
-          <span style={{ color: '#6b6382', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '1.5px', fontSize: '0.9rem' }}>Capstone Research Project</span>
-          <h1 style={{ fontSize: '3rem', margin: '15px 0', color: '#1a1a1a', fontWeight: '800' }}>EventEase: A Localized Booking Solution</h1>
-          <p style={{ fontSize: '1.1rem', color: '#555', lineHeight: '1.7' }}>
-            Developed as a specialized capstone study, EventEase streamlines venue selection and event logistics within Metro Manila.
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+            <span style={{ background: '#3b82f6', color: '#fff', fontSize: '0.75rem', fontWeight: '900', padding: '5px 12px', borderRadius: '999px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              Capstone Research Project
+            </span>
+            <span style={{ color: '#94a3b8', fontSize: '0.85rem' }}>• College of Computing</span>
+          </div>
+          <h1 style={{ fontSize: '2.8rem', margin: '0 0 15px 0', color: '#fff', fontWeight: '900', letterSpacing: '-1px' }}>
+            EventEase: A Localized Booking & Bundle Solution
+          </h1>
+          <p style={{ fontSize: '1.05rem', color: '#94a3b8', lineHeight: '1.7', margin: '0 0 30px 0' }}>
+            Developed as an advanced capstone study, EventEase streamlines comprehensive event planning, real-time budgeting, and vendor coordination within Metro Manila.
           </p>
+          <button 
+            onClick={() => navigate('/main-dashboard')}
+            style={{ background: '#3b82f6', color: '#fff', border: 'none', padding: '14px 28px', borderRadius: '14px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 14px rgba(59, 130, 246, 0.4)' }}
+          >
+            Explore Dashboard <ArrowRight size={18} />
+          </button>
         </div>
         <div style={styles.heroImageSide}></div>
       </section>
 
-      {/* SECTION 2: RESEARCH OBJECTIVES */}
-      <section style={styles.philosophySection}>
-        <h2 style={{ fontSize: '2.2rem', fontWeight: '700' }}>Research Framework</h2>
+      {/* SECTION 2: RESEARCH FRAMEWORK / OBJECTIVES */}
+      <section style={styles.sectionPadding}>
+        <div style={{ textAlign: 'center', maxWidth: '700px', margin: '0 auto' }}>
+          <h2 style={{ fontSize: '2.2rem', fontWeight: '900', color: '#0f172a', letterSpacing: '-0.5px', margin: '0 0 10px 0' }}>Research Framework</h2>
+          <p style={{ color: '#64748b', fontSize: '1rem' }}>Core technological and architectural pillars driving the EventEase platform.</p>
+        </div>
+
         <div style={styles.grid3}>
           <div style={styles.phiCard}>
-            <div style={{ color: '#6b6382', fontSize: '1.8rem', marginBottom: '15px' }}>●</div>
-            <h3 style={{ marginBottom: '10px' }}>UX Optimization</h3>
-            <p style={{ color: '#666', fontSize: '0.95rem' }}>Analyzing user conversion through a streamlined React dashboard.</p>
+            <div style={{ background: '#dbeafe', padding: '12px', borderRadius: '14px', width: 'fit-content', marginBottom: '16px' }}>
+              <Layout size={24} color="#2563eb" />
+            </div>
+            <h3 style={{ margin: '0 0 8px 0', fontSize: '1.2rem', fontWeight: '900', color: '#0f172a' }}>UX Optimization</h3>
+            <p style={{ color: '#64748b', fontSize: '0.9rem', lineHeight: '1.6', margin: 0 }}>
+              Analyzing user conversion efficiency through a responsive React dashboard, interactive Bundle Architect, and streamlined checkout workflows.
+            </p>
           </div>
+
           <div style={styles.phiCard}>
-            <div style={{ color: '#6b6382', fontSize: '1.8rem', marginBottom: '15px' }}>●</div>
-            <h3 style={{ marginBottom: '10px' }}>Data Integrity</h3>
-            <p style={{ color: '#666', fontSize: '0.95rem' }}>Verifying high-fidelity venue data within the NCR region.</p>
+            <div style={{ background: '#d1fae5', padding: '12px', borderRadius: '14px', width: 'fit-content', marginBottom: '16px' }}>
+              <ShieldCheck size={24} color="#059669" />
+            </div>
+            <h3 style={{ margin: '0 0 8px 0', fontSize: '1.2rem', fontWeight: '900', color: '#0f172a' }}>Data Integrity</h3>
+            <p style={{ color: '#64748b', fontSize: '0.9rem', lineHeight: '1.6', margin: 0 }}>
+              Verifying high-fidelity vendor data, role-based JWT authentication, and secure transactional validations across NCR regions.
+            </p>
           </div>
+
           <div style={styles.phiCard}>
-            <div style={{ color: '#6b6382', fontSize: '1.8rem', marginBottom: '15px' }}>●</div>
-            <h3 style={{ marginBottom: '10px' }}>Scalability</h3>
-            <p style={{ color: '#666', fontSize: '0.95rem' }}>Testing MariaDB performance under event booking simulations.</p>
+            <div style={{ background: '#fef3c7', padding: '12px', borderRadius: '14px', width: 'fit-content', marginBottom: '16px' }}>
+              <Database size={24} color="#d97706" />
+            </div>
+            <h3 style={{ margin: '0 0 8px 0', fontSize: '1.2rem', fontWeight: '900', color: '#0f172a' }}>Scalability</h3>
+            <p style={{ color: '#64748b', fontSize: '0.9rem', lineHeight: '1.6', margin: 0 }}>
+              Testing robust backend performance under simultaneous multi-vendor booking requests and automated AI budget allocations.
+            </p>
           </div>
         </div>
       </section>
 
-      {/* SECTION 3: THE TEAM */}
-      <section style={styles.teamSection}>
-        <h2 style={{ fontSize: '2.5rem', fontWeight: '900', borderLeft: '5px solid #6b6382', paddingLeft: '20px' }}>MEET THE RESEARCHERS</h2>
+      {/* SECTION 3: MEET THE RESEARCHERS */}
+      <section style={{ ...styles.sectionPadding, backgroundColor: '#f1f5f9', borderTop: '1px solid #e2e8f0', borderBottom: '1px solid #e2e8f0' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '20px' }}>
+          <div>
+            <span style={{ color: '#2563eb', fontWeight: '900', textTransform: 'uppercase', fontSize: '0.8rem', letterSpacing: '1px' }}>Project Team</span>
+            <h2 style={{ fontSize: '2.5rem', fontWeight: '900', color: '#0f172a', margin: '5px 0 0 0', letterSpacing: '-1px' }}>Meet the Researchers</h2>
+          </div>
+          <p style={{ color: '#64748b', fontSize: '0.95rem', maxWidth: '450px', margin: 0 }}>
+            Dedicated IT undergraduate students collaborating to bridge the gap between event planners and local service providers.
+          </p>
+        </div>
+
         <div style={styles.teamGrid}>
           {teamMembers.map((member, i) => (
             <div key={i} style={styles.teamCard}>
-              <div style={styles.memberImg}>{member.name.charAt(0)}</div>
+              <div style={styles.memberAvatar}>{member.initials}</div>
               <div style={styles.memberInfo}>
-                <h3 style={{ margin: '0 0 5px 0', fontSize: '1.2rem' }}>{member.name}</h3>
-                <p style={{ color: '#6b6382', fontWeight: '700', fontSize: '0.85rem' }}>{member.role}</p>
-                <p style={{ fontSize: '0.85rem', color: '#555' }}>{member.bio}</p>
+                <div>
+                  <h3 style={{ margin: '0 0 4px 0', fontSize: '1.1rem', fontWeight: '900', color: '#0f172a' }}>{member.name}</h3>
+                  <p style={{ color: '#3b82f6', fontWeight: '800', fontSize: '0.8rem', margin: '0 0 12px 0', textTransform: 'uppercase' }}>{member.role}</p>
+                  <p style={{ fontSize: '0.85rem', color: '#64748b', lineHeight: '1.5', margin: 0 }}>{member.bio}</p>
+                </div>
               </div>
             </div>
           ))}
         </div>
       </section>
+
     </div>
   );
 };

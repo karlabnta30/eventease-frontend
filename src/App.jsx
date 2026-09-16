@@ -1,5 +1,5 @@
-import React from 'react';
-import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Routes, Route, useLocation, Navigate, Outlet, useNavigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast'; 
 import './auth.css'; 
 import Navbar from './components/Navbar';
@@ -33,12 +33,66 @@ import VendorDashboard from './pages/VendorDashboard';
 import VendorList from './pages/VendorList';
 import AddService from './pages/AddService'; 
 
+// --- PROTECTED ROUTE WRAPPER WITH REAL-TIME CROSS-TAB SYNC ---
+const ProtectedRoute = () => {
+  const navigate = useNavigate();
+  const token = localStorage.getItem('token');
+
+  useEffect(() => {
+    if (!token) {
+      navigate('/login', { replace: true });
+      return;
+    }
+
+    // Listens for changes to localStorage across all tabs instantly
+    const handleStorageChange = (event) => {
+      if (event.key === 'token' && !event.newValue) {
+        localStorage.clear();
+        navigate('/login', { replace: true });
+      }
+    };
+
+    // Also double-checks when user brings the tab back into focus / pastes URL
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        const currentToken = localStorage.getItem('token');
+        if (!currentToken) {
+          localStorage.clear();
+          navigate('/login', { replace: true });
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [navigate, token]);
+
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return <Outlet />;
+};
+
 function App() {
   const location = useLocation();
   const authPaths = ['/login', '/register', '/verify-otp', '/forgot-password']; 
   const isAuthPage = authPaths.includes(location.pathname);
   const isLandingView = location.pathname === '/';
+  
+  // Dynamic role getter to prevent stale role caching upon login/logout switches
   const userRole = localStorage.getItem('userRole');
+
+  const getDefaultDashboard = () => {
+    if (userRole === 'admin') return "/admin-dashboard";
+    if (userRole === 'vendor') return "/vendor-dashboard";
+    return "/main-dashboard";
+  };
 
   return (
     <>
@@ -48,54 +102,60 @@ function App() {
       {!isAuthPage && !isLandingView ? (
         <Sidebar>
           <Routes>
-            {/* SHARED ROUTES */}
-            <Route path="/live-events" element={<LiveEvents />} />
-            <Route path="/profile" element={<UserProfile />} /> 
-            <Route path="/booking-details/:id" element={<BookingDetails />} />
-            <Route path="/notifications" element={<NotificationPage />} />
-            <Route path="/messages" element={<Messages />} />
-            <Route path="/bundle-details/:id" element={<BundleDetails />} />
-            <Route path="/payment-success" element={<PaymentSuccess />} />
-            
-            {/* CLIENT ROUTES */}
-            <Route 
-              path="/main-dashboard" 
-              element={userRole === 'client' ? <MainDashboard /> : <Navigate to="/vendor-dashboard" />} 
-            />
-            <Route path="/vendors/:id" element={<VendorProfile />} /> 
-            <Route path="/create-event" element={<CreateEvent />} />
-            <Route path="/vendor-list" element={<VendorList />} />
-            <Route path="/edit-event/:id" element={<EditEvents />} />
-            <Route path="/contact" element={<ContactPage />} />
-            <Route path="/about" element={<AboutPage />} /> 
-            <Route path="/checkout" element={<Checkout />} />
-            <Route path="/receipt" element={<Receipt />} />
+            {/* WRAP ALL PRIVATE/DASHBOARD ROUTES INSIDE PROTECTED ROUTE */}
+            <Route element={<ProtectedRoute />}>
+              {/* FIXED /home ROUTE BUG */}
+              <Route path="/home" element={<Navigate to={getDefaultDashboard()} replace />} />
 
-            {/* VENDOR ROUTES */}
-            <Route 
-              path="/vendor-dashboard" 
-              element={userRole === 'vendor' ? <VendorDashboard /> : <Navigate to="/main-dashboard" />} 
-            />
-            <Route 
-              path="/vendor-services" 
-              element={userRole === 'vendor' ? <VendorList /> : <Navigate to="/main-dashboard" />} 
-            />
-            <Route 
-              path="/add-service" 
-              element={userRole === 'vendor' ? <AddService /> : <Navigate to="/main-dashboard" />} 
-            />
+              {/* SHARED ROUTES */}
+              <Route path="/live-events" element={<LiveEvents />} />
+              <Route path="/profile" element={<UserProfile />} /> 
+              <Route path="/booking-details/:id" element={<BookingDetails />} />
+              <Route path="/notifications" element={<NotificationPage />} />
+              <Route path="/messages" element={<Messages />} />
+              <Route path="/bundle-details/:id" element={<BundleDetails />} />
+              <Route path="/payment-success" element={<PaymentSuccess />} />
+              
+              {/* CLIENT ROUTES */}
+              <Route 
+                path="/main-dashboard" 
+                element={userRole === 'client' ? <MainDashboard /> : <Navigate to={getDefaultDashboard()} />} 
+              />
+              <Route path="/vendors/:id" element={<VendorProfile />} /> 
+              <Route path="/create-event" element={<CreateEvent />} />
+              <Route path="/vendor-list" element={<VendorList />} />
+              <Route path="/edit-event/:id" element={<EditEvents />} />
+              <Route path="/contact" element={<ContactPage />} />
+              <Route path="/about" element={<AboutPage />} /> 
+              <Route path="/checkout" element={<Checkout />} />
+              <Route path="/receipt" element={<Receipt />} />
 
-            {/* ADMIN ROUTES */}
-            <Route 
-              path="/admin-dashboard" 
-              element={userRole === 'admin' ? <AdminDashboard /> : <Navigate to="/main-dashboard" />} 
-            />
-            <Route 
-              path="/admin-feedback" 
-              element={userRole === 'admin' ? <AdminFeedback /> : <Navigate to="/main-dashboard" />} 
-            />
+              {/* VENDOR ROUTES */}
+              <Route 
+                path="/vendor-dashboard" 
+                element={userRole === 'vendor' ? <VendorDashboard /> : <Navigate to={getDefaultDashboard()} />} 
+              />
+              <Route 
+                path="/vendor-services" 
+                element={userRole === 'vendor' ? <VendorList /> : <Navigate to={getDefaultDashboard()} />} 
+              />
+              <Route 
+                path="/add-service" 
+                element={userRole === 'vendor' ? <AddService /> : <Navigate to={getDefaultDashboard()} />} 
+              />
 
-            <Route path="*" element={<Navigate to={userRole === 'admin' ? "/admin-dashboard" : (userRole === 'vendor' ? "/vendor-dashboard" : "/main-dashboard")} />} />
+              {/* ADMIN ROUTES */}
+              <Route 
+                path="/admin-dashboard" 
+                element={userRole === 'admin' ? <AdminDashboard /> : <Navigate to={getDefaultDashboard()} />} 
+              />
+              <Route 
+                path="/admin-feedback" 
+                element={userRole === 'admin' ? <AdminFeedback /> : <Navigate to={getDefaultDashboard()} />} 
+              />
+
+              <Route path="*" element={<Navigate to={getDefaultDashboard()} replace />} />
+            </Route>
           </Routes>
         </Sidebar>
       ) : (
@@ -105,7 +165,7 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/verify-otp" element={<VerifyOtp />} /> 
           <Route path="/forgot-password" element={<ForgotPassword />} /> 
-          <Route path="*" element={<Navigate to="/" />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       )}
     </>

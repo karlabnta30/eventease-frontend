@@ -14,34 +14,35 @@ const SuccessModal = ({ isOpen, onClose, eventId, currentBudget }) => {
   return (
     <div style={{
       position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.8)', display: 'flex',
+      backgroundColor: 'rgba(15, 23, 42, 0.85)', display: 'flex',
       alignItems: 'center', justifyContent: 'center', zIndex: 2000,
       backdropFilter: 'blur(12px)' 
     }}>
       <div style={{
-        background: 'white', padding: '50px', borderRadius: '32px',
-        textAlign: 'center', maxWidth: '450px', boxShadow: '0 25px 50px rgba(0,0,0,0.3)',
-        border: '1px solid #eee'
+        background: '#ffffff', padding: '45px', borderRadius: '32px',
+        textAlign: 'center', maxWidth: '450px', width: '90%',
+        boxShadow: '0 25px 50px rgba(0,0,0,0.25)', border: '1px solid #e2e8f0'
       }}>
-        <div style={{ fontSize: '70px', marginBottom: '20px' }}>🎊</div>
-        <h2 style={{ color: '#000', fontSize: '2.2rem', fontWeight: '900', letterSpacing: '-1.5px', marginBottom: '15px' }}>Plan Initiated!</h2>
-        <p style={{ color: '#666', lineHeight: '1.6', marginBottom: '35px', fontWeight: '500' }}>
+        <div style={{ fontSize: '60px', marginBottom: '16px' }}>🎊</div>
+        <h2 style={{ color: '#0f172a', fontSize: '2rem', fontWeight: '900', letterSpacing: '-1px', marginBottom: '12px' }}>Plan Initiated!</h2>
+        <p style={{ color: '#64748b', lineHeight: '1.6', marginBottom: '30px', fontWeight: '500', fontSize: '0.95rem' }}>
           Your event is now in our system, complete with your signed vendor agreement. Next, let's find the perfect vendors and services to bring your vision to life.
         </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <button 
             onClick={() => navigate(`/vendor-list?event_id=${eventId}&budget=${currentBudget}`)}
             style={{
-              background: '#000', color: 'white', border: 'none',
-              padding: '18px', borderRadius: '16px', fontWeight: '800',
-              cursor: 'pointer', width: '100%', fontSize: '1.1rem'
+              background: '#0f172a', color: 'white', border: 'none',
+              padding: '16px', borderRadius: '14px', fontWeight: '900',
+              cursor: 'pointer', width: '100%', fontSize: '1rem',
+              boxShadow: '0 4px 14px rgba(15, 23, 42, 0.3)'
             }}
           >
             BROWSE VENDORS
           </button>
           <button 
             onClick={onClose}
-            style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontWeight: '700', textDecoration: 'none' }}
+            style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontWeight: '800', fontSize: '0.9rem' }}
           >
             View Event Summary
           </button>
@@ -59,32 +60,32 @@ const ContractModal = ({ isOpen, onClose, onConfirm, vendorTerms, loading }) => 
   return (
     <div style={{
       position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.7)', display: 'flex',
+      backgroundColor: 'rgba(15, 23, 42, 0.85)', display: 'flex',
       alignItems: 'center', justifyContent: 'center', zIndex: 1900,
-      backdropFilter: 'blur(8px)'
+      backdropFilter: 'blur(12px)'
     }}>
       <div style={{
-        background: 'white', padding: '35px', borderRadius: '24px',
-        maxWidth: '500px', width: '90%', boxShadow: '0 25px 50px rgba(0,0,0,0.25)',
+        background: '#ffffff', padding: '40px', borderRadius: '28px',
+        maxWidth: '480px', width: '90%', boxShadow: '0 25px 50px rgba(0,0,0,0.25)',
         border: '1px solid #e2e8f0', fontFamily: "'Inter', sans-serif"
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '15px' }}>
-          <FileText size={22} color="#000" />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+          <FileText size={22} color="#2563eb" />
           <h3 style={{ fontSize: '1.1rem', fontWeight: '900', textTransform: 'uppercase', margin: 0, color: '#0f172a' }}>
             Vendor Contract & Service Agreement
           </h3>
         </div>
 
-        <p style={{ fontSize: '0.85rem', color: '#64748b', maxHeight: '150px', overflowY: 'auto', marginBottom: '20px', background: '#f8fafc', padding: '15px', borderRadius: '14px', border: '1px solid #e2e8f0', lineHeight: '1.6' }}>
+        <p style={{ fontSize: '0.85rem', color: '#64748b', maxHeight: '150px', overflowY: 'auto', marginBottom: '20px', background: '#f8fafc', padding: '16px', borderRadius: '14px', border: '1px solid #e2e8f0', lineHeight: '1.6' }}>
           {vendorTerms || "Standard EventEase Service Agreement applies: 50% downpayment required upon booking confirmation. Cancellation must be requested at least 2 weeks prior to the scheduled event date to be eligible for partial refunds."}
         </p>
 
-        <label style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', fontSize: '0.9rem', fontWeight: '700', cursor: 'pointer', color: '#0f172a', marginBottom: '25px', userSelect: 'none' }}>
+        <label style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', fontSize: '0.85rem', fontWeight: '700', cursor: 'pointer', color: '#334155', marginBottom: '25px', userSelect: 'none' }}>
           <input 
             type="checkbox" 
             checked={agreed} 
             onChange={(e) => setAgreed(e.target.checked)} 
-            style={{ width: '20px', height: '20px', cursor: 'pointer', marginTop: '1px' }}
+            style={{ width: '18px', height: '18px', cursor: 'pointer', marginTop: '1px', accentColor: '#2563eb' }}
           />
           <span>I have read, understood, and agree to the binding service agreement and cancellation policies.</span>
         </label>
@@ -93,7 +94,7 @@ const ContractModal = ({ isOpen, onClose, onConfirm, vendorTerms, loading }) => 
           <button 
             type="button" 
             onClick={onClose} 
-            style={{ flex: 1, padding: '14px', borderRadius: '12px', border: '2px solid #f0f0f0', background: 'white', cursor: 'pointer', fontWeight: '800', color: '#888' }}
+            style={{ flex: 1, padding: '14px', borderRadius: '14px', border: '1px solid #cbd5e1', background: '#f1f5f9', cursor: 'pointer', fontWeight: '800', color: '#475569' }}
           >
             Cancel
           </button>
@@ -102,9 +103,10 @@ const ContractModal = ({ isOpen, onClose, onConfirm, vendorTerms, loading }) => 
             disabled={!agreed || loading}
             onClick={onConfirm} 
             style={{ 
-              flex: 2, padding: '14px', borderRadius: '12px', border: 'none', 
-              background: !agreed ? '#cbd5e1' : '#000', color: 'white', 
-              cursor: !agreed || loading ? 'not-allowed' : 'pointer', fontWeight: '900', fontSize: '1rem' 
+              flex: 2, padding: '14px', borderRadius: '14px', border: 'none', 
+              background: !agreed ? '#cbd5e1' : '#0f172a', color: 'white', 
+              cursor: !agreed || loading ? 'not-allowed' : 'pointer', fontWeight: '900', fontSize: '0.95rem',
+              boxShadow: !agreed ? 'none' : '0 4px 14px rgba(15, 23, 42, 0.3)'
             }}
           >
             {loading ? 'PROCESSING...' : 'AGREE & INITIATE'}
@@ -144,13 +146,10 @@ const BudgetOptimizerWidget = ({ category, pax, budget }) => {
 
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.post('http://127.0.0.1:8000/api/ai/optimize', {
+      const response = await api.post('/ai/optimize', {
         category,
         guest_count: pax,
         total_budget: budget
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
       });
 
       setOptimizationResult(response.data);
@@ -163,34 +162,34 @@ const BudgetOptimizerWidget = ({ category, pax, budget }) => {
   };
 
   return (
-    <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', padding: '20px', borderRadius: '20px', marginBottom: '25px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-        <h4 style={{ margin: 0, fontWeight: '900', display: 'flex', alignItems: 'center', gap: '8px', color: '#0f172a', fontSize: '0.9rem', textTransform: 'uppercase' }}>
-          <Sparkles size={16} color="#2563eb" /> AI Budget Optimizer
+    <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', padding: '24px', borderRadius: '24px', marginBottom: '24px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+        <h4 style={{ margin: 0, fontWeight: '900', display: 'flex', alignItems: 'center', gap: '8px', color: '#0f172a', fontSize: '0.85rem', textTransform: 'uppercase' }}>
+          <Sparkles size={16} color="#3b82f6" /> AI Budget Optimizer
         </h4>
         <button 
           type="button"
           onClick={handleOptimize} 
           disabled={loading}
-          style={{ background: '#000', color: '#fff', border: 'none', padding: '8px 14px', borderRadius: '10px', fontWeight: '800', cursor: 'pointer', fontSize: '0.8rem' }}
+          style={{ background: '#0f172a', color: '#fff', border: 'none', padding: '8px 14px', borderRadius: '10px', fontWeight: '800', cursor: 'pointer', fontSize: '0.75rem', boxShadow: '0 2px 8px rgba(15, 23, 42, 0.2)' }}
         >
           {loading ? 'ANALYZING...' : 'RUN AI OPTIMIZER'}
         </button>
       </div>
 
       {optimizationResult && (
-        <div style={{ marginTop: '12px', background: '#fff', padding: '15px', borderRadius: '14px', border: '1px solid #e2e8f0' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px', fontWeight: '800', fontSize: '0.85rem', color: optimizationResult.status === 'Optimal' ? '#166534' : '#991b1b' }}>
+        <div style={{ marginTop: '14px', background: '#fff', padding: '16px', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px', fontWeight: '900', fontSize: '0.85rem', color: optimizationResult.status === 'Optimal' ? '#166534' : '#991b1b' }}>
             {optimizationResult.status === 'Optimal' ? <CheckCircle size={14} /> : <AlertTriangle size={14} />}
             <span>{optimizationResult.status} Status</span>
           </div>
-          <p style={{ fontSize: '0.8rem', color: '#475569', marginBottom: '10px', lineHeight: '1.4' }}>{optimizationResult.message}</p>
+          <p style={{ fontSize: '0.8rem', color: '#64748b', marginBottom: '12px', lineHeight: '1.5' }}>{optimizationResult.message}</p>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             {optimizationResult.breakdown.map((row, index) => (
               <div key={index} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', padding: '4px 0', borderBottom: '1px solid #f1f5f9' }}>
-                <span style={{ fontWeight: '600', color: '#334155' }}>{row.item} ({row.percentage})</span>
-                <span style={{ fontWeight: '800', color: '#0f172a' }}>₱{row.recommended_amount.toLocaleString()}</span>
+                <span style={{ fontWeight: '700', color: '#475569' }}>{row.item} ({row.percentage})</span>
+                <span style={{ fontWeight: '900', color: '#0f172a' }}>₱{row.recommended_amount.toLocaleString()}</span>
               </div>
             ))}
           </div>
@@ -210,7 +209,7 @@ const CreateEvent = () => {
   const [newEventId, setNewEventId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [vendorTerms, setVendorTerms] = useState("");
-  const [formError, setFormError] = useState(""); // Inline notification error state
+  const [formError, setFormError] = useState("");
 
   const [eventData, setEventData] = useState({
     name: '',
@@ -228,10 +227,7 @@ const CreateEvent = () => {
     if (prefilledServiceId) {
       const fetchServiceTerms = async () => {
         try {
-          const token = localStorage.getItem('token');
-          const res = await axios.get(`http://127.0.0.1:8000/api/vendors/${prefilledServiceId}`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
+          const res = await api.get(`/vendors/${prefilledServiceId}`);
           const service = res.data.data || res.data;
           if (service && service.terms_and_conditions) {
             setVendorTerms(service.terms_and_conditions);
@@ -246,7 +242,7 @@ const CreateEvent = () => {
 
   const handleChange = (field, value) => {
     setEventData(prev => ({ ...prev, [field]: value }));
-    if (formError) setFormError(""); // Clear error on change
+    if (formError) setFormError("");
   };
 
   const handleApplyRecommended = () => {
@@ -256,7 +252,6 @@ const CreateEvent = () => {
     }
   };
 
-  // Step 1: Open contract modal when "INITIATE PLAN" is clicked with guest limit validation
   const handleInitiateClick = () => {
     const token = localStorage.getItem('token');
     if (!token) { navigate('/login'); return; }
@@ -275,10 +270,8 @@ const CreateEvent = () => {
     setIsContractOpen(true);
   };
 
-  // Step 2: Finalize event creation after agreement is checked in modal
   const handleFinalCreateEvent = async () => {
     setLoading(true);
-    const token = localStorage.getItem('token');
 
     const formatMySQLDate = (date) => {
         if (!(date instanceof Date)) return null;
@@ -300,13 +293,7 @@ const CreateEvent = () => {
     };
 
     try {
-      const res = await axios.post('http://127.0.0.1:8000/api/bookings', payload, {
-        headers: { 
-            Authorization: `Bearer ${token}`, 
-            Accept: 'application/json',
-            'Content-Type': 'application/json'
-        }
-      });
+      const res = await api.post('/bookings', payload);
       
       if (res.status === 201) {
         const createdBooking = res.data.data || res.data;
@@ -330,29 +317,31 @@ const CreateEvent = () => {
   const recommendedBudget = getRecommendedBudget(eventData.pax, eventData.category);
 
   const styles = {
-    container: { backgroundColor: '#ffffff', minHeight: '100vh', paddingBottom: '80px', fontFamily: "'Inter', sans-serif" },
+    container: { backgroundColor: '#f8fafc', minHeight: '100vh', paddingBottom: '80px', fontFamily: "'Inter', sans-serif" },
     hero: { 
-        height: '400px', 
-        backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1200&q=80')`, 
+        height: '360px', 
+        backgroundImage: `linear-gradient(rgba(15, 23, 42, 0.8), rgba(30, 41, 59, 0.85)), url('https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1200&q=80')`, 
         backgroundSize: 'cover', 
         backgroundPosition: 'center', 
         display: 'flex', 
         alignItems: 'center', 
         justifyContent: 'center', 
         color: 'white', 
-        textAlign: 'center' 
+        textAlign: 'center',
+        boxShadow: '0 10px 30px rgba(0,0,0,0.1)'
     },
     heroContent: { padding: '0 20px' },
-    heroTitle: { fontSize: '4rem', fontWeight: '900', letterSpacing: '-3px', marginBottom: '10px' },
-    heroSub: { fontSize: '1.2rem', fontWeight: '500', opacity: 0.8, letterSpacing: '1px', textTransform: 'uppercase' },
-    mainGrid: { maxWidth: '1200px', margin: '-80px auto 0', padding: '0 20px', display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '30px', position: 'relative', zIndex: 10 },
-    card: { background: 'white', padding: '35px', borderRadius: '28px', border: '1px solid #f0f0f0', boxShadow: '0 20px 40px rgba(0,0,0,0.05)', marginBottom: '30px' },
-    sectionHeader: { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px', color: '#000' },
-    label: { fontSize: '0.8rem', fontWeight: '800', textTransform: 'uppercase', color: '#888', marginBottom: '10px', display: 'block', letterSpacing: '1px' },
-    input: { width: '100%', padding: '16px', border: '2px solid #f0f0f0', borderRadius: '14px', fontSize: '1rem', fontWeight: '600', outline: 'none', transition: 'border-color 0.2s', boxSizing: 'border-box' },
-    venueToggle: { backgroundColor: '#000', color: 'white', padding: '14px', borderRadius: '12px', textAlign: 'center', fontWeight: '800', fontSize: '0.9rem', marginBottom: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' },
-    btnPrimary: { flex: 2, padding: '18px', borderRadius: '16px', border: 'none', background: '#000', color: 'white', cursor: 'pointer', fontWeight: '900', fontSize: '1.1rem', transition: 'transform 0.2s' },
-    btnSecondary: { flex: 1, padding: '18px', borderRadius: '16px', border: '2px solid #f0f0f0', background: 'white', cursor: 'pointer', fontWeight: '800', color: '#888' },
+    heroTitle: { fontSize: '3.5rem', fontWeight: '900', letterSpacing: '-2px', marginBottom: '8px' },
+    heroSub: { fontSize: '1rem', fontWeight: '600', opacity: 0.85, letterSpacing: '0.5px', textTransform: 'uppercase' },
+    mainGrid: { maxWidth: '1200px', margin: '-70px auto 0', padding: '0 24px', display: 'grid', gridTemplateColumns: '1.3fr 1fr', gap: '30px', position: 'relative', zIndex: 10 },
+    card: { background: '#ffffff', padding: '32px', borderRadius: '24px', border: '1px solid #e2e8f0', boxShadow: '0 10px 30px -5px rgba(0,0,0,0.04)', marginBottom: '24px' },
+    sectionHeader: { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px', color: '#0f172a' },
+    label: { fontSize: '0.75rem', fontWeight: '900', textTransform: 'uppercase', color: '#64748b', marginBottom: '8px', display: 'block', letterSpacing: '0.5px' },
+    input: { width: '100%', padding: '14px 16px', border: '2px solid #f1f5f9', borderRadius: '14px', fontSize: '0.95rem', fontWeight: '700', outline: 'none', backgroundColor: '#f8fafc', color: '#0f172a', transition: 'all 0.2s', boxSizing: 'border-box', fontFamily: "'Inter', sans-serif" },
+    select: { width: '100%', padding: '14px 16px', border: '2px solid #f1f5f9', borderRadius: '14px', fontSize: '0.95rem', fontWeight: '700', outline: 'none', backgroundColor: '#f8fafc', color: '#0f172a', transition: 'all 0.2s', boxSizing: 'border-box', fontFamily: "'Inter', sans-serif", cursor: 'pointer' },
+    venueToggle: { backgroundColor: '#0f172a', color: 'white', padding: '14px', borderRadius: '14px', textAlign: 'center', fontWeight: '900', fontSize: '0.85rem', marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' },
+    btnPrimary: { flex: 2, padding: '16px', borderRadius: '14px', border: 'none', background: '#0f172a', color: 'white', cursor: 'pointer', fontWeight: '900', fontSize: '1rem', boxShadow: '0 4px 14px rgba(15, 23, 42, 0.3)', transition: 'all 0.2s' },
+    btnSecondary: { flex: 1, padding: '16px', borderRadius: '14px', border: '1px solid #cbd5e1', background: '#f1f5f9', cursor: 'pointer', fontWeight: '800', color: '#475569' },
     errorBox: {
         gridColumn: 'span 2',
         backgroundColor: '#fef2f2',
@@ -372,28 +361,30 @@ const CreateEvent = () => {
       marginTop: '-10px', 
       marginBottom: '20px', 
       padding: '16px 20px', 
-      backgroundColor: '#fafafa', 
-      border: '1px solid #e5e7eb', 
+      backgroundColor: '#ffffff', 
+      border: '1px solid #e2e8f0', 
       borderRadius: '18px', 
       display: 'flex', 
       justifyContent: 'space-between', 
       alignItems: 'center', 
       gap: '12px', 
-      fontSize: '0.85rem' 
+      fontSize: '0.85rem',
+      boxShadow: '0 4px 12px rgba(0,0,0,0.02)'
     },
     applyBtn: { 
-      background: '#000', 
+      background: '#0f172a', 
       color: '#fff', 
       border: 'none', 
       padding: '8px 14px', 
       borderRadius: '10px', 
-      fontSize: '0.8rem', 
-      fontWeight: '700', 
+      fontSize: '0.75rem', 
+      fontWeight: '800', 
       cursor: 'pointer', 
       display: 'flex', 
       alignItems: 'center', 
       gap: '6px',
-      whiteSpace: 'nowrap'
+      whiteSpace: 'nowrap',
+      boxShadow: '0 2px 6px rgba(15, 23, 42, 0.2)'
     }
   };
 
@@ -416,21 +407,21 @@ const CreateEvent = () => {
 
       <div style={styles.hero}>
         <div style={styles.heroContent}>
-          <h1 style={styles.heroTitle}>plan less. celebrate more.</h1>
-          <p style={styles.heroSub}>Celebrate your perfect event with EventEase</p>
+          <h1 style={styles.heroTitle}>Plan Less. Celebrate More.</h1>
+          <p style={styles.heroSub}>Craft your perfect event with EventEase Architecture Suite</p>
         </div>
       </div>
 
       <div style={styles.mainGrid}>
         <div className="left-column">
           <div style={styles.card}>
-            <div style={styles.sectionHeader}><Tag size={20}/><h3 style={{fontWeight: '900', margin: 0}}>Basic Information</h3></div>
+            <div style={styles.sectionHeader}><Tag size={20} color="#3b82f6"/><h3 style={{fontWeight: '900', margin: 0, fontSize: '1.1rem'}}>Basic Information</h3></div>
             <label style={styles.label}>Event Title</label>
-            <input type="text" placeholder="e.g. Bruno's 21st Birthday Bash" style={styles.input} value={eventData.name} onChange={(e) => handleChange('name', e.target.value)} />
+            <input type="text" placeholder="e.g. Sarah & Mark Wedding" style={styles.input} value={eventData.name} onChange={(e) => handleChange('name', e.target.value)} />
             
-            <div style={{marginTop: '25px'}}>
+            <div style={{marginTop: '20px'}}>
                 <label style={styles.label}>Event Category</label>
-                <select style={styles.input} value={eventData.category} onChange={(e) => handleChange('category', e.target.value)}>
+                <select style={styles.select} value={eventData.category} onChange={(e) => handleChange('category', e.target.value)}>
                     <option value="">Select Category</option>
                     <option value="Wedding">Wedding (₱800/pax)</option>
                     <option value="Birthday">Birthday (₱350/pax)</option>
@@ -442,41 +433,71 @@ const CreateEvent = () => {
           </div>
 
           <div style={styles.card}>
-            <div style={styles.sectionHeader}><MapPin size={20}/><h3 style={{fontWeight: '900', margin: 0}}>Location</h3></div>
-            <div style={styles.venueToggle}><CheckCircle2 size={18}/> PHYSICAL VENUE</div>
+            <div style={styles.sectionHeader}><MapPin size={20} color="#3b82f6"/><h3 style={{fontWeight: '900', margin: 0, fontSize: '1.1rem'}}>Location</h3></div>
+            <div style={styles.venueToggle}><CheckCircle2 size={16}/> PHYSICAL VENUE</div>
             <label style={styles.label}>Street Address / Landmark</label>
-            <input type="text" placeholder="Enter full address" style={styles.input} value={eventData.address} onChange={(e) => handleChange('address', e.target.value)} />
+            <input type="text" placeholder="Enter full address or venue name" style={styles.input} value={eventData.address} onChange={(e) => handleChange('address', e.target.value)} />
           </div>
         </div>
 
         <div className="right-column">
           <div style={styles.card}>
-            <div style={styles.sectionHeader}><Calendar size={20}/><h3 style={{fontWeight: '900', margin: 0}}>Schedule</h3></div>
+            <div style={styles.sectionHeader}><Calendar size={20} color="#3b82f6"/><h3 style={{fontWeight: '900', margin: 0, fontSize: '1.1rem'}}>Schedule</h3></div>
             <label style={styles.label}>Starts</label>
-            <DatePicker selected={eventData.startDate} onChange={(date) => handleChange('startDate', date)} showTimeSelect dateFormat="MMMM d, yyyy h:mm aa" customInput={<input style={styles.input} />} />
-            <div style={{marginTop: '20px'}}>
+            <DatePicker 
+              selected={eventData.startDate} 
+              onChange={(date) => handleChange('startDate', date)} 
+              showTimeSelect 
+              dateFormat="MMMM d, yyyy h:mm aa" 
+              minDate={new Date()}
+              customInput={<input style={styles.input} />} 
+            />
+            <div style={{marginTop: '16px'}}>
                 <label style={styles.label}>Ends</label>
-                <DatePicker selected={eventData.endDate} onChange={(date) => handleChange('endDate', date)} showTimeSelect dateFormat="MMMM d, yyyy h:mm aa" minDate={eventData.startDate} customInput={<input style={styles.input} />} />
+                <DatePicker 
+                  selected={eventData.endDate} 
+                  onChange={(date) => handleChange('endDate', date)} 
+                  showTimeSelect 
+                  dateFormat="MMMM d, yyyy h:mm aa" 
+                  minDate={eventData.startDate || new Date()} 
+                  customInput={<input style={styles.input} />} 
+                />
             </div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
             <div style={styles.card}>
-                <div style={{display:'flex', alignItems: 'center', gap:'8px', marginBottom:'15px'}}>
-                  <Users size={18} color="#000"/> 
+                <div style={{display:'flex', alignItems: 'center', gap:'8px', marginBottom:'12px'}}>
+                  <Users size={18} color="#3b82f6"/> 
                   <label style={styles.label}>Guests (Max 150)</label>
                 </div>
-                <input type="number" placeholder="0" style={styles.input} value={eventData.pax} onChange={(e) => handleChange('pax', e.target.value)} />
+                <input 
+                  type="number" 
+                  min="1" 
+                  max="150" 
+                  placeholder="0" 
+                  style={styles.input} 
+                  value={eventData.pax} 
+                  onKeyDown={(e) => ['-', 'e', '+', '.'].includes(e.key) && e.preventDefault()}
+                  onChange={(e) => handleChange('pax', e.target.value)} 
+                />
             </div>
             <div style={styles.card}>
-                <div style={{display:'flex', alignItems: 'center', gap:'8px', marginBottom:'15px'}}>
-                  <Wallet size={18} color="#000"/> 
+                <div style={{display:'flex', alignItems: 'center', gap:'8px', marginBottom:'12px'}}>
+                  <Wallet size={18} color="#3b82f6"/> 
                   <label style={styles.label}>Budget (₱)</label>
                 </div>
-                <input type="number" placeholder="0.00" style={styles.input} value={eventData.budget} onChange={(e) => handleChange('budget', e.target.value)} />
+                <input 
+                  type="number" 
+                  min="0" 
+                  placeholder="0.00" 
+                  style={styles.input} 
+                  value={eventData.budget} 
+                  onKeyDown={(e) => ['-', 'e', '+'].includes(e.key) && e.preventDefault()}
+                  onChange={(e) => handleChange('budget', e.target.value)} 
+                />
             </div>
 
-            {/* INLINE ERROR NOTIFICATION BANNER */}
             {formError && (
               <div style={styles.errorBox}>
                 <AlertTriangle size={18} color="#991b1b" style={{ flexShrink: 0 }} />
@@ -484,17 +505,16 @@ const CreateEvent = () => {
               </div>
             )}
 
-            {/* DYNAMIC ESTIMATED BASELINE BOX */}
             <div style={styles.hintBox}>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-                <Info size={18} color="#000" style={{ marginTop: '2px', flexShrink: 0 }} />
+                <Info size={18} color="#3b82f6" style={{ marginTop: '2px', flexShrink: 0 }} />
                 <div>
-                  <div style={{ fontWeight: '600', color: '#111' }}>
-                    Baseline Rate: <strong>₱{currentRate.toLocaleString()}/pax</strong>
+                  <div style={{ fontWeight: '800', color: '#0f172a', fontSize: '0.85rem' }}>
+                    Baseline Rate: ₱{currentRate.toLocaleString()}/pax
                     {eventData.category ? ` (${eventData.category})` : ''}
                   </div>
-                  <div style={{ color: '#666', fontSize: '0.8rem', marginTop: '2px' }}>
-                    Est. Total for {eventData.pax || 0} pax: <strong style={{ color: '#000' }}>₱{recommendedBudget.toLocaleString()}</strong>
+                  <div style={{ color: '#64748b', fontSize: '0.75rem', marginTop: '2px', fontWeight: '600' }}>
+                    Est. Total for {eventData.pax || 0} pax: <strong style={{ color: '#059669' }}>₱{recommendedBudget.toLocaleString()}</strong>
                   </div>
                 </div>
               </div>
@@ -506,13 +526,12 @@ const CreateEvent = () => {
                   style={styles.applyBtn}
                   title="Auto-fill the budget with recommended amount"
                 >
-                  <Sparkles size={14} /> Apply ₱{recommendedBudget.toLocaleString()}
+                  <Sparkles size={12} /> Apply ₱{recommendedBudget.toLocaleString()}
                 </button>
               )}
             </div>
           </div>
 
-          {/* AI BUDGET OPTIMIZER WIDGET INTEGRATION */}
           <BudgetOptimizerWidget 
             category={eventData.category}
             pax={eventData.pax}
@@ -520,7 +539,7 @@ const CreateEvent = () => {
           />
 
           <div style={{ display: 'flex', gap: '15px' }}>
-            <button onClick={() => navigate('/live-events')} style={styles.btnSecondary}>Cancel</button>
+            <button type="button" onClick={() => navigate('/live-events')} style={styles.btnSecondary}>Cancel</button>
             <button 
                 type="button"
                 onClick={handleInitiateClick} 

@@ -22,25 +22,18 @@ const VendorDashboard = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const token = localStorage.getItem('token');
       const userRole = localStorage.getItem('userRole'); 
 
       try {
-        const res = await axios.get('http://127.0.0.1:8000/api/vendor/bookings', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const res = await api.get('/vendor/bookings');
         
         setBookings(res.data.data || res.data.bookings || []);
         setStats(res.data.stats || { earnings: 0, pending: 0 });
 
-        const bundlesRes = await axios.get('http://127.0.0.1:8000/api/bundles', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const bundlesRes = await api.get('/bundles');
         setVendorBundles(bundlesRes.data || []);
 
-        const notifRes = await axios.get('http://127.0.0.1:8000/api/notifications', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const notifRes = await api.get('/notifications');
 
         const notifications = Array.isArray(notifRes.data) ? notifRes.data : (notifRes.data.data || []);
         const unread = notifications.filter(n => !n.is_read);
@@ -51,41 +44,38 @@ const VendorDashboard = () => {
           }
         });
 
-      } catch (err) { console.error("Dashboard Fetch Error:", err); } finally { setLoading(false); }
+      } catch (err) { 
+        console.error("Dashboard Fetch Error:", err); 
+      } finally { 
+        setLoading(false); 
+      }
     };
     fetchData();
   }, []);
 
   const handleStatus = async (id, status) => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.patch(`http://127.0.0.1:8000/api/bookings/${id}/status`, 
-        { status }, 
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.patch(`/bookings/${id}/status`, { status });
       
       setBookings(bookings.map(b => b.id === id ? { ...b, status } : b));
       
-      const statRes = await axios.get('http://127.0.0.1:8000/api/vendor/bookings', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const statRes = await api.get('/vendor/bookings');
       setStats(statRes.data.stats);
 
-    } catch (err) { alert("Failed to update status."); }
+    } catch (err) { 
+      alert("Failed to update status."); 
+    }
   };
 
   const handleAdjustBill = async (bookingId) => {
-    const token = localStorage.getItem('token');
     if (!newBudgetInput || isNaN(newBudgetInput)) {
       alert("Please enter a valid numeric budget amount.");
       return;
     }
 
     try {
-      await axios.patch(`http://127.0.0.1:8000/api/bookings/${bookingId}/adjust-bill`, {
+      await api.patch(`/bookings/${bookingId}/adjust-bill`, {
         budget: Number(newBudgetInput)
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
       });
 
       setBookings(bookings.map(b => b.id === bookingId ? { ...b, budget: Number(newBudgetInput) } : b));
@@ -99,19 +89,14 @@ const VendorDashboard = () => {
 
   const handleDeleteBundle = async (id) => {
     if (window.confirm("Are you sure you want to delete this bundle?")) {
-      const token = localStorage.getItem('token');
       const cleanId = String(id).replace('bundle_', '');
       
       try {
-        await axios.delete(`http://127.0.0.1:8000/api/bundles/${cleanId}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        await api.delete(`/bundles/${cleanId}`);
         setVendorBundles(vendorBundles.filter(b => b.id !== id && String(b.id) !== String(cleanId)));
       } catch (err1) {
         try {
-          await axios.delete(`http://127.0.0.1:8000/api/vendor/bundles/${cleanId}`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
+          await api.delete(`/vendor/bundles/${cleanId}`);
           setVendorBundles(vendorBundles.filter(b => b.id !== id && String(b.id) !== String(cleanId)));
         } catch (err2) {
           console.error("Bundle deletion error:", err2);

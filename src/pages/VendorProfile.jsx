@@ -21,10 +21,7 @@ const VendorProfile = () => {
     useEffect(() => {
         const fetchVendor = async () => {
             try {
-                const token = localStorage.getItem('token');
-                const res = await axios.get(`http://127.0.0.1:8000/api/vendors/${id}`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+                const res = await api.get(`/vendors/${id}`);
                 setVendor(res.data.data);
             } catch (err) {
                 console.error("Error fetching vendor:", err);
@@ -37,9 +34,6 @@ const VendorProfile = () => {
     }, [id]);
 
     const handleFinalHire = async () => {
-        const token = localStorage.getItem('token');
-        if (!token) return alert("Please log in first.");
-
         setHiringLoading(true);
         const payload = {
             ...bookingDetails,
@@ -51,10 +45,7 @@ const VendorProfile = () => {
         };
 
         try {
-            await axios.post('http://127.0.0.1:8000/api/bookings', payload, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            // Changed alert to be more descriptive for your defense
+            await api.post('/bookings', payload);
             alert("Hiring request sent! The vendor has been notified to accept your booking.");
             navigate('/live-events');
         } catch (error) {
@@ -138,7 +129,7 @@ const modalContent = { background: 'white', padding: '40px', borderRadius: '25px
 const formGroup = { marginBottom: '15px' };
 const labelStyle = { display: 'block', fontSize: '11px', fontWeight: 'bold', marginBottom: '5px', color: '#888' };
 const inputStyle = { width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ddd' };
-const confirmBtn = { background: '#1a1a1a', color: '#fff', padding: '15px', border: 'none', borderRadius: '10px', fontWeight: 'bold' };
-const cancelBtn = { background: '#eee', color: '#555', padding: '15px', border: 'none', borderRadius: '10px', fontWeight: 'bold' };
+const confirmBtn = { background: '#1a1a1a', color: '#fff', padding: '15px', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer' };
+const cancelBtn = { background: '#eee', color: '#555', padding: '15px', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer' };
 
 export default VendorProfile;

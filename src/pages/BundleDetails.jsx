@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import api from '../api';
-import { Package, MapPin, CheckCircle, ArrowLeft, CheckCircle2, AlertTriangle, X } from 'lucide-react';
+import { Package, MapPin, CheckCircle, ArrowLeft, CheckCircle2, AlertTriangle, Sparkles } from 'lucide-react';
 
 const BundleDetails = () => {
   const { state } = useLocation();
   const navigate = useNavigate();
   const service = state?.service;
+  const isCustomArchitect = state?.isCustomArchitect || String(service?.id || '').startsWith('custom_');
 
   const [loading, setLoading] = useState(false);
   const [eventDate, setEventDate] = useState('');
-  const [eventName, setEventName] = useState('');
+  const [eventName, setEventName] = useState(service?.bundle_name || '');
   const [location, setLocation] = useState('');
 
   // Custom modal state replacing browser default alerts
@@ -20,19 +21,23 @@ const BundleDetails = () => {
     return (
       <div style={{ padding: '60px', textAlign: 'center' }}>
         <p className="text-gray-500 font-bold mb-4">No bundle information found.</p>
-        <button onClick={() => navigate('/home')} style={{ background: '#000', color: '#fff', padding: '10px 20px', borderRadius: '10px', border: 'none', cursor: 'pointer' }}>
+        <button onClick={() => navigate('/main-dashboard')} style={{ background: '#000', color: '#fff', padding: '10px 20px', borderRadius: '10px', border: 'none', cursor: 'pointer' }}>
           Back to Dashboard
         </button>
       </div>
     );
   }
 
-  const hasVenueService = service.services && service.services.some(s => 
+  // Handle price and inclusions dynamically for both standard and custom architected bundles
+  const displayPrice = Number(service.price || service.total_price || 0);
+  const packageInclusions = service.services || service.items || [];
+
+  const hasVenueService = packageInclusions.some(s => 
     (s.category && s.category.toLowerCase().includes('venue')) || 
-    (s.service_name || s.name || '').toLowerCase().includes('venue')
+    (s.service_name || s.name || s.title || '').toLowerCase().includes('venue')
   );
 
-  const vendorBusinessName = service.vendor?.business_name || service.vendor?.name || service.business_name || 'Registered Vendor';
+  const vendorBusinessName = service.vendor?.business_name || service.vendor?.name || service.business_name || (isCustomArchitect ? 'Custom Architect Canvas' : 'Registered Vendor');
 
   const handleConfirmBooking = async (e) => {
     e.preventDefault();
@@ -40,16 +45,16 @@ const BundleDetails = () => {
     const token = localStorage.getItem('token');
 
     try {
-      const rawId = String(service.id).replace('bundle_', '');
+      const rawId = isCustomArchitect ? null : String(service.id).replace('bundle_', '');
       const venueLocation = hasVenueService ? 'Included in Venue Service' : (location || service.location || 'Manila');
 
       await axios.post('http://127.0.0.1:8000/api/bookings', {
         event_name: eventName || service.bundle_name,
         event_date: eventDate,
         location: venueLocation,
-        budget: service.price,
+        budget: displayPrice,
         bundle_id: rawId,
-        category: service.category || (service.services?.[0]?.category) || 'Bundle',
+        category: service.category || (packageInclusions[0]?.category) || 'Bundle',
         vendor_id: service.vendor_id || service.vendor?.id || null,
         status: 'pending'
       }, {
@@ -60,7 +65,7 @@ const BundleDetails = () => {
         isOpen: true,
         type: 'success',
         title: 'Booking Requested!',
-        message: 'Bundle booked successfully! Waiting for vendor approval.'
+        message: isCustomArchitect ? 'Custom architected bundle booked successfully!' : 'Bundle booked successfully! Waiting for vendor approval.'
       });
     } catch (error) {
       console.error("Booking error details:", error.response?.data || error.message);
@@ -80,7 +85,7 @@ const BundleDetails = () => {
     const isSuccess = modalConfig.type === 'success';
     setModalConfig({ isOpen: false, type: 'success', title: '', message: '' });
     if (isSuccess) {
-      navigate('/home');
+      navigate('/main-dashboard');
     }
   };
 
@@ -118,33 +123,40 @@ const BundleDetails = () => {
       )}
 
       <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: 'bold', marginBottom: '20px', color: '#64748b' }}>
-        <ArrowLeft size={18} /> Back to Catalog
+        <ArrowLeft size={18} /> Back to Dashboard
       </button>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '40px' }}>
         
         {/* Left Side: Detailed Bundle Information */}
         <div style={{ background: '#fff', padding: '30px', borderRadius: '24px', border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#059669', color: '#fff', padding: '6px 12px', borderRadius: '8px', width: 'fit-content', fontSize: '11px', fontWeight: 'bold', marginBottom: '15px' }}>
-            <Package size={14} /> VENDOR BUNDLE PACKAGE
+          <div style={{ 
+            display: 'flex', alignItems: 'center', gap: '8px', 
+            background: isCustomArchitect ? '#2563eb' : '#059669', 
+            color: '#fff', padding: '6px 14px', borderRadius: '8px', width: 'fit-content', fontSize: '11px', fontWeight: '900', marginBottom: '15px', textTransform: 'uppercase' 
+          }}>
+            {isCustomArchitect ? <Sparkles size={14} /> : <Package size={14} />} 
+            {isCustomArchitect ? 'Bundle Architect Master Blueprint' : 'Vendor Bundle Package'}
           </div>
           
-          <h1 style={{ fontSize: '2rem', fontWeight: '900', color: '#0f172a', margin: '0 0 10px 0' }}>{service.bundle_name || service.name}</h1>
+          <h1 style={{ fontSize: '2rem', fontWeight: '900', color: '#0f172a', margin: '0 0 10px 0' }}>
+            {service.bundle_name || service.name}
+          </h1>
           <p style={{ color: '#64748b', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '20px' }}>
             <MapPin size={16} /> {service.location || 'Available Nationwide'} • Offered by <strong style={{ color: '#0f172a' }}>{vendorBusinessName}</strong>
           </p>
 
           <p style={{ color: '#334155', lineHeight: '1.6', fontSize: '1rem', marginBottom: '30px' }}>
-            {service.description || "Comprehensive event package curated to provide top-tier professional services for your special occasion."}
+            {service.description || (isCustomArchitect ? "Your custom-engineered multi-service event package curated live through the Bundle Architect studio." : "Comprehensive event package curated to provide top-tier professional services for your special occasion.")}
           </p>
 
           <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '16px', border: '1px solid #cbd5e1' }}>
-            <h3 style={{ fontSize: '1.1rem', fontWeight: '800', color: '#0f172a', marginBottom: '12px' }}>Package Inclusions:</h3>
-            {service.services && service.services.length > 0 ? (
+            <h3 style={{ fontSize: '1.1rem', fontWeight: '800', color: '#0f172a', marginBottom: '12px' }}>Package Inclusions ({packageInclusions.length} Services):</h3>
+            {packageInclusions.length > 0 ? (
               <ul style={{ margin: 0, paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {service.services.map((s, idx) => (
+                {packageInclusions.map((s, idx) => (
                   <li key={idx} style={{ color: '#334155', fontWeight: '600', fontSize: '0.95rem' }}>
-                    {s.service_name || s.name} <span style={{ color: '#059669', fontWeight: 'bold' }}>- ₱{Number(s.price || 0).toLocaleString()}</span>
+                    {s.service_name || s.name || s.title} <span style={{ color: '#059669', fontWeight: 'bold' }}>- ₱{Number(s.price || 0).toLocaleString()}</span>
                   </li>
                 ))}
               </ul>
@@ -160,7 +172,7 @@ const BundleDetails = () => {
           
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px', paddingBottom: '15px', borderBottom: '1px solid #f1f5f9' }}>
             <span style={{ color: '#64748b', fontWeight: '600' }}>Total Package Price:</span>
-            <span style={{ fontSize: '1.8rem', fontWeight: '900', color: '#059669' }}>₱{Number(service.price || 0).toLocaleString()}</span>
+            <span style={{ fontSize: '1.8rem', fontWeight: '900', color: '#059669' }}>₱{displayPrice.toLocaleString()}</span>
           </div>
 
           <form onSubmit={handleConfirmBooking} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>

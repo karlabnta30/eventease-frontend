@@ -33,7 +33,7 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const response = await api.post('/login', 
+      const response = await axios.post('http://127.0.0.1:8000/api/login', 
         { email, password },
         { headers: { 'Accept': 'application/json' } } 
       );
@@ -299,7 +299,7 @@ const styles = {
     bottom: '60px',
     left: '60px',
     right: '60px',
-    zIndeQuote: 3,
+    zIndex: 3,
     color: '#fff'
   },
   quoteText: {
