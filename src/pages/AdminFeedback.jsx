@@ -10,7 +10,7 @@ const AdminFeedback = () => {
     const fetchFeedback = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get('http://127.0.0.1:8000/api/admin/feedback', {
+        const response = await api.get('/admin/feedback', {
           headers: { Authorization: `Bearer ${token}` }
         });
         
