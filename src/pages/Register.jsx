@@ -23,7 +23,7 @@ const Register = () => {
 
     setLoading(true);
     try {
-      await api.post('/register', {
+      const response = await api.post('/register', {
         name,
         email,
         contact_number: contactNumber,
@@ -31,6 +31,12 @@ const Register = () => {
         password,
         role 
       });
+      
+      // Fallback helper for cloud environments where SMTP might be blocked
+      if (response.data.debug_otp) {
+        console.log("TESTING MODE - YOUR OTP IS:", response.data.debug_otp);
+        alert(`Cloud SMTP blocked or email failed. Your test OTP is: ${response.data.debug_otp}`);
+      }
       
       navigate('/verify-otp', { state: { email } });
       
