@@ -21,10 +21,10 @@ const AdminDashboard = () => {
     
     try {
       const results = await Promise.allSettled([
-        axios.get('http://127.0.0.1:8000/api/admin/bookings', { headers }),
-        axios.get('http://127.0.0.1:8000/api/admin/stats', { headers }),
-        axios.get('http://127.0.0.1:8000/api/admin/vendors', { headers }),
-        axios.get('http://127.0.0.1:8000/api/admin/vendor-permits', { headers })
+        api.get('/admin/bookings', { headers }),
+        api.get('/admin/stats', { headers }),
+        api.get('/admin/vendors', { headers }),
+        api.get('/admin/vendor-permits', { headers })
       ]);
       
       if (results[0].status === 'fulfilled') setAllBookings(results[0].value.data.data || []);
@@ -47,7 +47,7 @@ const AdminDashboard = () => {
   const handleVerificationAction = async (vendorId, status) => {
     const token = localStorage.getItem('token');
     try {
-      await axios.patch(`http://127.0.0.1:8000/api/admin/vendors/${vendorId}/verify`, { status }, {
+      await api.patch(`/admin/vendors/${vendorId}/verify`, { status }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       toast.success(`Vendor permit ${status}!`);
@@ -201,7 +201,7 @@ const AdminDashboard = () => {
                     </span>
 
                     {v.permit_path ? (
-                      <a href={`http://127.0.0.1:8000/storage/${v.permit_path}`} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.8rem', fontWeight: '700', color: '#2563eb', textDecoration: 'none' }}>
+                      <a href={`https://eventease-backend-l06d.onrender.com/storage/${v.permit_path}`} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.8rem', fontWeight: '700', color: '#2563eb', textDecoration: 'none' }}>
                         <FileText size={14} /> View Permit Document
                       </a>
                     ) : (
