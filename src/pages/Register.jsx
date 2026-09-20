@@ -36,6 +36,10 @@ const Register = () => {
       
     } catch (error) {
       console.error("Registration Error:", error.response?.data || error.message);
+      
+      // See exact validation errors in the console:
+      console.log("Validation errors:", error.response?.data?.errors);
+
       const errorData = error.response?.data;
       let errorMsg = "Registration failed. Check console for details.";
       
