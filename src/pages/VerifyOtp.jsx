@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../api';
-import { ShieldCheck, ArrowRight } from 'lucide-react';
+import { ShieldCheck, ArrowRight, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 // --- SUCCESS POPUP MODAL ---
@@ -57,7 +57,8 @@ const VerifyOtp = () => {
   const [email, setEmail] = useState(location.state?.email || localStorage.getItem('regEmail') || '');
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
+  const [resending, setResending] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     if (location.state?.email) {
@@ -85,7 +86,7 @@ const VerifyOtp = () => {
       });
 
       localStorage.removeItem('regEmail'); 
-      setIsModalOpen(true); // Open the styled center modal on success
+      setIsModalOpen(true); 
     } catch (error) {
       console.error("Verification error:", error.response?.data);
       toast.error(error.response?.data?.error || error.response?.data?.message || "Invalid or expired OTP code.");
@@ -94,10 +95,34 @@ const VerifyOtp = () => {
     }
   };
 
+  const handleResendCode = async () => {
+    if (!email) {
+      toast.error("Email address is missing.");
+      return;
+    }
+
+    setResending(true);
+    try {
+      const response = await api.post('/send-otp', { email });
+      
+      // Handle cloud debugging fallback alert if SMTP is blocked
+      if (response.data.debug_otp) {
+        console.log("TESTING MODE - NEW RESENT OTP IS:", response.data.debug_otp);
+        alert(`Cloud SMTP blocked. Your new test OTP is: ${response.data.debug_otp}`);
+      } else {
+        toast.success("New verification code sent to your email!");
+      }
+    } catch (error) {
+      console.error("Resend error:", error.response?.data);
+      toast.error(error.response?.data?.message || "Failed to resend code.");
+    } finally {
+      setResending(false);
+    }
+  };
+
   return (
     <div style={{ backgroundColor: '#ffffff', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Inter', sans-serif", padding: '20px' }}>
       
-      {/* Success Modal Component */}
       <SuccessModal 
         isOpen={isModalOpen} 
         onClose={() => navigate('/login')} 
@@ -125,11 +150,25 @@ const VerifyOtp = () => {
           <button 
             type="submit" 
             disabled={loading}
-            style={{ width: '100%', padding: '16px', borderRadius: '14px', border: 'none', background: '#000', color: 'white', fontWeight: '900', fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+            style={{ width: '100%', padding: '16px', borderRadius: '14px', border: 'none', background: '#000', color: 'white', fontWeight: '900', fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '15px' }}
           >
             {loading ? 'VERIFYING...' : 'VERIFY CODE'} <ArrowRight size={18} />
           </button>
         </form>
+
+        {/* Resend Code Option */}
+        <div style={{ marginTop: '15px', borderTop: '1px solid #f1f5f9', paddingTop: '20px' }}>
+          <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '0 0 8px 0' }}>Didn't receive the code?</p>
+          <button 
+            onClick={handleResendCode}
+            disabled={resending}
+            style={{ background: 'none', border: 'none', color: '#2563eb', fontWeight: '700', fontSize: '0.9rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+          >
+            <RefreshCw size={14} className={resending ? 'animate-spin' : ''} />
+            {resending ? 'RESENDING...' : 'Resend Code'}
+          </button>
+        </div>
+
       </div>
     </div>
   );
