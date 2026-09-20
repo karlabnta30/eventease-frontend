@@ -296,7 +296,7 @@ const styles = {
     bottom: '60px',
     left: '60px',
     right: '60px',
-    zindex: 3,
+    zIndex: 3, // Fixed from 'zindex: 3'
     color: '#fff'
   },
   quoteText: {
