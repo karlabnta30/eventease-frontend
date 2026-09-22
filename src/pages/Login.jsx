@@ -35,6 +35,7 @@ const Login = () => {
     try {
       const response = await api.post('/login', { email, password });
 
+      // Handle successful bypass or normal login with token
       if (response.data.token && response.data.user) {
         localStorage.setItem('token', response.data.token);
         localStorage.setItem('userRole', response.data.user.role); 
@@ -47,6 +48,9 @@ const Login = () => {
         } else {
           navigate('/main-dashboard', { replace: true });
         }
+      } else if (response.data.requires_verification) {
+        // If regular user needs OTP verification
+        navigate('/verify-otp', { state: { email } });
       }
     } catch (err) {
       console.error("Login Error:", err.response?.data || err.message);
@@ -296,7 +300,7 @@ const styles = {
     bottom: '60px',
     left: '60px',
     right: '60px',
-    zIndex: 3, // Fixed from 'zindex: 3'
+    zIndex: 3,
     color: '#fff'
   },
   quoteText: {
