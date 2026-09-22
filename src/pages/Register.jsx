@@ -32,10 +32,9 @@ const Register = () => {
         role 
       });
       
-      // Fallback helper for cloud environments where SMTP might be blocked
-      if (response.data.debug_otp) {
+      // If email dispatch failed, notify user gently or show debug OTP
+      if (response.data.debug_otp && !response.data.error_details) {
         console.log("TESTING MODE - YOUR OTP IS:", response.data.debug_otp);
-        alert(`Cloud SMTP blocked or email failed. Your test OTP is: ${response.data.debug_otp}`);
       }
       
       navigate('/verify-otp', { state: { email } });
@@ -43,9 +42,6 @@ const Register = () => {
     } catch (error) {
       console.error("Registration Error:", error.response?.data || error.message);
       
-      // See exact validation errors in the console:
-      console.log("Validation errors:", error.response?.data?.errors);
-
       const errorData = error.response?.data;
       let errorMsg = "Registration failed. Check console for details.";
       
@@ -55,6 +51,8 @@ const Register = () => {
         errorMsg = errorData.message;
       } else if (errorData?.errors) {
         errorMsg = Object.values(errorData.errors).flat().join('\n');
+      } else if (errorData?.error_details) {
+        errorMsg = `Email error: ${errorData.error_details}`;
       }
       
       alert(errorMsg);

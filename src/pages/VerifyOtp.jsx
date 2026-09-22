@@ -105,13 +105,10 @@ const VerifyOtp = () => {
     try {
       const response = await api.post('/send-otp', { email });
       
-      // Handle cloud debugging fallback alert if SMTP is blocked
       if (response.data.debug_otp) {
         console.log("TESTING MODE - NEW RESENT OTP IS:", response.data.debug_otp);
-        alert(`Cloud SMTP blocked. Your new test OTP is: ${response.data.debug_otp}`);
-      } else {
-        toast.success("New verification code sent to your email!");
       }
+      toast.success("New verification code sent to your email!");
     } catch (error) {
       console.error("Resend error:", error.response?.data);
       toast.error(error.response?.data?.message || "Failed to resend code.");
