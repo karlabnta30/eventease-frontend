@@ -51,6 +51,8 @@ const Login = () => {
       } else if (response.data.requires_verification) {
         // If regular user needs OTP verification
         navigate('/verify-otp', { state: { email } });
+      } else {
+        setError('Login response did not return a valid session token.');
       }
     } catch (err) {
       console.error("Login Error:", err.response?.data || err.message);
