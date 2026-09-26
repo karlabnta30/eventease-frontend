@@ -213,15 +213,15 @@ const MainDashboard = () => {
   };
 
   return (
-    <div className="main-dashboard" style={{ backgroundColor: '#ffffff', minHeight: '100vh', fontFamily: "'Inter', sans-serif", padding: '50px 60px 100px' }}>
+    <div className="main-dashboard" style={{ backgroundColor: '#ffffff', minHeight: '100vh', fontFamily: "'Inter', sans-serif", padding: '40px 50px 100px' }}>
       
-      {/* CENTRALIZED CONTAINER TO MATCH LIVE EVENTS ALIGNMENT */}
-      <div style={{ maxWidth: '1300px', margin: '0 auto' }}>
+      {/* PROPERLY SPACED CONTAINER EXPANDED TO FILL AVAILABLE SCREEN WIDTH */}
+      <div style={{ width: '100%', maxWidth: '1600px', margin: '0 auto' }}>
 
         {/* CLEAN MINIMALIST EVENTEASE HEADER */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '40px', borderBottom: '2px solid #f0f0f0', paddingBottom: '25px', flexWrap: 'wrap', gap: '20px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '35px', borderBottom: '2px solid #f0f0f0', paddingBottom: '25px', flexWrap: 'wrap', gap: '20px' }}>
           <div>
-            <h1 style={{ fontSize: '2.5rem', fontWeight: '900', letterSpacing: '-1.5px', color: '#000', margin: '0 0 6px 0' }}>
+            <h1 style={{ fontSize: '2.4rem', fontWeight: '900', letterSpacing: '-1.5px', color: '#000', margin: '0 0 6px 0' }}>
               {userRole === 'vendor' ? 'Manage Business & Services' : 'Design Your Perfect Event'}
             </h1>
             <p style={{ fontSize: '0.95rem', color: '#64748b', fontWeight: '600', margin: 0 }}>
@@ -243,7 +243,8 @@ const MainDashboard = () => {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
-                  fontSize: '0.9rem'
+                  fontSize: '0.9rem',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
               }}
             >
               <Plus size={16} /> New Event Plan
@@ -270,10 +271,11 @@ const MainDashboard = () => {
           </div>
         )}
 
-        <div style={{ display: 'flex', gap: '40px', flexWrap: 'wrap', alignItems: 'flex-start' }}>
+        {/* MAIN GRID LAYOUT: SIDEBAR + CATALOG */}
+        <div style={{ display: 'grid', gridTemplateColumns: '380px 1fr', gap: '35px', alignItems: 'start' }}>
           
           {/* LEFT SIDEBAR: BUNDLE ARCHITECT & SCHEDULES */}
-          <aside style={{ flex: '1 1 360px', display: 'flex', flexDirection: 'column', gap: '28px' }}>
+          <aside style={{ display: 'flex', flexDirection: 'column', gap: '25px', position: 'sticky', top: '30px' }}>
             
             {/* Bundle Architect Toolbox */}
             <div style={{ ...cardStyle, border: '2px solid #000', background: '#ffffff' }}>
@@ -374,21 +376,21 @@ const MainDashboard = () => {
           </aside>
 
           {/* --- RIGHT MAIN SECTION: CATALOG WITH TABS --- */}
-          <main style={{ flex: '3 1 600px' }}>
+          <main style={{ width: '100%', minWidth: 0 }}>
             
             {/* Search Bar */}
             <div style={{ marginBottom: '20px' }}>
               <input 
                 type="text" 
                 placeholder="🔍 Search catalog by service name, vendor, category, or location..." 
-                style={{ width: '100%', padding: '16px 20px', borderRadius: '16px', border: '2px solid #eaeaea', backgroundColor: '#fff', outline: 'none', fontSize: '0.95rem', fontWeight: '600', boxSizing: 'border-box' }} 
+                style={{ width: '100%', padding: '16px 20px', borderRadius: '16px', border: '2px solid #eaeaea', backgroundColor: '#fff', outline: 'none', fontSize: '0.95rem', fontWeight: '600', boxSizing: 'border-box', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }} 
                 value={searchTerm} 
                 onChange={(e) => setSearchTerm(e.target.value)} 
               />
             </div>
 
             {/* --- CATALOG TABS SWITCHER --- */}
-            <div style={{ display: 'flex', gap: '10px', marginBottom: '25px', borderBottom: '2px solid #eaeaea', paddingBottom: '15px' }}>
+            <div style={{ display: 'flex', gap: '10px', marginBottom: '25px', borderBottom: '2px solid #eaeaea', paddingBottom: '15px', flexWrap: 'wrap' }}>
               <button 
                 onClick={() => setActiveTab('all')}
                 style={{
@@ -396,7 +398,8 @@ const MainDashboard = () => {
                   background: activeTab === 'all' ? '#000' : '#fff',
                   color: activeTab === 'all' ? '#fff' : '#666',
                   border: activeTab === 'all' ? 'none' : '1px solid #eaeaea',
-                  display: 'flex', alignItems: 'center', gap: '6px'
+                  display: 'flex', alignItems: 'center', gap: '6px',
+                  boxShadow: activeTab === 'all' ? '0 4px 12px rgba(0,0,0,0.15)' : 'none'
                 }}
               >
                 <Layers size={16} /> All Catalog ({services.length})
@@ -408,7 +411,8 @@ const MainDashboard = () => {
                   background: activeTab === 'service' ? '#000' : '#fff',
                   color: activeTab === 'service' ? '#fff' : '#666',
                   border: activeTab === 'service' ? 'none' : '1px solid #eaeaea',
-                  display: 'flex', alignItems: 'center', gap: '6px'
+                  display: 'flex', alignItems: 'center', gap: '6px',
+                  boxShadow: activeTab === 'service' ? '0 4px 12px rgba(0,0,0,0.15)' : 'none'
                 }}
               >
                 <Wrench size={16} /> Independent Services ({services.filter(s => s.type === 'service').length})
@@ -420,7 +424,8 @@ const MainDashboard = () => {
                   background: activeTab === 'bundle' ? '#000' : '#fff',
                   color: activeTab === 'bundle' ? '#fff' : '#666',
                   border: activeTab === 'bundle' ? 'none' : '1px solid #eaeaea',
-                  display: 'flex', alignItems: 'center', gap: '6px'
+                  display: 'flex', alignItems: 'center', gap: '6px',
+                  boxShadow: activeTab === 'bundle' ? '0 4px 12px rgba(0,0,0,0.15)' : 'none'
                 }}
               >
                 <Package size={16} /> Pre-made Bundles ({services.filter(s => s.type === 'bundle').length})
@@ -441,7 +446,7 @@ const MainDashboard = () => {
                 <Loader2 size={36} className="animate-spin text-black" />
               </div>
             ) : filteredServices.length > 0 ? (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '24px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))', gap: '24px' }}>
                 {filteredServices.map(s => {
                   const isAlreadyAdded = architectItems.some(item => item.id === s.id);
 
