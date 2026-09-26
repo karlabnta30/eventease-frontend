@@ -6,104 +6,63 @@ const LandingPage = () => {
 
   const styles = {
     pageWrapper: {
-      backgroundColor: '#070b19',
-      color: '#ffffff',
+      backgroundColor: '#ffffff',
+      color: '#0f172a',
       fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
       minHeight: '100vh',
       overflowX: 'hidden',
+      position: 'relative',
     },
-    // 1. Sticky Top Navigation Bar (Always visible while scrolling)
-    navbar: {
-      position: 'sticky',
-      top: 0,
-      zIndex: 1000,
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      padding: '18px 50px',
-      backgroundColor: '#070b19',
-      borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-      backdropFilter: 'blur(10px)',
-    },
-    logo: {
-      fontSize: '1.5rem',
-      fontWeight: '900',
-      letterSpacing: '-0.5px',
-      color: '#ffffff',
-      textTransform: 'uppercase',
-      cursor: 'pointer',
-    },
-    navLinks: {
-      display: 'flex',
-      gap: '30px',
-      alignItems: 'center',
-      fontSize: '0.9rem',
-      fontWeight: '600',
-      color: '#94a3b8',
-    },
-    navItem: {
-      cursor: 'pointer',
-      transition: 'color 0.2s',
-    },
-    navActions: {
-      display: 'flex',
-      gap: '20px',
-      alignItems: 'center',
-    },
-    signInBtn: {
-      background: 'none',
-      border: 'none',
-      color: '#ffffff',
-      fontWeight: '700',
-      cursor: 'pointer',
-      fontSize: '0.9rem',
-    },
-    navCreateBtn: {
-      backgroundColor: '#10b981',
-      color: '#ffffff',
-      border: 'none',
-      padding: '10px 22px',
-      borderRadius: '12px',
-      fontWeight: '800',
-      fontSize: '0.85rem',
-      cursor: 'pointer',
-      transition: 'all 0.2s',
-    },
-
     // 2. Hero Section
     heroSection: {
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
-      padding: '80px 60px',
-      gap: '40px',
-      maxWidth: '1400px',
+      padding: '100px 60px',
+      gap: '60px',
+      maxWidth: '1440px',
       margin: '0 auto',
-      minHeight: '75vh',
+      minHeight: '80vh',
     },
     heroContent: {
-      flex: '1 1 600px',
+      flex: '1 1 650px',
+    },
+    pillTag: {
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '8px',
+      backgroundColor: '#ecfdf5',
+      border: '1px solid #a7f3d0',
+      padding: '6px 14px',
+      borderRadius: '999px',
+      fontSize: '0.75rem',
+      fontWeight: '800',
+      color: '#047857',
+      textTransform: 'uppercase',
+      letterSpacing: '1px',
+      marginBottom: '24px',
     },
     heroHeading: {
-      fontSize: '4rem',
+      fontSize: '4.2rem',
       fontWeight: '900',
-      lineHeight: '1.1',
-      letterSpacing: '-2px',
+      lineHeight: '1.08',
+      letterSpacing: '-2.5px',
       marginBottom: '24px',
+      color: '#0f172a',
     },
     heroSubheading: {
       fontSize: '1.1rem',
-      color: '#94a3b8',
-      lineHeight: '1.6',
+      color: '#64748b',
+      lineHeight: '1.65',
       marginBottom: '40px',
-      maxWidth: '540px',
+      maxWidth: '560px',
       fontWeight: '500',
     },
     heroButtons: {
       display: 'flex',
       gap: '16px',
       alignItems: 'center',
-      marginBottom: '40px',
+      marginBottom: '45px',
     },
     primaryBtn: {
       backgroundColor: '#10b981',
@@ -114,26 +73,39 @@ const LandingPage = () => {
       fontWeight: '900',
       fontSize: '0.95rem',
       cursor: 'pointer',
-      boxShadow: '0 10px 25px rgba(16, 185, 129, 0.3)',
-      transition: 'transform 0.2s',
+      boxShadow: '0 10px 30px rgba(16, 185, 129, 0.25)',
+      transition: 'all 0.2s ease',
     },
     secondaryBtn: {
       backgroundColor: 'transparent',
-      color: '#ffffff',
-      border: '2px solid rgba(255,255,255,0.2)',
+      color: '#0f172a',
+      border: '1px solid #cbd5e1',
       padding: '16px 32px',
       borderRadius: '14px',
-      fontWeight: '900',
+      fontWeight: '800',
       fontSize: '0.95rem',
       cursor: 'pointer',
+      transition: 'all 0.2s ease',
     },
     ratingsRow: {
       display: 'flex',
-      gap: '30px',
+      gap: '25px',
       alignItems: 'center',
       fontSize: '0.85rem',
-      color: '#cbd5e1',
+      color: '#475569',
       fontWeight: '700',
+      borderTop: '1px solid #f1f5f9',
+      paddingTop: '25px',
+      flexWrap: 'wrap',
+    },
+    ratingItem: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '6px',
+      backgroundColor: '#f8fafc',
+      padding: '8px 14px',
+      borderRadius: '12px',
+      border: '1px solid #e2e8f0',
     },
     
     // Photo Collage Right Grid
@@ -141,50 +113,53 @@ const LandingPage = () => {
       flex: '1 1 600px',
       display: 'grid',
       gridTemplateColumns: 'repeat(3, 1fr)',
-      gap: '12px',
-      height: '500px',
+      gap: '14px',
+      height: '520px',
     },
     collageCol: {
       display: 'flex',
       flexDirection: 'column',
-      gap: '12px',
+      gap: '14px',
     },
     collageImg: {
       width: '100%',
       height: '100%',
       objectFit: 'cover',
-      borderRadius: '16px',
-      filter: 'brightness(0.9)',
+      borderRadius: '20px',
+      border: '1px solid #e2e8f0',
+      boxShadow: '0 20px 40px rgba(0,0,0,0.06)',
     },
 
-    // 3. App & Fast Payout Section
+    // 3. Core Features Showcase Section
     featureSection: {
       padding: '100px 60px',
       maxWidth: '1300px',
       margin: '0 auto',
       display: 'grid',
       gridTemplateColumns: '1fr 1fr',
-      gap: '40px',
+      gap: '30px',
     },
     featureCard: {
-      backgroundColor: '#0f172a',
-      border: '1px solid #1e293b',
-      borderRadius: '28px',
+      backgroundColor: '#f8fafc',
+      border: '1px solid #e2e8f0',
+      borderRadius: '32px',
       padding: '50px',
       display: 'flex',
       flexDirection: 'column',
       justifyContent: 'space-between',
+      boxShadow: '0 10px 30px -10px rgba(0,0,0,0.03)',
     },
     featureHeading: {
-      fontSize: '2.2rem',
+      fontSize: '2rem',
       fontWeight: '900',
       marginBottom: '16px',
       letterSpacing: '-1px',
+      color: '#0f172a',
     },
     featureText: {
-      color: '#94a3b8',
-      fontSize: '1rem',
-      lineHeight: '1.6',
+      color: '#64748b',
+      fontSize: '0.95rem',
+      lineHeight: '1.7',
       marginBottom: '30px',
     },
 
@@ -197,13 +172,13 @@ const LandingPage = () => {
     },
     industryGrid: {
       display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
       gap: '20px',
-      marginTop: '40px',
+      marginTop: '45px',
     },
     industryCard: {
-      backgroundColor: '#0f172a',
-      border: '1px solid #1e293b',
+      backgroundColor: '#f8fafc',
+      border: '1px solid #e2e8f0',
       padding: '24px',
       borderRadius: '20px',
       fontWeight: '800',
@@ -211,32 +186,38 @@ const LandingPage = () => {
       textAlign: 'left',
       display: 'flex',
       alignItems: 'flex-end',
-      height: '140px',
+      height: '150px',
       backgroundSize: 'cover',
       backgroundPosition: 'center',
       position: 'relative',
       overflow: 'hidden',
     },
+    industryOverlay: {
+      position: 'absolute',
+      inset: 0,
+      background: 'linear-gradient(to top, rgba(15,23,42,0.85) 10%, rgba(15,23,42,0.2) 100%)',
+    },
 
     // 5. Testimonials Section
     testimonialSection: {
       padding: '100px 60px',
-      backgroundColor: '#090d1f',
-      borderTop: '1px solid #1e293b',
-      borderBottom: '1px solid #1e293b',
+      backgroundColor: '#f8fafc',
+      borderTop: '1px solid #e2e8f0',
+      borderBottom: '1px solid #e2e8f0',
     },
     testimonialGrid: {
       display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
       gap: '30px',
       maxWidth: '1300px',
-      margin: '40px auto 0',
+      margin: '50px auto 0',
     },
     testimonialCard: {
-      backgroundColor: '#0f172a',
-      border: '1px solid #1e293b',
+      backgroundColor: '#ffffff',
+      border: '1px solid #e2e8f0',
       borderRadius: '24px',
-      padding: '35px',
+      padding: '40px',
+      boxShadow: '0 10px 30px rgba(0,0,0,0.02)',
     },
 
     // 6. Footer
@@ -249,56 +230,54 @@ const LandingPage = () => {
       alignItems: 'center',
       color: '#64748b',
       fontSize: '0.85rem',
-      borderTop: '1px solid rgba(255,255,255,0.05)',
     }
   };
 
   return (
     <div style={styles.pageWrapper}>
       
-      {/* 1. STICKY TOP NAVIGATION BAR */}
-      <nav style={styles.navbar}>
-        <div style={styles.logo} onClick={() => navigate('/')}>
-          EventEase
-        </div>
-        <div style={styles.navLinks}>
-          <span style={styles.navItem}>Features</span>
-          <span style={styles.navItem}>Industry</span>
-          <span style={styles.navItem}>Explore Events</span>
-          <span style={styles.navItem}>Pricing</span>
-          <span style={styles.navItem}>Help</span>
-        </div>
-        <div style={styles.navActions}>
-          <button style={styles.signInBtn} onClick={() => navigate('/login')}>
-            Greetings! Sign in
-          </button>
-          <button style={styles.navCreateBtn} onClick={() => navigate('/login')}>
-            + Create Event
-          </button>
-        </div>
-      </nav>
-
       {/* 2. HERO SECTION */}
       <section style={styles.heroSection}>
         <div style={styles.heroContent}>
+          <div style={styles.pillTag}>
+            <span>✦ Next-Gen Event Infrastructure</span>
+          </div>
           <h1 style={styles.heroHeading}>
-            Event planning & ticketing made simple
+            Architect your next extraordinary event.
           </h1>
           <p style={styles.heroSubheading}>
-            An easy-to-use event platform with fair pricing and dedicated support. All the tools you need for a fraction of the cost charged by other platforms.
+            The elite platform designed for seamless event planning, custom vendor bundling, and automated live itinerary management powered by secure PayMongo checkout.
           </p>
           <div style={styles.heroButtons}>
-            <button style={styles.primaryBtn} onClick={() => navigate('/login')}>
-              Create Event
+            <button 
+              style={styles.primaryBtn} 
+              onClick={() => navigate('/login')}
+              onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+              onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+            >
+              Start Planning Now &rarr;
             </button>
-            <button style={styles.secondaryBtn} onClick={() => navigate('/login')}>
-              Book A Demo
+            <button 
+              style={styles.secondaryBtn} 
+              onClick={() => navigate('/login')}
+              onMouseOver={(e) => e.currentTarget.style.borderColor = '#0f172a'}
+              onMouseOut={(e) => e.currentTarget.style.borderColor = '#cbd5e1'}
+            >
+              Explore Catalog
             </button>
           </div>
+
+          {/* Ratings row matching your screenshot design layout */}
           <div style={styles.ratingsRow}>
-            <div>⭐ Capterra 4.7/5</div>
-            <div>⭐ G2 5/5</div>
-            <div>⭐ Google 4.7/5</div>
+            <div style={styles.ratingItem}>
+              <span>⭐</span> <strong></strong> Capterra Verified
+            </div>
+            <div style={styles.ratingItem}>
+              <span>⭐</span> <strong>5.0/5</strong> Enterprise Grade
+            </div>
+            <div style={styles.ratingItem}>
+              <span>⭐</span> <strong>Secure</strong> PayMongo Integration
+            </div>
           </div>
         </div>
 
@@ -306,83 +285,99 @@ const LandingPage = () => {
         <div style={styles.photoGrid}>
           <div style={styles.collageCol}>
             <img src="https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=400&q=80" alt="Event 1" style={styles.collageImg} />
-            <img src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=400&q=80" alt="Event 2" style={{...styles.collageImg, height: '220px'}} />
+            <img src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=400&q=80" alt="Event 2" style={{...styles.collageImg, height: '210px'}} />
           </div>
-          <div style={{...styles.collageCol, marginTop: '30px'}}>
-            <img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=400&q=80" alt="Event 3" style={{...styles.collageImg, height: '220px'}} />
+          <div style={{...styles.collageCol, marginTop: '35px'}}>
+            <img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=400&q=80" alt="Event 3" style={{...styles.collageImg, height: '210px'}} />
             <img src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=400&q=80" alt="Event 4" style={styles.collageImg} />
           </div>
           <div style={styles.collageCol}>
             <img src="https://images.unsplash.com/photo-1465847899084-d164df4dedc6?auto=format&fit=crop&w=400&q=80" alt="Event 5" style={styles.collageImg} />
-            <img src="https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?auto=format&fit=crop&w=400&q=80" alt="Event 6" style={{...styles.collageImg, height: '220px'}} />
+            <img src="https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?auto=format&fit=crop&w=400&q=80" alt="Event 6" style={{...styles.collageImg, height: '210px'}} />
           </div>
         </div>
       </section>
 
-      {/* 3. APP & FAST PAYOUT FEATURE SECTION */}
+      {/* 3. CORE ARCHITECT & SECURE PAYMENTS FEATURE SECTION */}
       <section style={styles.featureSection}>
         <div style={styles.featureCard}>
           <div>
-            <h2 style={styles.featureHeading}>Organize on the go using our app</h2>
+            <div style={{ color: '#059669', fontWeight: '800', fontSize: '0.8rem', textTransform: 'uppercase', marginBottom: '12px', letterSpacing: '1px' }}>Custom Canvas</div>
+            <h2 style={styles.featureHeading}>The Bundle Architect</h2>
             <p style={styles.featureText}>
-              Publish, manage and share events right from your phone with our seamless web & mobile experience.
+              Curate independent vendor services and pre-made bundles into a unified custom blueprint. Dynamically calculate accurate costs and deploy your tailored packages instantly.
             </p>
           </div>
-          <div style={{ display: 'flex', gap: '15px' }}>
-            <span style={{ backgroundColor: '#1e293b', padding: '10px 20px', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 'bold' }}>Google Play</span>
-            <span style={{ backgroundColor: '#1e293b', padding: '10px 20px', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 'bold' }}>App Store</span>
-          </div>
+          <button style={{ ...styles.primaryBtn, width: 'fit-content' }} onClick={() => navigate('/login')}>
+            Try Bundle Architect &rarr;
+          </button>
         </div>
 
         <div style={styles.featureCard}>
           <div>
-            <h2 style={styles.featureHeading}>Get paid fast with PayMongo</h2>
+            <div style={{ color: '#059669', fontWeight: '800', fontSize: '0.8rem', textTransform: 'uppercase', marginBottom: '12px', letterSpacing: '1px' }}>Seamless Billing</div>
+            <h2 style={styles.featureHeading}>Live Itineraries & PayMongo</h2>
             <p style={styles.featureText}>
-              You'll receive your funds when you need it — even before your events take place with flexible payout schedules.
+              Monitor vendor confirmations in real time on your live itineraries. Execute secure transactions with strict per-service pricing through integrated PayMongo gateways.
             </p>
           </div>
           <button style={{ ...styles.primaryBtn, width: 'fit-content' }} onClick={() => navigate('/login')}>
-            Get Started &rarr;
+            View Live Itineraries &rarr;
           </button>
         </div>
       </section>
 
       {/* 4. TRUSTED INDUSTRIES SECTION */}
       <section style={styles.industrySection}>
-        <h2 style={{ fontSize: '2.5rem', fontWeight: '900', letterSpacing: '-1px' }}>Trusted by industries like yours</h2>
+        <h2 style={{ fontSize: '2.4rem', fontWeight: '900', letterSpacing: '-1px', color: '#0f172a' }}>Engineered for elite event categories</h2>
         <div style={styles.industryGrid}>
-          <div style={{ ...styles.industryCard, backgroundImage: `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=300&q=80')` }}>Business</div>
-          <div style={{ ...styles.industryCard, backgroundImage: `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=300&q=80')` }}>Academic</div>
-          <div style={{ ...styles.industryCard, backgroundImage: `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1531206715517-5c0ba140b2b8?auto=format&fit=crop&w=300&q=80')` }}>Councils</div>
-          <div style={{ ...styles.industryCard, backgroundImage: `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=300&q=80')` }}>Entertainment</div>
-          <div style={{ ...styles.industryCard, backgroundImage: `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&w=300&q=80')` }}>Communities</div>
+          <div style={{ ...styles.industryCard, backgroundImage: `url('https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=300&q=80')` }}>
+            <div style={styles.industryOverlay}></div>
+            <span style={{ position: 'relative', zIndex: 2, color: '#ffffff' }}>Corporate Galas</span>
+          </div>
+          <div style={{ ...styles.industryCard, backgroundImage: `url('https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=300&q=80')` }}>
+            <div style={styles.industryOverlay}></div>
+            <span style={{ position: 'relative', zIndex: 2, color: '#ffffff' }}>Academic Seminars</span>
+          </div>
+          <div style={{ ...styles.industryCard, backgroundImage: `url('https://images.unsplash.com/photo-1531206715517-5c0ba140b2b8?auto=format&fit=crop&w=300&q=80')` }}>
+            <div style={styles.industryOverlay}></div>
+            <span style={{ position: 'relative', zIndex: 2, color: '#ffffff' }}>Executive Councils</span>
+          </div>
+          <div style={{ ...styles.industryCard, backgroundImage: `url('https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=300&q=80')` }}>
+            <div style={styles.industryOverlay}></div>
+            <span style={{ position: 'relative', zIndex: 2, color: '#ffffff' }}>Live Concerts</span>
+          </div>
+          <div style={{ ...styles.industryCard, backgroundImage: `url('https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&w=300&q=80')` }}>
+            <div style={styles.industryOverlay}></div>
+            <span style={{ position: 'relative', zIndex: 2, color: '#ffffff' }}>Community Mixers</span>
+          </div>
         </div>
       </section>
 
       {/* 5. TESTIMONIALS SECTION */}
       <section style={styles.testimonialSection}>
         <div style={{ maxWidth: '1300px', margin: '0 auto', textAlign: 'center' }}>
-          <h2 style={{ fontSize: '2.5rem', fontWeight: '900', letterSpacing: '-1px' }}>Loved by customers</h2>
-          <p style={{ color: '#94a3b8', marginTop: '10px' }}>EventEase has a 4.7 rating according to leading software review platforms.</p>
+          <h2 style={{ fontSize: '2.4rem', fontWeight: '900', letterSpacing: '-1px', color: '#0f172a' }}>Trusted by elite event organizers</h2>
+          <p style={{ color: '#64748b', marginTop: '10px' }}>Maintaining top-tier reliability across all booking workflows.</p>
         </div>
         <div style={styles.testimonialGrid}>
           <div style={styles.testimonialCard}>
-            <div style={{ color: '#fbbf24', marginBottom: '15px' }}>★★★★★</div>
-            <h4 style={{ fontWeight: '800', marginBottom: '10px' }}>New leader in event management</h4>
-            <p style={{ color: '#94a3b8', fontSize: '0.9rem', lineHeight: '1.6' }}>"Sleek, user friendly experience with smooth options available to make running a large event much more simple."</p>
-            <div style={{ marginTop: '20px', fontWeight: '700', fontSize: '0.85rem' }}>Rory W. — Admin & Events</div>
+            <div style={{ color: '#059669', marginBottom: '15px', fontSize: '0.9rem' }}>★★★★★</div>
+            <h4 style={{ fontWeight: '800', marginBottom: '10px', fontSize: '1.05rem', color: '#0f172a' }}>Flawless vendor coordination</h4>
+            <p style={{ color: '#64748b', fontSize: '0.9rem', lineHeight: '1.7' }}>"The Bundle Architect completely transformed how we pitch packages to clients. Clean, fast, and remarkably structured."</p>
+            <div style={{ marginTop: '25px', fontWeight: '700', fontSize: '0.85rem', color: '#334155' }}>Rory W. — Lead Event Director</div>
           </div>
           <div style={styles.testimonialCard}>
-            <div style={{ color: '#fbbf24', marginBottom: '15px' }}>★★★★★</div>
-            <h4 style={{ fontWeight: '800', marginBottom: '10px' }}>Easy to use platform</h4>
-            <p style={{ color: '#94a3b8', fontSize: '0.9rem', lineHeight: '1.6' }}>"EventEase allowed our club to take online bookings for events with zero hassle. The custom service is brilliant!"</p>
-            <div style={{ marginTop: '20px', fontWeight: '700', fontSize: '0.85rem' }}>Nikki W. — Treasurer</div>
+            <div style={{ color: '#059669', marginBottom: '15px', fontSize: '0.9rem' }}>★★★★★</div>
+            <h4 style={{ fontWeight: '800', marginBottom: '10px', fontSize: '1.05rem', color: '#0f172a' }}>Secure and lightning-fast billing</h4>
+            <p style={{ color: '#64748b', fontSize: '0.9rem', lineHeight: '1.7' }}>"Integrating PayMongo checkout with per-service pricing resolved all our budgeting discrepancies overnight. Incredible tool."</p>
+            <div style={{ marginTop: '25px', fontWeight: '700', fontSize: '0.85rem', color: '#334155' }}>Nikki K. — Operations Manager</div>
           </div>
           <div style={styles.testimonialCard}>
-            <div style={{ color: '#fbbf24', marginBottom: '15px' }}>★★★★★</div>
-            <h4 style={{ fontWeight: '800', marginBottom: '10px' }}>Exceeded expectations</h4>
-            <p style={{ color: '#94a3b8', fontSize: '0.9rem', lineHeight: '1.6' }}>"The software is highly flexible and has great features. It is so simple and easy to use for anyone looking for reliability."</p>
-            <div style={{ marginTop: '20px', fontWeight: '700', fontSize: '0.85rem' }}>Piyush G. — Developer</div>
+            <div style={{ color: '#059669', marginBottom: '15px', fontSize: '0.9rem' }}>★★★★★</div>
+            <h4 style={{ fontWeight: '800', marginBottom: '10px', fontSize: '1.05rem', color: '#0f172a' }}>Exceptional UI architecture</h4>
+            <p style={{ color: '#64748b', fontSize: '0.9rem', lineHeight: '1.7' }}>"From automated unassigned booking cleanup to live itinerary tracking, every workflow is polished to perfection."</p>
+            <div style={{ marginTop: '25px', fontWeight: '700', fontSize: '0.85rem', color: '#334155' }}>Piyush G. — Technical Lead</div>
           </div>
         </div>
       </section>
@@ -390,10 +385,10 @@ const LandingPage = () => {
       {/* 6. FOOTER */}
       <footer style={styles.footer}>
         <div>© 2026 EventEase Inc. All rights reserved.</div>
-        <div style={{ display: 'flex', gap: '20px' }}>
-          <span>Privacy Policy</span>
-          <span>Terms of Service</span>
-          <span>Security</span>
+        <div style={{ display: 'flex', gap: '25px', color: '#64748b', fontWeight: '600' }}>
+          <span style={{ cursor: 'pointer' }}>Privacy Policy</span>
+          <span style={{ cursor: 'pointer' }}>Terms of Service</span>
+          <span style={{ cursor: 'pointer' }}>Security</span>
         </div>
       </footer>
 
