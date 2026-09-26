@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api';
-import { User, Mail, Phone, ShieldCheck, Camera, MapPin, Clock, AlertCircle, FileText, Upload } from 'lucide-react';
+import { User, Mail, Phone, ShieldCheck, Camera, MapPin, Clock, AlertCircle, FileText, Upload, X } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 const UserProfile = () => {
@@ -8,6 +8,7 @@ const UserProfile = () => {
   const [loading, setLoading] = useState(true);
   const [uploadingPermit, setUploadingPermit] = useState(false);
   const [permitFile, setPermitFile] = useState(null);
+  const [previewImage, setPreviewImage] = useState(null); // State for the modal popup
   
   const [userData, setUserData] = useState({
     name: "",
@@ -112,7 +113,11 @@ const UserProfile = () => {
     label: { display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.75rem', color: '#999', fontWeight: '800', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '1px' },
     value: { fontSize: '1.1rem', color: '#1a1a1a', fontWeight: '600', paddingLeft: '22px' },
     input: { width: '100%', padding: '14px 18px', borderRadius: '14px', border: '1px solid #ddd', fontSize: '1rem', outline: 'none', backgroundColor: '#f9fafb' },
-    editBtn: { padding: '14px 35px', backgroundColor: isEditing ? '#22c55e' : '#1a1a1a', color: 'white', border: 'none', borderRadius: '15px', fontWeight: '800', cursor: 'pointer', transition: 'all 0.3s ease' }
+    editBtn: { padding: '14px 35px', backgroundColor: isEditing ? '#22c55e' : '#1a1a1a', color: 'white', border: 'none', borderRadius: '15px', fontWeight: '800', cursor: 'pointer', transition: 'all 0.3s ease' },
+    modalOverlay: { position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0, 0, 0, 0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: '20px' },
+    modalContent: { position: 'relative', maxWidth: '90%', maxHeight: '90%', backgroundColor: '#fff', padding: '20px', borderRadius: '16px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.3)' },
+    modalImage: { maxWidth: '100%', maxHeight: '80vh', display: 'block', borderRadius: '8px', objectFit: 'contain' },
+    closeBtn: { position: 'absolute', top: '10px', right: '10px', background: '#1a1a1a', color: '#fff', border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 1010 }
   };
 
   if (loading) return <div style={styles.container}>Loading Profile...</div>;
@@ -234,18 +239,58 @@ const UserProfile = () => {
                   </div>
 
                   {userData.permit_path && (
-                    <div style={{ fontSize: '0.85rem', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span>Current Document:</span> 
-                      <a href={`https://eventease-backend.onrender.com/storage/${userData.permit_path}`} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', fontWeight: '700', textDecoration: 'none' }}>
-                        View Uploaded Permit
-                      </a>
+                    <div style={{ fontSize: '0.85rem', color: '#0f172a', display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '5px' }}>
+                      <span style={{ fontWeight: '700' }}>Current Document:</span> 
+                      
+                      {(() => {
+                        const permitUrl = userData.permit_path.startsWith('http') 
+                          ? userData.permit_path 
+                          : `https://eventease-backend.onrender.com/storage/${userData.permit_path}`;
+
+                        const isImage = /\.(jpg|jpeg|png|webp)$/i.test(permitUrl);
+
+                        return (
+                          <div>
+                            {isImage && (
+                              <div style={{ marginBottom: '10px' }}>
+                                <img 
+                                  src={permitUrl} 
+                                  alt="Business Permit Preview" 
+                                  onClick={() => setPreviewImage(permitUrl)}
+                                  style={{ maxWidth: '200px', maxHeight: '150px', borderRadius: '10px', border: '1px solid #cbd5e1', objectFit: 'cover', display: 'block', cursor: 'pointer' }} 
+                                  title="Click to preview"
+                                />
+                              </div>
+                            )}
+
+                            {isImage ? (
+                              <button 
+                                type="button" 
+                                onClick={() => setPreviewImage(permitUrl)}
+                                style={{ background: 'none', border: 'none', color: '#2563eb', fontWeight: '700', padding: 0, cursor: 'pointer', textAlign: 'left' }}
+                              >
+                                Preview Image on Screen 🔍
+                              </button>
+                            ) : (
+                              <a 
+                                href={permitUrl} 
+                                target="_blank" 
+                                rel="noopener noreferrer" 
+                                style={{ color: '#2563eb', fontWeight: '700', textDecoration: 'none', display: 'inline-block' }}
+                              >
+                                View PDF Document ↗
+                              </a>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </div>
                   )}
 
                   <button 
                     type="submit" 
                     disabled={uploadingPermit}
-                    style={{ background: '#000', color: '#fff', border: 'none', padding: '14px 24px', borderRadius: '12px', fontWeight: '900', cursor: 'pointer', alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '8px' }}
+                    style={{ background: '#000', color: '#fff', border: 'none', padding: '14px 24px', borderRadius: '12px', fontWeight: '900', cursor: 'pointer', alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '8px', marginTop: '10px' }}
                   >
                     <Upload size={16} /> {uploadingPermit ? 'UPLOADING...' : 'UPLOAD / UPDATE PERMIT'}
                   </button>
@@ -255,6 +300,18 @@ const UserProfile = () => {
           </div>
         )}
       </div>
+
+      {/* LIGHTBOX MODAL PREVIEW */}
+      {previewImage && (
+        <div style={styles.modalOverlay} onClick={() => setPreviewImage(null)}>
+          <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <button style={styles.closeBtn} onClick={() => setPreviewImage(null)}>
+              <X size={20} />
+            </button>
+            <img src={previewImage} alt="Enlarged Permit Preview" style={styles.modalImage} />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
