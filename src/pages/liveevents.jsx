@@ -4,7 +4,6 @@ import api from '../api';
 import { notifyEventCancelled } from "../toastUtils.jsx";
 import { Trash2, MapPin, CreditCard, Plus, ArrowRight, Calendar, Users, CheckCircle, ShieldCheck } from 'lucide-react';
 
-// --- SUCCESS DELETE MODAL ---
 const SuccessDeleteModal = ({ isOpen, onClose, eventName }) => {
   if (!isOpen) return null;
   return (
@@ -41,7 +40,6 @@ const SuccessDeleteModal = ({ isOpen, onClose, eventName }) => {
   );
 };
 
-// --- CUSTOM DELETE CONFIRMATION MODAL ---
 const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, eventName }) => {
   if (!isOpen) return null;
   return (
@@ -256,7 +254,7 @@ const LiveEvents = () => {
       
       <div style={styles.content}>
         
-        {/* CLEAN EVENTEASE MINIMALIST HEADER (NO HERO BANNER) */}
+        {/* CLEAN MINIMALIST HEADER */}
         <div style={styles.headerWrapper}>
           <div>
             <h1 style={styles.greeting}>Live Events Itinerary</h1>
@@ -299,7 +297,6 @@ const LiveEvents = () => {
               return (
               <div key={item.id} style={styles.card}>
                 
-                {/* CONDITIONAL DELETE BUTTON */}
                 {!isPaid ? (
                   <button 
                       onClick={() => { setEventToDelete(item); setIsDeleteOpen(true); }} 
@@ -334,7 +331,6 @@ const LiveEvents = () => {
                 </div>
 
                 <div>
-                  {/* PAYMENT BRIDGE */}
                   {item.status === 'accepted' && !isPaid && (
                       <button 
                           onClick={() => navigate(`/checkout?booking_id=${item.id}&amount=${item.budget}`)}
