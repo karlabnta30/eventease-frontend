@@ -76,7 +76,12 @@ const VendorList = () => {
         try {
             const endpoint = userRole === 'vendor' ? '/vendor/services' : '/vendors';
             const res = await api.get(endpoint);
-            setVendors(res.data.data || []);
+            
+            // DEDUPLICATE API RESPONSE BY ID DIRECTLY UPON FETCH
+            const rawData = res.data.data || res.data || [];
+            const uniqueData = Array.from(new Map(rawData.map(item => [item.id, item])).values());
+            
+            setVendors(uniqueData);
         } catch (err) { 
             console.error("Fetch Error:", err); 
         } finally { 
@@ -88,7 +93,6 @@ const VendorList = () => {
         fetchVendors();
     }, []);
 
-    // Save cart changes to localStorage automatically so user never loses selections
     useEffect(() => {
         localStorage.setItem('eventease_pending_cart', JSON.stringify(selectedServices));
     }, [selectedServices]);
@@ -157,7 +161,7 @@ const VendorList = () => {
             const payload = { services: selectedServices.map(s => Number(s.id)) };
 
             await api.post(`/bookings/${cleanBookingId}/attach-services`, payload);
-            localStorage.removeItem('eventease_pending_cart'); // Clear cart upon successful checkout
+            localStorage.removeItem('eventease_pending_cart'); 
             notifyNewBooking(`Successfully added ${selectedServices.length} service(s) to cart & booking!`);
             navigate('/live-events');
         } catch (error) {
@@ -177,16 +181,22 @@ const VendorList = () => {
         }
     };
 
-    const filteredVendors = vendors.filter(v => {
-        if (!activeCategoryView) return true;
-        const vCat = (v.category || '').toLowerCase();
-        const active = activeCategoryView.toLowerCase();
-        
-        if (active.includes('miscellaneous') || active.includes('random')) {
-            return !['catering', 'photography', 'venue', 'entertainment', 'decoration', 'hosting'].some(c => vCat.includes(c));
-        }
-        return vCat.includes(active);
-    });
+    // MEMOIZED SAFETY DEDUPLICATION CHECK ON FILTERED VENDORS
+    const filteredVendors = useMemo(() => {
+        const matching = vendors.filter(v => {
+            if (!activeCategoryView) return true;
+            const vCat = (v.category || '').toLowerCase();
+            const active = activeCategoryView.toLowerCase();
+            
+            if (active.includes('miscellaneous') || active.includes('random')) {
+                return !['catering', 'photography', 'venue', 'entertainment', 'decoration', 'hosting'].some(c => vCat.includes(c));
+            }
+            return vCat.includes(active);
+        });
+
+        // Double check uniqueness by ID
+        return Array.from(new Map(matching.map(item => [item.id, item])).values());
+    }, [vendors, activeCategoryView]);
 
     if (loading) return <div style={{ padding: '100px', textAlign: 'center', fontWeight: '800', fontSize: '1.2rem' }}>Loading Services...</div>;
 
@@ -337,7 +347,6 @@ const VendorList = () => {
                 </div>
             )}
 
-            {/* FLOATING CLIENT CART & CHECKOUT BAR (Persists across navigation tabs) */}
             {selectedServices.length > 0 && userRole !== 'vendor' && (
                 <div style={{
                     position: 'fixed', bottom: '25px', left: '50%', transform: 'translateX(-50%)',
