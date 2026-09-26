@@ -293,6 +293,9 @@ const LiveEvents = () => {
           <div style={styles.grid}>
             {bookings.length > 0 ? bookings.map((item) => {
               const isPaid = item.payment_status && item.payment_status.toLowerCase() === 'paid';
+              
+              // Use specific service/vendor price if available, otherwise fallback to booking cost
+              const payableAmount = item.service_price || item.price || item.total_price || item.budget || 0;
 
               return (
               <div key={item.id} style={styles.card}>
@@ -326,17 +329,19 @@ const LiveEvents = () => {
                   
                   <div style={styles.infoRow}>
                     <CreditCard size={16} color="#000" />
-                    <span style={{ fontWeight: '800', color: '#000' }}>₱{parseFloat(item.budget || 0).toLocaleString()}</span>
+                    <span style={{ fontWeight: '800', color: '#000' }}>
+                      Service Cost: ₱{parseFloat(payableAmount).toLocaleString()}
+                    </span>
                   </div>
                 </div>
 
                 <div>
                   {item.status === 'accepted' && !isPaid && (
                       <button 
-                          onClick={() => navigate(`/checkout?booking_id=${item.id}&amount=${item.budget}`)}
+                          onClick={() => navigate(`/checkout?booking_id=${item.id}&amount=${payableAmount}`)}
                           style={styles.paymentBtn}
                       >
-                          <CreditCard size={16} /> PROCEED TO PAYMENT
+                          <CreditCard size={16} /> PROCEED TO PAYMENT (₱{parseFloat(payableAmount).toLocaleString()})
                       </button>
                   )}
 
