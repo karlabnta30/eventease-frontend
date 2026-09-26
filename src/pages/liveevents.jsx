@@ -104,7 +104,11 @@ const LiveEvents = () => {
 
         const url = userRole === 'admin' ? '/admin/bookings' : '/bookings';
         const res = await api.get(url);
-        setBookings(res.data.data || (Array.isArray(res.data) ? res.data : []));
+        const rawBookings = res.data.data || (Array.isArray(res.data) ? res.data : []);
+
+        // Automatically filter out bookings where no vendor/service is assigned
+        const assignedBookings = rawBookings.filter(item => item.vendor_id || item.vendor || item.service_id);
+        setBookings(assignedBookings);
       } catch (err) { 
         console.error(err); 
       } finally { 
@@ -254,7 +258,6 @@ const LiveEvents = () => {
       
       <div style={styles.content}>
         
-        {/* CLEAN MINIMALIST HEADER */}
         <div style={styles.headerWrapper}>
           <div>
             <h1 style={styles.greeting}>Live Events Itinerary</h1>
@@ -293,8 +296,6 @@ const LiveEvents = () => {
           <div style={styles.grid}>
             {bookings.length > 0 ? bookings.map((item) => {
               const isPaid = item.payment_status && item.payment_status.toLowerCase() === 'paid';
-              
-              // Use specific service/vendor price if available, otherwise fallback to booking cost
               const payableAmount = item.service_price || item.price || item.total_price || item.budget || 0;
 
               return (
