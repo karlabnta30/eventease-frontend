@@ -3,7 +3,7 @@ import api from '../api';
 import { toast } from 'react-hot-toast';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
-import { LayoutDashboard, Calendar as CalendarIcon, UserCheck, FileText, CheckCircle, XCircle, MapPin, Users, Briefcase, CreditCard, Clock } from 'lucide-react';
+import { LayoutDashboard, Calendar as CalendarIcon, UserCheck, FileText, CheckCircle, XCircle, MapPin, Users, Briefcase, CreditCard, Clock, X } from 'lucide-react';
 import './CalendarCustom.css'; 
 
 const AdminDashboard = () => {
@@ -14,6 +14,7 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('analytics');
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [previewImage, setPreviewImage] = useState(null); // Lightbox modal state for permits
 
   const fetchAdminData = async () => {
     const token = localStorage.getItem('token');
@@ -189,48 +190,77 @@ const AdminDashboard = () => {
           <h2 style={{ fontWeight: '800', marginBottom: '20px' }}>Vendor Permit Moderation & Status Directory</h2>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-            {vendorPermits && vendorPermits.length > 0 ? vendorPermits.map(v => (
-              <div key={v.id} style={{ background: '#f9f9fb', padding: '20px', borderRadius: '16px', border: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <h4 style={{ margin: '0 0 4px 0', fontWeight: '800', fontSize: '1.1rem' }}>{v.business_name || v.name}</h4>
-                  <p style={{ fontSize: '13px', color: '#666', margin: '0 0 8px 0' }}>Owner: {v.owner_name} ({v.owner_email}) | Category: <strong>{v.category || 'General'}</strong></p>
-                  
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <span style={{ fontSize: '0.75rem', fontWeight: '800', padding: '4px 10px', borderRadius: '6px', background: v.verification_status === 'verified' ? '#dcfce7' : v.verification_status === 'rejected' ? '#fee2e2' : '#fef3c7', color: v.verification_status === 'verified' ? '#166534' : v.verification_status === 'rejected' ? '#991b1b' : '#92400e' }}>
-                      Status: {v.verification_status?.toUpperCase() || 'PENDING'}
-                    </span>
+            {vendorPermits && vendorPermits.length > 0 ? vendorPermits.map(v => {
+              const permitUrl = v.permit_path 
+                ? (v.permit_path.startsWith('http') ? v.permit_path : `https://eventease-backend-v9za.onrender.com/storage/${v.permit_path}`)
+                : null;
+              const isImage = permitUrl && /\.(jpg|jpeg|png|webp)$/i.test(permitUrl);
 
-                    {v.permit_path ? (
-                      <a href={`https://eventease-backend-l06d.onrender.com/storage/${v.permit_path}`} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.8rem', fontWeight: '700', color: '#2563eb', textDecoration: 'none' }}>
-                        <FileText size={14} /> View Permit Document
-                      </a>
-                    ) : (
-                      <span style={{ fontSize: '0.8rem', color: '#94a3b8', fontStyle: 'italic' }}>No permit uploaded</span>
+              return (
+                <div key={v.id} style={{ background: '#f9f9fb', padding: '20px', borderRadius: '16px', border: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <h4 style={{ margin: '0 0 4px 0', fontWeight: '800', fontSize: '1.1rem' }}>{v.business_name || v.name}</h4>
+                    <p style={{ fontSize: '13px', color: '#666', margin: '0 0 8px 0' }}>Owner: {v.owner_name} ({v.owner_email}) | Category: <strong>{v.category || 'General'}</strong></p>
+                    
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <span style={{ fontSize: '0.75rem', fontWeight: '800', padding: '4px 10px', borderRadius: '6px', background: v.verification_status === 'verified' ? '#dcfce7' : v.verification_status === 'rejected' ? '#fee2e2' : '#fef3c7', color: v.verification_status === 'verified' ? '#166534' : v.verification_status === 'rejected' ? '#991b1b' : '#92400e' }}>
+                        Status: {v.verification_status?.toUpperCase() || 'PENDING'}
+                      </span>
+
+                      {permitUrl ? (
+                        isImage ? (
+                          <button 
+                            type="button"
+                            onClick={() => setPreviewImage(permitUrl)}
+                            style={{ background: 'none', border: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.8rem', fontWeight: '700', color: '#2563eb', cursor: 'pointer', padding: 0 }}
+                          >
+                            <FileText size={14} /> View Permit Document 🔍
+                          </button>
+                        ) : (
+                          <a href={permitUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.8rem', fontWeight: '700', color: '#2563eb', textDecoration: 'none' }}>
+                            <FileText size={14} /> View PDF Document ↗
+                          </a>
+                        )
+                      ) : (
+                        <span style={{ fontSize: '0.8rem', color: '#94a3b8', fontStyle: 'italic' }}>No permit uploaded</span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    {v.verification_status !== 'verified' && (
+                      <button 
+                        onClick={() => handleVerificationAction(v.id, 'verified')}
+                        style={{ background: '#10b981', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '10px', fontWeight: '800', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem' }}
+                      >
+                        <CheckCircle size={14} /> Approve
+                      </button>
+                    )}
+
+                    {v.verification_status !== 'rejected' && (
+                      <button 
+                        onClick={() => handleVerificationAction(v.id, 'rejected')}
+                        style={{ background: '#ef4444', color: '#fff', border: '1px solid #ef4444', padding: '10px 16px', borderRadius: '10px', fontWeight: '800', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem' }}
+                      >
+                        <XCircle size={14} /> Reject
+                      </button>
                     )}
                   </div>
                 </div>
+              );
+            }) : <p style={{color: '#aaa', textAlign: 'center'}}>No vendor records found.</p>}
+          </div>
+        </div>
+      )}
 
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                  {v.verification_status !== 'verified' && (
-                    <button 
-                      onClick={() => handleVerificationAction(v.id, 'verified')}
-                      style={{ background: '#10b981', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '10px', fontWeight: '800', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem' }}
-                    >
-                      <CheckCircle size={14} /> Approve
-                    </button>
-                  )}
-
-                  {v.verification_status !== 'rejected' && (
-                    <button 
-                      onClick={() => handleVerificationAction(v.id, 'rejected')}
-                      style={{ background: '#ef4444', color: '#fff', border: '1px solid #ef4444', padding: '10px 16px', borderRadius: '10px', fontWeight: '800', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem' }}
-                    >
-                      <XCircle size={14} /> Reject
-                    </button>
-                  )}
-                </div>
-              </div>
-            )) : <p style={{color: '#aaa', textAlign: 'center'}}>No vendor records found.</p>}
+      {/* LIGHTBOX MODAL PREVIEW FOR ADMIN */}
+      {previewImage && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0, 0, 0, 0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: '20px' }} onClick={() => setPreviewImage(null)}>
+          <div style={{ position: 'relative', maxWidth: '90%', maxHeight: '90%', backgroundColor: '#fff', padding: '20px', borderRadius: '16px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.3)' }} onClick={(e) => e.stopPropagation()}>
+            <button style={{ position: 'absolute', top: '10px', right: '10px', background: '#1a1a1a', color: '#fff', border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 1010 }} onClick={() => setPreviewImage(null)}>
+              <X size={20} />
+            </button>
+            <img src={previewImage} alt="Enlarged Permit Preview" style={{ maxWidth: '100%', maxHeight: '80vh', display: 'block', borderRadius: '8px', objectFit: 'contain' }} />
           </div>
         </div>
       )}
