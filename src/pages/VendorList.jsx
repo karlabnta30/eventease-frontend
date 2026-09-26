@@ -5,7 +5,6 @@ import { MapPin, Lock, AlertCircle, Power, Star, Check, Plus, Trash2, ShieldAler
 import { notifyNewBooking } from '../toastUtils.jsx';
 import { toast } from 'react-hot-toast';
 
-// --- 5-STAR RATING COMPONENT ---
 const StarRating = ({ rating = 5.0, totalReviews = 12 }) => {
     const numericRating = Math.min(5, Math.max(1, parseFloat(rating) || 5.0));
     const roundedStars = Math.round(numericRating);
@@ -47,10 +46,15 @@ const VendorList = () => {
     }, [searchParams]);
     
     const [vendors, setVendors] = useState([]);
-    const [selectedServices, setSelectedServices] = useState([]);
+    
+    // PERSIST CART: Load initial cart state from localStorage if available
+    const [selectedServices, setSelectedServices] = useState(() => {
+        const savedCart = localStorage.getItem('eventease_pending_cart');
+        return savedCart ? JSON.parse(savedCart) : [];
+    });
+
     const [loading, setLoading] = useState(true);
     const [hiringLoading, setHiringLoading] = useState(false);
-
     const [activeCategoryView, setActiveCategoryView] = useState(null);
 
     const categories = ['Catering', 'Photography', 'Venue', 'Entertainment', 'Decoration', 'Hosting', 'Random Stuff / Miscellaneous'];
@@ -83,6 +87,11 @@ const VendorList = () => {
     useEffect(() => {
         fetchVendors();
     }, []);
+
+    // Save cart changes to localStorage automatically so user never loses selections
+    useEffect(() => {
+        localStorage.setItem('eventease_pending_cart', JSON.stringify(selectedServices));
+    }, [selectedServices]);
 
     const handleToggleStatus = async (id) => {
         try {
@@ -148,6 +157,7 @@ const VendorList = () => {
             const payload = { services: selectedServices.map(s => Number(s.id)) };
 
             await api.post(`/bookings/${cleanBookingId}/attach-services`, payload);
+            localStorage.removeItem('eventease_pending_cart'); // Clear cart upon successful checkout
             notifyNewBooking(`Successfully added ${selectedServices.length} service(s) to cart & booking!`);
             navigate('/live-events');
         } catch (error) {
@@ -156,6 +166,7 @@ const VendorList = () => {
                 const singleVendorId = Number(selectedServices[0].id);
 
                 await api.patch(`/bookings/${cleanBookingId}/assign-vendor`, { vendor_id: singleVendorId });
+                localStorage.removeItem('eventease_pending_cart');
                 notifyNewBooking(`Hired ${selectedServices[0].business_name || selectedServices[0].name}!`);
                 navigate('/live-events');
             } else {
@@ -326,7 +337,7 @@ const VendorList = () => {
                 </div>
             )}
 
-            {/* FLOATING CLIENT CART & CHECKOUT BAR */}
+            {/* FLOATING CLIENT CART & CHECKOUT BAR (Persists across navigation tabs) */}
             {selectedServices.length > 0 && userRole !== 'vendor' && (
                 <div style={{
                     position: 'fixed', bottom: '25px', left: '50%', transform: 'translateX(-50%)',
@@ -336,7 +347,7 @@ const VendorList = () => {
                 }}>
                     <div>
                         <div style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: '700' }}>
-                            {selectedServices.length} Service(s) in Cart (Early Chat Unlocked)
+                            {selectedServices.length} Service(s) in Cart (Draft Saved)
                         </div>
                         <div style={{ fontSize: '1.4rem', fontWeight: '900', color: isCartOverBudget ? '#ef4444' : '#000' }}>
                             Total: ₱{totalSelectedCost.toLocaleString()}
@@ -352,7 +363,10 @@ const VendorList = () => {
                             Chat Vendors
                         </button>
                         <button 
-                            onClick={() => setSelectedServices([])}
+                            onClick={() => {
+                                setSelectedServices([]);
+                                localStorage.removeItem('eventease_pending_cart');
+                            }}
                             style={{ background: '#fee2e2', color: '#991b1b', border: 'none', padding: '12px 18px', borderRadius: '14px', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
                         >
                             <Trash2 size={16} /> Clear Cart
