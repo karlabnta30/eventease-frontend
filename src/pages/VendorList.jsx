@@ -137,6 +137,11 @@ const VendorList = () => {
     const handleMultiServiceCheckout = async () => {
         if (selectedServices.length === 0) return;
 
+        if (!eventIdFromUrl) {
+            alert("No event ID detected in URL. Please start booking from your event itinerary.");
+            return;
+        }
+
         setHiringLoading(true);
         try {
             const cleanBookingId = String(eventIdFromUrl).split(':')[0].replace(/[^0-9]/g, '');
@@ -318,6 +323,49 @@ const VendorList = () => {
                             No services found in this category.
                         </div>
                     )}
+                </div>
+            )}
+
+            {/* FLOATING CLIENT CART & CHECKOUT BAR */}
+            {selectedServices.length > 0 && userRole !== 'vendor' && (
+                <div style={{
+                    position: 'fixed', bottom: '25px', left: '50%', transform: 'translateX(-50%)',
+                    width: '90%', maxWidth: '1000px', background: '#ffffff', borderRadius: '24px',
+                    padding: '18px 30px', boxShadow: '0 20px 50px rgba(0,0,0,0.18)', border: '1px solid #e2e8f0',
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 900
+                }}>
+                    <div>
+                        <div style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: '700' }}>
+                            {selectedServices.length} Service(s) in Cart (Early Chat Unlocked)
+                        </div>
+                        <div style={{ fontSize: '1.4rem', fontWeight: '900', color: isCartOverBudget ? '#ef4444' : '#000' }}>
+                            Total: ₱{totalSelectedCost.toLocaleString()}
+                            {isCartOverBudget && <span style={{ fontSize: '0.8rem', color: '#ef4444', marginLeft: '10px' }}>(Exceeds Budget)</span>}
+                        </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '12px' }}>
+                        <button 
+                            onClick={() => navigate('/messages')}
+                            style={{ background: '#f1f5f9', color: '#0f172a', border: 'none', padding: '12px 18px', borderRadius: '14px', fontWeight: '700', cursor: 'pointer' }}
+                        >
+                            Chat Vendors
+                        </button>
+                        <button 
+                            onClick={() => setSelectedServices([])}
+                            style={{ background: '#fee2e2', color: '#991b1b', border: 'none', padding: '12px 18px', borderRadius: '14px', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                        >
+                            <Trash2 size={16} /> Clear Cart
+                        </button>
+                        
+                        <button 
+                            onClick={handleMultiServiceCheckout}
+                            disabled={hiringLoading}
+                            style={{ background: '#000', color: '#fff', border: 'none', padding: '14px 28px', borderRadius: '14px', fontWeight: '900', cursor: 'pointer' }}
+                        >
+                            {hiringLoading ? 'PROCESSING...' : 'BOOK CART SERVICES'}
+                        </button>
+                    </div>
                 </div>
             )}
         </div>
