@@ -256,7 +256,7 @@ const LiveEvents = () => {
       
       <div style={styles.content}>
         
-        {/* MINIMALIST EVENTEASE HEADER */}
+        {/* CLEAN EVENTEASE MINIMALIST HEADER (NO HERO BANNER) */}
         <div style={styles.headerWrapper}>
           <div>
             <h1 style={styles.greeting}>Live Events Itinerary</h1>
