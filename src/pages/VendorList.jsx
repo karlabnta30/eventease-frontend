@@ -3,7 +3,9 @@ import api from '../api';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { MapPin, Lock, AlertCircle, Power, Star, Check, Plus, Trash2, ShieldAlert, ChevronRight, ArrowLeft } from 'lucide-react';
 import { notifyNewBooking } from '../toastUtils.jsx';
+import { toast } from 'react-hot-toast';
 
+// --- 5-STAR RATING COMPONENT ---
 const StarRating = ({ rating = 5.0, totalReviews = 12 }) => {
     const numericRating = Math.min(5, Math.max(1, parseFloat(rating) || 5.0));
     const roundedStars = Math.round(numericRating);
@@ -88,6 +90,19 @@ const VendorList = () => {
             fetchVendors();
         } catch (error) { 
             console.error("Toggle failed", error); 
+        }
+    };
+
+    const handleDeleteService = async (id) => {
+        if (!window.confirm("Are you sure you want to permanently delete this service?")) return;
+
+        try {
+            await api.delete(`/vendors/${id}`);
+            toast.success("Service deleted successfully.");
+            fetchVendors();
+        } catch (error) {
+            console.error("Delete failed:", error);
+            toast.error(error.response?.data?.message || "Failed to delete service.");
         }
     };
 
@@ -262,16 +277,26 @@ const VendorList = () => {
                                             </div>
                                         </div>
                                         
-                                        <div style={{ width: '160px' }}>
+                                        <div style={{ width: '190px' }}>
                                             {userRole === 'vendor' ? (
-                                                <button onClick={() => handleToggleStatus(vendor.id)} style={{
-                                                    background: vendor.is_available ? '#000' : '#f0f0f0',
-                                                    color: vendor.is_available ? '#fff' : '#aaa',
-                                                    padding: '14px 24px', borderRadius: '14px', border: 'none', fontWeight: '800', cursor: 'pointer', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'
-                                                }}>
-                                                    <Power size={16} />
-                                                    {vendor.is_available ? 'ONLINE' : 'OFFLINE'}
-                                                </button>
+                                                <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
+                                                    <button onClick={() => handleToggleStatus(vendor.id)} style={{
+                                                        background: vendor.is_available ? '#000' : '#f0f0f0',
+                                                        color: vendor.is_available ? '#fff' : '#aaa',
+                                                        padding: '14px 12px', borderRadius: '14px', border: 'none', fontWeight: '800', cursor: 'pointer', flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '0.75rem'
+                                                    }}>
+                                                        <Power size={14} />
+                                                        {vendor.is_available ? 'ONLINE' : 'OFFLINE'}
+                                                    </button>
+
+                                                    <button onClick={() => handleDeleteService(vendor.id)} style={{
+                                                        background: '#fee2e2',
+                                                        color: '#991b1b',
+                                                        padding: '14px 14px', borderRadius: '14px', border: 'none', fontWeight: '800', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                                    }} title="Delete Service">
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
                                             ) : (
                                                 <button 
                                                     style={{ 
