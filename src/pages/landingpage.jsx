@@ -13,16 +13,16 @@ const LandingPage = () => {
       overflowX: 'hidden',
       position: 'relative',
     },
-    // 2. Hero Section
+    // 2. Hero Section - Tightened padding to remove excessive top whitespace
     heroSection: {
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
-      padding: '100px 60px',
+      padding: '40px 60px',
       gap: '60px',
       maxWidth: '1440px',
       margin: '0 auto',
-      minHeight: '80vh',
+      minHeight: '70vh',
     },
     heroContent: {
       flex: '1 1 650px',
@@ -40,21 +40,21 @@ const LandingPage = () => {
       color: '#047857',
       textTransform: 'uppercase',
       letterSpacing: '1px',
-      marginBottom: '24px',
+      marginBottom: '20px',
     },
     heroHeading: {
       fontSize: '4.2rem',
       fontWeight: '900',
       lineHeight: '1.08',
       letterSpacing: '-2.5px',
-      marginBottom: '24px',
+      marginBottom: '20px',
       color: '#0f172a',
     },
     heroSubheading: {
       fontSize: '1.1rem',
       color: '#64748b',
       lineHeight: '1.65',
-      marginBottom: '40px',
+      marginBottom: '35px',
       maxWidth: '560px',
       fontWeight: '500',
     },
@@ -62,7 +62,7 @@ const LandingPage = () => {
       display: 'flex',
       gap: '16px',
       alignItems: 'center',
-      marginBottom: '45px',
+      marginBottom: '35px',
     },
     primaryBtn: {
       backgroundColor: '#10b981',
@@ -95,7 +95,7 @@ const LandingPage = () => {
       color: '#475569',
       fontWeight: '700',
       borderTop: '1px solid #f1f5f9',
-      paddingTop: '25px',
+      paddingTop: '20px',
       flexWrap: 'wrap',
     },
     ratingItem: {
@@ -132,7 +132,7 @@ const LandingPage = () => {
 
     // 3. Core Features Showcase Section
     featureSection: {
-      padding: '100px 60px',
+      padding: '80px 60px',
       maxWidth: '1300px',
       margin: '0 auto',
       display: 'grid',
@@ -165,7 +165,7 @@ const LandingPage = () => {
 
     // 4. Trusted Industries Section
     industrySection: {
-      padding: '80px 60px',
+      padding: '60px 60px',
       textAlign: 'center',
       maxWidth: '1200px',
       margin: '0 auto',
@@ -200,7 +200,7 @@ const LandingPage = () => {
 
     // 5. Testimonials Section
     testimonialSection: {
-      padding: '100px 60px',
+      padding: '80px 60px',
       backgroundColor: '#f8fafc',
       borderTop: '1px solid #e2e8f0',
       borderBottom: '1px solid #e2e8f0',
@@ -222,7 +222,7 @@ const LandingPage = () => {
 
     // 6. Footer
     footer: {
-      padding: '60px',
+      padding: '50px 60px',
       maxWidth: '1300px',
       margin: '0 auto',
       display: 'flex',
@@ -267,11 +267,8 @@ const LandingPage = () => {
             </button>
           </div>
 
-          {/* Ratings row matching your screenshot design layout */}
+          {/* Ratings row with Capterra Verified removed */}
           <div style={styles.ratingsRow}>
-            <div style={styles.ratingItem}>
-              <span>⭐</span> <strong></strong> Capterra Verified
-            </div>
             <div style={styles.ratingItem}>
               <span>⭐</span> <strong>5.0/5</strong> Enterprise Grade
             </div>
