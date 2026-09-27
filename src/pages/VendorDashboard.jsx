@@ -26,15 +26,15 @@ const VendorDashboard = () => {
 
       try {
         const res = await api.get('/vendor/bookings');
-        
         setBookings(res.data.data || res.data.bookings || []);
         setStats(res.data.stats || { earnings: 0, pending: 0 });
 
+        // Fetch bundles with fallback parsing for safe data handling
         const bundlesRes = await api.get('/bundles');
-        setVendorBundles(bundlesRes.data || []);
+        const bundlesData = Array.isArray(bundlesRes.data) ? bundlesRes.data : (bundlesRes.data.data || []);
+        setVendorBundles(bundlesData);
 
         const notifRes = await api.get('/notifications');
-
         const notifications = Array.isArray(notifRes.data) ? notifRes.data : (notifRes.data.data || []);
         const unread = notifications.filter(n => !n.is_read);
 
@@ -61,7 +61,7 @@ const VendorDashboard = () => {
       
       const statRes = await api.get('/vendor/bookings');
       setStats(statRes.data.stats);
-
+      notifySuccess(`Booking successfully ${status}!`);
     } catch (err) { 
       alert("Failed to update status."); 
     }
@@ -94,10 +94,12 @@ const VendorDashboard = () => {
       try {
         await api.delete(`/bundles/${cleanId}`);
         setVendorBundles(vendorBundles.filter(b => b.id !== id && String(b.id) !== String(cleanId)));
+        notifySuccess('Bundle deleted successfully!');
       } catch (err1) {
         try {
           await api.delete(`/vendor/bundles/${cleanId}`);
           setVendorBundles(vendorBundles.filter(b => b.id !== id && String(b.id) !== String(cleanId)));
+          notifySuccess('Bundle deleted successfully!');
         } catch (err2) {
           console.error("Bundle deletion error:", err2);
           alert("Failed to delete bundle. Please check your Laravel backend delete route mapping.");
