@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import ServiceCard from '../components/ServiceCard'; // Adjust path if needed
+import ServiceCard from '../components/ServiceCard';
 
 const PublicCatalog = () => {
   const navigate = useNavigate();
@@ -10,28 +10,36 @@ const PublicCatalog = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    // Fetch your public services/bundles from your Laravel backend API
-    axios.get('https://your-backend-url.onrender.com/api/services') // Update with your actual endpoint
+    // Fetch live services/bundles from your Laravel backend API connected to Aiven
+    axios.get('https://your-backend-url.onrender.com/api/services') 
       .then(response => {
+        // Handle Laravel resource collections or standard JSON arrays
         setServices(response.data.data || response.data);
         setLoading(false);
       })
       .catch(error => {
-        console.error('Error fetching public catalog:', error);
+        console.error('Error fetching public catalog from Aiven database:', error);
         setLoading(false);
       });
   }, []);
 
-  const filteredServices = services.filter(service => 
-    (service.bundle_name || service.business_name || service.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (service.category || '').toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filter services dynamically as the user types in the search bar
+  const filteredServices = services.filter(service => {
+    const term = searchTerm.toLowerCase();
+    const name = (service.bundle_name || service.business_name || service.name || '').toLowerCase();
+    const category = (service.category || '').toLowerCase();
+    const description = (service.description || '').toLowerCase();
+    
+    return name.includes(term) || category.includes(term) || description.includes(term);
+  });
 
   return (
     <div style={{ backgroundColor: '#ffffff', minHeight: '100vh', color: '#0f172a', fontFamily: "'Inter', sans-serif" }}>
       {/* Top Navbar */}
       <nav style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 60px', borderBottom: '1px solid #f1f5f9' }}>
-        <h2 style={{ margin: 0, fontWeight: '900', fontSize: '1.4rem', letterSpacing: '-0.5px' }}>EVENTEASE</h2>
+        <h2 style={{ margin: 0, fontWeight: '900', fontSize: '1.4rem', letterSpacing: '-0.5px', cursor: 'pointer' }} onClick={() => navigate('/')}>
+          EVENTEASE
+        </h2>
         <div style={{ display: 'flex', gap: '15px' }}>
           <button 
             onClick={() => navigate('/login')}
@@ -59,7 +67,7 @@ const PublicCatalog = () => {
         <div style={{ marginBottom: '30px', display: 'flex', justifyContent: 'center' }}>
           <input 
             type="text" 
-            placeholder="Search catalog by service name, vendor, category, or location..." 
+            placeholder="Search catalog by service name, vendor, category, or description..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             style={{ width: '100%', maxWidth: '600px', padding: '14px 20px', borderRadius: '14px', border: '1px solid #cbd5e1', fontSize: '0.95rem', outline: 'none' }}
@@ -73,10 +81,14 @@ const PublicCatalog = () => {
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '24px' }}>
             {filteredServices.map(service => (
-              <div key={service.id} style={{ position: 'relative' }}>
+              <div key={service.id || service.bundle_id} style={{ position: 'relative' }}>
                 <ServiceCard service={service} />
-                {/* Overlay layer or handling so clicking prompts them to log in to book */}
-                <div style={{ position: 'absolute', inset: 0, cursor: 'pointer' }} onClick={() => navigate('/login')} title="Log in to book this service" />
+                {/* Overlay layer prompting login to book */}
+                <div 
+                  style={{ position: 'absolute', inset: 0, cursor: 'pointer' }} 
+                  onClick={() => navigate('/login')} 
+                  title="Log in to book this service" 
+                />
               </div>
             ))}
           </div>
