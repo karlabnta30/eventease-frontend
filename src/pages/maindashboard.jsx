@@ -83,7 +83,11 @@ const MainDashboard = () => {
       const token = localStorage.getItem('token');
       if (token && userRole !== 'admin') {
         const bookingsRes = await api.get('/bookings');
-        setMyBookings(bookingsRes.data.data || (Array.isArray(bookingsRes.data) ? bookingsRes.data : []));
+        const rawBookings = bookingsRes.data.data || (Array.isArray(bookingsRes.data) ? bookingsRes.data : []);
+        
+        // Filter out bookings that don't have an assigned vendor or service
+        const assignedBookings = rawBookings.filter(item => item.vendor_id || item.vendor || item.service_id);
+        setMyBookings(assignedBookings);
 
         const notifRes = await api.get('/notifications');
         const unread = notifRes.data.filter(n => !n.is_read);
@@ -215,10 +219,8 @@ const MainDashboard = () => {
   return (
     <div className="main-dashboard" style={{ backgroundColor: '#ffffff', minHeight: '100vh', fontFamily: "'Inter', sans-serif", padding: '40px 50px 100px' }}>
       
-      {/* PROPERLY SPACED CONTAINER EXPANDED TO FILL AVAILABLE SCREEN WIDTH */}
       <div style={{ width: '100%', maxWidth: '1600px', margin: '0 auto' }}>
 
-        {/* CLEAN MINIMALIST EVENTEASE HEADER */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '35px', borderBottom: '2px solid #f0f0f0', paddingBottom: '25px', flexWrap: 'wrap', gap: '20px' }}>
           <div>
             <h1 style={{ fontSize: '2.4rem', fontWeight: '900', letterSpacing: '-1.5px', color: '#000', margin: '0 0 6px 0' }}>
@@ -252,7 +254,6 @@ const MainDashboard = () => {
           )}
         </div>
 
-        {/* Confirmation Modal */}
         {bookingToCancel && (
           <div style={styles.modalOverlay}>
             <div style={styles.modalCard}>
@@ -271,13 +272,10 @@ const MainDashboard = () => {
           </div>
         )}
 
-        {/* MAIN GRID LAYOUT: SIDEBAR + CATALOG */}
         <div style={{ display: 'grid', gridTemplateColumns: '380px 1fr', gap: '35px', alignItems: 'start' }}>
           
-          {/* LEFT SIDEBAR: BUNDLE ARCHITECT & SCHEDULES */}
           <aside style={{ display: 'flex', flexDirection: 'column', gap: '25px', position: 'sticky', top: '30px' }}>
             
-            {/* Bundle Architect Toolbox */}
             <div style={{ ...cardStyle, border: '2px solid #000', background: '#ffffff' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
                 <h4 style={{ margin: 0, fontWeight: '900', display: 'flex', alignItems: 'center', gap: '8px', color: '#000', fontSize: '0.9rem', textTransform: 'uppercase' }}>
@@ -334,7 +332,6 @@ const MainDashboard = () => {
               )}
             </div>
 
-            {/* My Scheduled Events Widget */}
             <div style={{ ...cardStyle, background: '#ffffff', border: '1px solid #eaeaea' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', borderBottom: '2px solid #f8fafc', paddingBottom: '12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -375,10 +372,8 @@ const MainDashboard = () => {
 
           </aside>
 
-          {/* --- RIGHT MAIN SECTION: CATALOG WITH TABS --- */}
           <main style={{ width: '100%', minWidth: 0 }}>
             
-            {/* Search Bar */}
             <div style={{ marginBottom: '20px' }}>
               <input 
                 type="text" 
@@ -389,7 +384,6 @@ const MainDashboard = () => {
               />
             </div>
 
-            {/* --- CATALOG TABS SWITCHER --- */}
             <div style={{ display: 'flex', gap: '10px', marginBottom: '25px', borderBottom: '2px solid #eaeaea', paddingBottom: '15px', flexWrap: 'wrap' }}>
               <button 
                 onClick={() => setActiveTab('all')}
