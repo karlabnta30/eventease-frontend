@@ -48,8 +48,6 @@ const ServiceCard = ({ service, onToggle, onBook, budgetStatus }) => {
     }
   };
 
-  const isAffordable = budgetStatus === 'affordable' || !budgetStatus;
-
   return (
     <div style={{
       backgroundColor: '#fff', 
@@ -76,9 +74,7 @@ const ServiceCard = ({ service, onToggle, onBook, budgetStatus }) => {
           backgroundImage: `url('${photoUrl}')`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
-          filter: (isAffordable || !budgetStatus) ? 'none' : 'grayscale(100%)',
-          opacity: (isAvailable || isBundle) ? (isAffordable ? 1 : 0.6) : 0.6,
-          transition: 'filter 0.3s ease'
+          opacity: (isAvailable || isBundle) ? 1 : 0.6
         }} 
       >
         <div style={{position:'absolute', inset:0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, transparent 50%, rgba(0,0,0,0.4) 100%)'}} />
@@ -88,7 +84,6 @@ const ServiceCard = ({ service, onToggle, onBook, budgetStatus }) => {
           {isBundle ? 'BUNDLE' : (service.category || 'Service')}
         </div>
 
-        {/* Cloud Badge stays fully colored because it's outside the filtered image container */}
         <div style={{position:'absolute', top:'10px', right:'10px', zIndex: 10}}>
           <div style={{
             fontSize: '10px', 

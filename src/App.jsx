@@ -6,6 +6,7 @@ import Navbar from './components/Navbar';
 import Sidebar from './components/sidebar'; 
 
 import LandingPage from "./pages/landingpage"; 
+import PublicCatalog from "./pages/publiccatalog"; 
 import MainDashboard from "./pages/maindashboard"; 
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -79,7 +80,7 @@ const ProtectedRoute = () => {
 
 function App() {
   const location = useLocation();
-  const authPaths = ['/login', '/register', '/verify-otp', '/forgot-password']; 
+  const authPaths = ['/login', '/register', '/verify-otp', '/forgot-password', '/catalog']; 
   const isAuthPage = authPaths.includes(location.pathname);
   const isLandingView = location.pathname === '/';
   
@@ -156,6 +157,7 @@ function App() {
       ) : (
         <Routes>
           <Route path="/" element={<LandingPage />} />
+          <Route path="/catalog" element={<PublicCatalog />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/verify-otp" element={<VerifyOtp />} /> 
