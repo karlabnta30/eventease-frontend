@@ -117,7 +117,7 @@ const Login = () => {
               <div style={styles.logoBadge}></div>
               <span style={styles.brandTitle}>EventEase</span>
             </div>
-            <div style={styles.langSelector}>EN ▾</div>
+            {/* Language selector removed */}
           </div>
 
           <div style={styles.formContentArea}>
@@ -325,7 +325,7 @@ const styles = {
   },
   rightTopBar: {
     display: 'flex',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
     alignItems: 'center',
     marginBottom: '40px'
   },
@@ -348,12 +348,6 @@ const styles = {
     color: '#0f172a',
     letterSpacing: '-0.5px',
     textTransform: 'uppercase'
-  },
-  langSelector: {
-    fontSize: '0.8rem',
-    fontWeight: '800',
-    color: '#64748b',
-    cursor: 'pointer'
   },
   formContentArea: {
     maxWidth: '380px',

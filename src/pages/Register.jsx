@@ -132,7 +132,7 @@ const Register = () => {
               <div style={styles.logoBadge}></div>
               <span style={styles.brandTitle}>EventEase</span>
             </div>
-            <div style={styles.langSelector}>EN ▾</div>
+            {/* Language selector removed */}
           </div>
 
           <div style={styles.formContentArea}>
@@ -142,7 +142,9 @@ const Register = () => {
             </div>
 
             <form onSubmit={handleRegister} autoComplete="off" style={styles.form}>
+              
               <div style={styles.inputGroup}>
+                <label style={styles.label}>Full Name <span style={{ color: '#ef4444' }}>*</span></label>
                 <div style={styles.inputContainer}>
                   <User size={18} color="#94a3b8" style={styles.inputIcon} />
                   <input 
@@ -157,6 +159,7 @@ const Register = () => {
               </div>
 
               <div style={styles.inputGroup}>
+                <label style={styles.label}>Email Address <span style={{ color: '#ef4444' }}>*</span></label>
                 <div style={styles.inputContainer}>
                   <Mail size={18} color="#94a3b8" style={styles.inputIcon} />
                   <input 
@@ -172,6 +175,7 @@ const Register = () => {
               </div>
 
               <div style={styles.inputGroup}>
+                <label style={styles.label}>Contact Number <span style={{ color: '#94a3b8', fontWeight: '400' }}>(Optional)</span></label>
                 <div style={styles.inputContainer}>
                   <Phone size={18} color="#94a3b8" style={styles.inputIcon} />
                   <input 
@@ -180,12 +184,12 @@ const Register = () => {
                     value={contactNumber}
                     onChange={(e) => setContactNumber(e.target.value)}
                     placeholder="Contact Number"
-                    required
                   />
                 </div>
               </div>
 
               <div style={styles.inputGroup}>
+                <label style={styles.label}>Home Address <span style={{ color: '#ef4444' }}>*</span></label>
                 <div style={styles.inputContainer}>
                   <MapPin size={18} color="#94a3b8" style={styles.inputIcon} />
                   <input 
@@ -200,6 +204,7 @@ const Register = () => {
               </div>
 
               <div style={styles.inputGroup}>
+                <label style={styles.label}>Password <span style={{ color: '#ef4444' }}>*</span></label>
                 <div style={styles.inputContainer}>
                   <Lock size={18} color="#94a3b8" style={styles.inputIcon} />
                   <input 
@@ -214,7 +219,7 @@ const Register = () => {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '4px 0' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '2px 0' }}>
                 <input 
                   type="checkbox" 
                   id="vendorCheck" 
@@ -235,7 +240,7 @@ const Register = () => {
                   style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: '#10b981' }}
                 />
                 <label htmlFor="terms" style={{ fontSize: '0.8rem', fontWeight: '600', color: '#64748b' }}>
-                  I accept the <span style={{ color: '#059669', cursor: 'pointer', textDecoration: 'underline', fontWeight: '800' }} onClick={(e) => { e.preventDefault(); setShowTermsModal(true); }}>terms & conditions</span>*
+                  I accept the <span style={{ color: '#059669', cursor: 'pointer', textDecoration: 'underline', fontWeight: '800' }} onClick={(e) => { e.preventDefault(); setShowTermsModal(true); }}>terms & conditions</span> <span style={{ color: '#ef4444' }}>*</span>
                 </label>
               </div>
               
@@ -318,7 +323,7 @@ const styles = {
     display: 'flex',
     width: '100%',
     maxWidth: '1150px',
-    height: '720px',
+    height: '740px',
     backgroundColor: '#ffffff',
     borderRadius: '36px',
     boxShadow: '0 25px 60px rgba(0, 0, 0, 0.4)',
@@ -419,9 +424,9 @@ const styles = {
   },
   rightTopBar: {
     display: 'flex',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
     alignItems: 'center',
-    marginBottom: '20px'
+    marginBottom: '10px'
   },
   logoGroup: {
     display: 'flex',
@@ -443,12 +448,6 @@ const styles = {
     letterSpacing: '-0.5px',
     textTransform: 'uppercase'
   },
-  langSelector: {
-    fontSize: '0.8rem',
-    fontWeight: '800',
-    color: '#64748b',
-    cursor: 'pointer'
-  },
   formContentArea: {
     maxWidth: '380px',
     width: '100%',
@@ -459,13 +458,13 @@ const styles = {
     flex: 1
   },
   welcomeHeader: {
-    marginBottom: '20px'
+    marginBottom: '14px'
   },
   headingTitle: {
-    fontSize: '2.1rem',
+    fontSize: '1.9rem',
     fontWeight: '900',
     color: '#0f172a',
-    margin: '0 0 4px 0',
+    margin: '0 0 2px 0',
     letterSpacing: '-1.5px'
   },
   headingSub: {
@@ -477,11 +476,17 @@ const styles = {
   form: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '12px'
+    gap: '10px'
   },
   inputGroup: {
     display: 'flex',
-    flexDirection: 'column'
+    flexDirection: 'column',
+    gap: '4px'
+  },
+  label: {
+    fontSize: '0.75rem',
+    fontWeight: '800',
+    color: '#475569'
   },
   inputContainer: {
     position: 'relative',
@@ -496,34 +501,34 @@ const styles = {
   },
   inputField: {
     width: '100%',
-    padding: '12px 16px 12px 46px',
-    borderRadius: '14px',
+    padding: '10px 14px 10px 44px',
+    borderRadius: '12px',
     border: '1px solid #e2e8f0',
     backgroundColor: '#f8fafc',
-    fontSize: '0.9rem',
+    fontSize: '0.85rem',
     color: '#0f172a',
     outline: 'none',
     boxSizing: 'border-box',
     fontWeight: '500'
   },
   submitBtn: {
-    marginTop: '8px',
+    marginTop: '6px',
     backgroundColor: '#10b981',
     color: '#ffffff',
     border: 'none',
-    padding: '14px',
-    borderRadius: '14px',
+    padding: '12px',
+    borderRadius: '12px',
     fontWeight: '900',
-    fontSize: '0.9rem',
+    fontSize: '0.85rem',
     cursor: 'pointer',
     boxShadow: '0 8px 20px rgba(16, 185, 129, 0.25)',
     transition: 'background-color 0.2s ease'
   },
   footerText: {
     textAlign: 'center',
-    marginTop: '15px',
+    marginTop: '10px',
     color: '#64748b',
-    fontSize: '0.85rem',
+    fontSize: '0.8rem',
     fontWeight: '600'
   },
   signupLink: {
