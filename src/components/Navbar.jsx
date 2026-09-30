@@ -1,10 +1,39 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 
 function Navbar() {
   const location = useLocation();
-
-  // Check if we are on the landing page
+  const navigate = useNavigate();
   const isIndexPage = location.pathname === '/';
+
+  const [userName, setUserName] = useState(null);
+  const token = localStorage.getItem('token');
+
+  useEffect(() => {
+    // Check if token exists and try to read user info if stored, or fetch it
+    const storedUser = localStorage.getItem('userName') || localStorage.getItem('user');
+    if (token) {
+      if (storedUser) {
+        try {
+          const parsed = JSON.parse(storedUser);
+          setUserName(parsed.name || parsed);
+        } catch {
+          setUserName(storedUser);
+        }
+      } else {
+        setUserName('Account');
+      }
+    } else {
+      setUserName(null);
+    }
+  }, [token, location]);
+
+  const handleDashboardRedirect = () => {
+    const userRole = localStorage.getItem('userRole');
+    if (userRole === 'admin') navigate('/admin-dashboard');
+    else if (userRole === 'vendor') navigate('/vendor-dashboard');
+    else navigate('/main-dashboard');
+  };
 
   return (
     <nav style={styles.nav}>
@@ -14,12 +43,17 @@ function Navbar() {
       </Link>
 
       <div style={styles.linksContainer}>
-        {/* Only show the CTA on the landing page. 
-            Once logged in, the Sidebar handles all navigation. */}
         {isIndexPage && (
-          <Link to="/login" style={styles.createBtn}>
-            Create Event
-          </Link>
+          token ? (
+            <button onClick={handleDashboardRedirect} style={styles.dashboardBtn}>
+              <span style={styles.userDot}></span>
+              {userName ? `Hi, ${userName}` : 'Go to Dashboard'}
+            </button>
+          ) : (
+            <Link to="/login" style={styles.createBtn}>
+              Create Event
+            </Link>
+          )
         )}
       </div>
     </nav>
@@ -59,6 +93,26 @@ const styles = {
     fontWeight: '900',
     boxShadow: '0 4px 15px rgba(0, 0, 0, 0.15)',
     transition: 'all 0.2s ease'
+  },
+  dashboardBtn: {
+    backgroundColor: '#f1f5f9',
+    color: '#0f172a',
+    padding: '10px 20px',
+    borderRadius: '12px',
+    border: '1px solid #cbd5e1',
+    fontSize: '0.85rem',
+    fontWeight: '700',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    transition: 'all 0.2s ease'
+  },
+  userDot: {
+    width: '6px',
+    height: '6px',
+    backgroundColor: '#10b981',
+    borderRadius: '50%'
   }
 };
 
