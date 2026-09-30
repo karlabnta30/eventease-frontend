@@ -101,16 +101,16 @@ const Messages = () => {
         const res = await api.post(`/bookings/${activeBooking.id}/attach-document`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
-        fileUrl = res.data.file_url;
+        fileUrl = res.data.file_url || res.data.url;
       } else {
         const res = await api.post('/upload', formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
-        fileUrl = res.data.file_url;
+        fileUrl = res.data.file_url || res.data.url;
       }
-      
-      if (fileUrl && fileUrl.includes('/storage/')) {
-        fileUrl = fileUrl.replace('/storage/attachments/', '/uploads/');
+
+      if (!fileUrl) {
+        throw new Error("Server did not return a valid file URL.");
       }
 
       await api.post('/messages', {
@@ -123,7 +123,7 @@ const Messages = () => {
       setMessages(refreshRes.data.messages || []);
     } catch (err) {
       console.error("Upload error:", err);
-      toast.error(err.response?.data?.error || "Failed to upload and attach file.");
+      toast.error(err.response?.data?.error || err.message || "Failed to upload and attach file.");
     } finally {
       setUploading(false);
       e.target.value = null;
@@ -239,12 +239,7 @@ const Messages = () => {
               {messages.map((msg) => {
                 const isMe = msg.sender_id !== activeContact.id;
                 const isAttachment = msg.message && msg.message.startsWith('[Attachment]:');
-                let fileUrl = isAttachment ? msg.message.replace('[Attachment]:', '').trim() : '';
-                
-                if (fileUrl.includes('/storage/')) {
-                  fileUrl = fileUrl.replace('/storage/attachments/', '/uploads/');
-                }
-
+                const fileUrl = isAttachment ? msg.message.replace('[Attachment]:', '').trim() : '';
                 const isImage = fileUrl.match(/\.(jpeg|jpg|png|gif|webp)$/i);
 
                 return (
@@ -266,18 +261,20 @@ const Messages = () => {
                                 onClick={() => setSelectedImage(fileUrl)}
                                 style={{ maxWidth: '240px', maxHeight: '180px', borderRadius: '10px', display: 'block', objectFit: 'cover', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.2)' }} 
                               />
-                              <a href={fileUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.75rem', color: isMe ? '#93c5fd' : '#2563eb', display: 'block', marginTop: '6px', fontWeight: '700' }}>
-                                Open Full Image ↗
-                              </a>
                             </div>
                           ) : (
-                            <a href={fileUrl} target="_blank" rel="noopener noreferrer" style={{ color: isMe ? '#93c5fd' : '#2563eb', textDecoration: 'underline', fontWeight: '700' }}>
-                              📎 View Attached Document
+                            <a 
+                              href={fileUrl} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              style={{ color: isMe ? '#93c5fd' : '#2563eb', fontWeight: '700', textDecoration: 'underline', display: 'inline-block' }}
+                            >
+                              View Attached Document / File
                             </a>
                           )}
                         </div>
                       ) : (
-                        msg.message
+                        <span>{msg.message}</span>
                       )}
                     </div>
                   </div>
@@ -285,49 +282,37 @@ const Messages = () => {
               })}
             </div>
 
-            {/* Message Input Box with File Attachment */}
+            {/* Chat Input Footer */}
             {userRole !== 'admin' ? (
-              <form onSubmit={handleSend} style={{ padding: '20px 30px', borderTop: '1px solid #eaeaea', display: 'flex', gap: '12px', background: '#fff', alignItems: 'center' }}>
-                <input 
-                  type="file" 
-                  id="chat-file-upload" 
-                  style={{ display: 'none' }} 
-                  accept="image/png, image/jpeg, application/pdf"
-                  onChange={handleFileUpload}
-                />
-                <label 
-                  htmlFor="chat-file-upload" 
-                  style={{ cursor: 'pointer', padding: '12px', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', borderRadius: '14px', border: '1px solid #eaeaea' }}
-                  title="Attach file"
-                >
-                  <Paperclip size={20} />
+              <form onSubmit={handleSend} style={{ padding: '20px 30px', borderTop: '1px solid #eaeaea', display: 'flex', alignItems: 'center', gap: '12px', background: '#fff' }}>
+                <label style={{ cursor: 'pointer', background: '#f1f5f9', padding: '12px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s' }}>
+                  <Paperclip size={20} color="#475569" />
+                  <input type="file" onChange={handleFileUpload} style={{ display: 'none' }} disabled={uploading} />
                 </label>
-
                 <input 
                   type="text" 
                   value={newMessage} 
-                  onChange={(e) => setNewMessage(e.target.value)} 
-                  placeholder={uploading ? "Uploading attachment..." : "Type a message regarding this booking request..."} 
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  placeholder={uploading ? "Uploading file..." : "Type your message..."}
                   disabled={uploading}
-                  style={{ flex: 1, padding: '14px 20px', borderRadius: '14px', border: '2px solid #eaeaea', outline: 'none', fontSize: '0.95rem', fontWeight: '600', backgroundColor: '#f8fafc' }}
+                  style={{ flex: 1, padding: '12px 18px', borderRadius: '12px', border: '1px solid #e2e8f0', outline: 'none', fontSize: '0.9rem', background: '#f8fafc' }}
                 />
-                <button type="submit" disabled={uploading} style={{ padding: '0 24px', height: '50px', background: '#000', color: '#fff', border: 'none', borderRadius: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <button type="submit" style={{ background: '#000', color: '#fff', border: 'none', padding: '12px 20px', borderRadius: '12px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <Send size={18} />
                 </button>
               </form>
             ) : (
-              <div style={{ padding: '15px', textAlign: 'center', background: '#fef2f2', color: '#991b1b', fontSize: '0.85rem', fontWeight: '800', borderTop: '1px solid #fecaca' }}>
-                Admin Read-Only Mode. Typing is disabled.
+              <div style={{ padding: '20px', textAlign: 'center', background: '#f8fafc', borderTop: '1px solid #eaeaea', color: '#64748b', fontSize: '0.85rem', fontWeight: '700' }}>
+                Messaging is disabled in Admin Read-Only Mode.
               </div>
             )}
           </>
         ) : (
-          <div style={{ flex: '1', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b', fontWeight: '700' }}>
-            Select a message request to review inquiry.
+          <div style={{ flex: '1', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontWeight: '700' }}>
+            Select a conversation to start messaging
           </div>
         )}
       </div>
-
     </div>
   );
 };
