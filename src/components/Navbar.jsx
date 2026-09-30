@@ -7,26 +7,29 @@ function Navbar() {
   const isIndexPage = location.pathname === '/';
 
   const [userName, setUserName] = useState(null);
-  const token = localStorage.getItem('token');
 
   useEffect(() => {
-    // Check if token exists and try to read user info if stored, or fetch it
+    // Retrieve token inside useEffect so it updates on every page/route check
+    const currentToken = localStorage.getItem('token');
+    
+    if (!currentToken) {
+      // If there is no token, ensure state is completely cleared
+      setUserName(null);
+      return;
+    }
+
     const storedUser = localStorage.getItem('userName') || localStorage.getItem('user');
-    if (token) {
-      if (storedUser) {
-        try {
-          const parsed = JSON.parse(storedUser);
-          setUserName(parsed.name || parsed);
-        } catch {
-          setUserName(storedUser);
-        }
-      } else {
-        setUserName('Account');
+    if (storedUser) {
+      try {
+        const parsed = JSON.parse(storedUser);
+        setUserName(parsed.name || parsed);
+      } catch {
+        setUserName(storedUser);
       }
     } else {
-      setUserName(null);
+      setUserName('Account');
     }
-  }, [token, location]);
+  }, [location]); // Re-run check whenever the route changes
 
   const handleDashboardRedirect = () => {
     const userRole = localStorage.getItem('userRole');
@@ -34,6 +37,9 @@ function Navbar() {
     else if (userRole === 'vendor') navigate('/vendor-dashboard');
     else navigate('/main-dashboard');
   };
+
+  // Re-evaluate token for conditional rendering in JSX
+  const hasToken = !!localStorage.getItem('token');
 
   return (
     <nav style={styles.nav}>
@@ -44,7 +50,7 @@ function Navbar() {
 
       <div style={styles.linksContainer}>
         {isIndexPage && (
-          token ? (
+          hasToken ? (
             <button onClick={handleDashboardRedirect} style={styles.dashboardBtn}>
               <span style={styles.userDot}></span>
               {userName ? `Hi, ${userName}` : 'Go to Dashboard'}
