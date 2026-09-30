@@ -60,7 +60,7 @@ const Messages = () => {
       setMessages(res.data.messages || []);
       setActiveBooking(res.data.booking || null);
     } catch (err) {
-      alert(err.response?.data?.error || "Failed to send message. You must have an active booking with this user.");
+      toast.error(err.response?.data?.error || "Failed to send message. You must have an active booking with this user.");
     }
   };
 
@@ -70,11 +70,9 @@ const Messages = () => {
     if (!window.confirm(`Are you sure you want to ${actionLabel} this booking request?`)) return;
 
     try {
-      // Endpoint handles status updates (e.g., accepted or rejected/declined)
       await api.patch(`/bookings/${activeBooking.id}/verify`, { status: statusAction });
       toast.success(`Booking successfully ${statusAction}ed!`);
 
-      // Refresh data
       const res = await api.get(`/messages/${activeContact.id}`);
       setActiveBooking(res.data.booking || null);
     } catch (err) {
@@ -85,10 +83,10 @@ const Messages = () => {
 
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
-    if (!file || !activeBooking?.id) return;
+    if (!file || !activeContact?.id) return;
 
     if (file.size > 5 * 1024 * 1024) {
-      alert("File size exceeds 5MB limit. Please choose a smaller picture or document.");
+      toast.error("File size exceeds 5MB limit. Please choose a smaller picture or document.");
       return;
     }
 
@@ -97,12 +95,21 @@ const Messages = () => {
 
     setUploading(true);
     try {
-      const res = await api.post(`/bookings/${activeBooking.id}/attach-document`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      let fileUrl = '';
+
+      if (activeBooking?.id) {
+        const res = await api.post(`/bookings/${activeBooking.id}/attach-document`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        fileUrl = res.data.file_url;
+      } else {
+        const res = await api.post('/upload', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        fileUrl = res.data.file_url;
+      }
       
-      let fileUrl = res.data.file_url;
-      if (fileUrl.includes('/storage/')) {
+      if (fileUrl && fileUrl.includes('/storage/')) {
         fileUrl = fileUrl.replace('/storage/attachments/', '/uploads/');
       }
 
@@ -111,10 +118,12 @@ const Messages = () => {
         message: `[Attachment]: ${fileUrl}`
       });
 
+      toast.success("File attached successfully!");
       const refreshRes = await api.get(`/messages/${activeContact.id}`);
       setMessages(refreshRes.data.messages || []);
     } catch (err) {
-      alert(err.response?.data?.error || "Failed to upload and attach file.");
+      console.error("Upload error:", err);
+      toast.error(err.response?.data?.error || "Failed to upload and attach file.");
     } finally {
       setUploading(false);
       e.target.value = null;
@@ -181,7 +190,7 @@ const Messages = () => {
         {activeContact ? (
           <>
             {/* Chat Header */}
-            <div style={{ padding: '20px 30px', borderBottom: '1px solid #eaeaea', display: 'flex', alignItems: 'center', justifyContent: 'between' }}>
+            <div style={{ padding: '20px 30px', borderBottom: '1px solid #eaeaea', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
                 <h3 style={{ fontSize: '1.1rem', fontWeight: '900', color: '#000', margin: '0 0 2px 0' }}>{activeContact.name}</h3>
                 <span style={{ fontSize: '0.7rem', background: '#f1f5f9', padding: '3px 8px', borderRadius: '6px', color: '#475569', fontWeight: '800', textTransform: 'uppercase' }}>{activeContact.role}</span>
