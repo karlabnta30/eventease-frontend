@@ -98,7 +98,6 @@ const LandingPage = () => {
       color: '#0f172a',
     },
     heroSubheading: {
-      fontSize: isMobile = '1rem',
       fontSize: isMobile ? '0.95rem' : '1.05rem',
       color: '#64748b',
       lineHeight: '1.6',
