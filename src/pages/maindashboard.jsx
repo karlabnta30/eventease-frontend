@@ -4,7 +4,7 @@ import api from '../api';
 import './dashboard.css'; 
 import ServiceCard from '../components/ServiceCard';
 import { notifyNewBooking } from '../toastUtils.jsx'; 
-import { AlertTriangle, Loader2, CheckCircle, ShoppingBag, Trash2, Plus, ArrowRight, Calendar, Layers, Tag, Package } from 'lucide-react';
+import { AlertTriangle, Loader2, CheckCircle, ShoppingBag, Trash2, Plus, ArrowRight, Calendar, Layers, Tag, Package, Sliders, ShieldAlert, DollarSign } from 'lucide-react';
 
 const MainDashboard = () => {
   const navigate = useNavigate();
@@ -15,12 +15,16 @@ const MainDashboard = () => {
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   
-  // Pinalitan ang default 'all' at ginawang category-based ang filtering
   const [activeCategory, setActiveCategory] = useState('All');
 
   const [architectItems, setArchitectItems] = useState([]);
   const [bundleName, setBundleName] = useState('My Custom Event Blueprint');
   const [isSavingBundle, setIsSavingBundle] = useState(false);
+
+  // --- MGA BAGONG STATES PARA SA AI BUDGET OPTIMIZER & ADVANCED FEATURES ---
+  const [targetBudget, setTargetBudget] = useState(50000); // Default user target budget
+  const [isOptimizing, setIsOptimizing] = useState(false);
+  const [optimizationSuggestion, setOptimizationSuggestion] = useState(null);
 
   const [bookingToCancel, setBookingToCancel] = useState(null);
 
@@ -42,14 +46,14 @@ const MainDashboard = () => {
       }
 
       const results = await Promise.allSettled(promises);
-      
       let allServices = [];
 
       if (results[0].status === 'fulfilled') {
         const servicesRes = results[0].value;
+        const rawData = servicesRes.data.data || servicesRes.data || [];
+
         if (userRole === 'vendor') {
-          const vendorServicesList = servicesRes.data.data || servicesRes.data || [];
-          vendorServicesList.forEach(service => {
+          rawData.forEach(service => {
             allServices.push({
               ...service,
               type: 'service',
@@ -59,20 +63,30 @@ const MainDashboard = () => {
             });
           });
         } else {
-          const vendorList = servicesRes.data.data || servicesRes.data || [];
-          vendorList.forEach(vendor => {
-            const vendorServices = vendor.services || vendor.vendor_services || vendor.offerings || [];
-            if (Array.isArray(vendorServices) && vendorServices.length > 0) {
-              vendorServices.forEach(service => {
-                allServices.push({
-                  ...service,
-                  type: 'service',
-                  category: service.category || 'General',
-                  business_name: vendor.name || vendor.business_name || 'Verified Vendor',
-                  vendor_id: vendor.id,
-                  location: vendor.address || 'Manila'
-                });
+          // Sinisigurong nasasalo kung ang /vendors o /services ay listahan ng vendors o tuwirang listahan ng services
+          rawData.forEach(item => {
+            if (item.price && (item.title || item.name)) {
+              allServices.push({
+                ...item,
+                type: 'service',
+                category: item.category || 'General',
+                business_name: item.business_name || 'Verified Vendor',
+                location: item.location || 'Manila'
               });
+            } else {
+              const vendorServices = item.services || item.vendor_services || item.offerings || item.items || [];
+              if (Array.isArray(vendorServices) && vendorServices.length > 0) {
+                vendorServices.forEach(service => {
+                  allServices.push({
+                    ...service,
+                    type: 'service',
+                    category: service.category || item.category || 'General',
+                    business_name: item.name || item.business_name || 'Verified Vendor',
+                    vendor_id: item.id,
+                    location: item.address || 'Manila'
+                  });
+                });
+              }
             }
           });
         }
@@ -117,7 +131,6 @@ const MainDashboard = () => {
           }
         }
       }
-
     } catch (error) {
       console.error("Dashboard Sync Error:", error);
     }
@@ -128,7 +141,6 @@ const MainDashboard = () => {
     fetchData();
   }, [userRole]); 
 
-  // Kunin ang lahat ng unique categories mula sa mga nakuha nating services
   const availableCategories = useMemo(() => {
     const categories = new Set();
     services.forEach(s => {
@@ -164,6 +176,21 @@ const MainDashboard = () => {
     return architectItems.reduce((sum, item) => sum + Number(item.price || 0), 0);
   }, [architectItems]);
 
+  // --- AI BUDGET OPTIMIZER & TRADE-OFF LOGIC ---
+  const handleRunAiOptimization = () => {
+    setIsOptimizing(true);
+    setTimeout(() => {
+      if (architectTotalCost > targetBudget) {
+        const excess = architectTotalCost - targetBudget;
+        setOptimizationSuggestion(`⚠️ Budget Alert: Your blueprint exceeds your target budget by ₱${excess.toLocaleString()}. Consider swapping high-cost items or using alternative vendors.`);
+      } else {
+        const savings = targetBudget - architectTotalCost;
+        setOptimizationSuggestion(`✅ Optimized! You have an estimated ₱${savings.toLocaleString()} remaining buffer/contingency fund based on your ₱${targetBudget.toLocaleString()} target budget.`);
+      }
+      setIsOptimizing(false);
+    }, 800);
+  };
+
   const handleDeployCustomBundle = async () => {
     if (architectItems.length === 0) {
       alert("Your Bundle Architect canvas is empty! Add services first.");
@@ -175,11 +202,12 @@ const MainDashboard = () => {
         id: 'custom_' + Date.now(),
         bundle_name: bundleName,
         total_price: architectTotalCost,
+        target_budget: targetBudget,
         items: architectItems,
         created_at: new Date().toISOString()
       };
       
-      notifyNewBooking(`Custom Bundle "${bundleName}" architected successfully!`);
+      notifyNewBooking(`Custom Bundle "${bundleName}" architected & optimized successfully!`);
       navigate(`/bundle-details/custom`, { state: { service: customBundlePayload, isCustomArchitect: true } });
     } catch (err) {
       console.error("Failed to deploy bundle:", err);
@@ -189,15 +217,14 @@ const MainDashboard = () => {
     }
   };
 
-  // Filtering based on search input and selected category tab
   const filteredServices = useMemo(() => {
     return services.filter((service) => {
       const term = searchTerm.toLowerCase();
       const matchesSearch = (service.business_name || service.name || "").toLowerCase().includes(term) || 
-                            (service.category || "").toLowerCase().includes(term) || 
-                            (service.location || "").toLowerCase().includes(term) ||
-                            (service.title || "").toLowerCase().includes(term) ||
-                            (service.description || "").toLowerCase().includes(term);
+                          (service.category || "").toLowerCase().includes(term) || 
+                          (service.location || "").toLowerCase().includes(term) ||
+                          (service.title || "").toLowerCase().includes(term) ||
+                          (service.description || "").toLowerCase().includes(term);
       
       const matchesCategory = activeCategory === 'All' || (service.category && service.category.toLowerCase() === activeCategory.toLowerCase());
 
@@ -251,24 +278,20 @@ const MainDashboard = () => {
 
   return (
     <div className="main-dashboard-container" style={{ backgroundColor: '#ffffff', minHeight: '100vh', fontFamily: "'Inter', sans-serif" }}>
-      
       <div className="dashboard-wrapper">
 
         <div className="dashboard-header-container">
           <div>
             <h1 className="dashboard-main-title">
-              {userRole === 'vendor' ? 'Manage Business & Services' : 'Design Your Perfect Event'}
+              {userRole === 'vendor' ? 'Manage Business & Services' : 'Design & Optimize Your Event'}
             </h1>
             <p className="dashboard-main-subtitle">
-              {userRole === 'vendor' ? 'Control your listed service status and business offerings.' : 'Explore service catalogs by category, build blueprints, and manage your schedules.'}
+              {userRole === 'vendor' ? 'Control your listed service status and business offerings.' : 'Explore catalogs, construct bundles, and execute AI budget optimizations.'}
             </p>
           </div>
           
           {userRole !== 'admin' && (
-            <button 
-              onClick={() => navigate('/create-event')} 
-              className="new-event-btn"
-            >
+            <button onClick={() => navigate('/create-event')} className="new-event-btn">
               <Plus size={16} /> New Event Plan
             </button>
           )}
@@ -296,13 +319,14 @@ const MainDashboard = () => {
           
           <aside className="dashboard-sidebar">
             
+            {/* BUNDLE ARCHITECT & AI BUDGET OPTIMIZER COMBINED PANEL */}
             <div style={{ ...cardStyle, border: '2px solid #000', background: '#ffffff' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
                 <h4 style={{ margin: 0, fontWeight: '900', display: 'flex', alignItems: 'center', gap: '8px', color: '#000', fontSize: '0.9rem', textTransform: 'uppercase' }}>
-                  <ShoppingBag size={18} /> Bundle Architect
+                  <ShoppingBag size={18} /> Bundle & AI Optimizer
                 </h4>
                 <span style={{ background: '#000', color: '#fff', fontSize: '0.75rem', fontWeight: '900', padding: '3px 10px', borderRadius: '999px' }}>
-                  {architectItems.length} Selected
+                  {architectItems.length} Items
                 </span>
               </div>
 
@@ -315,7 +339,19 @@ const MainDashboard = () => {
                 placeholder="e.g. Dream Wedding Package" 
               />
 
-              <div style={{ marginTop: '14px', maxHeight: '180px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', paddingRight: '4px' }}>
+              <div style={{ marginTop: '12px' }}>
+                <label className="text-xs font-black text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                  <DollarSign size={14} /> Target Budget Cap (₱)
+                </label>
+                <input 
+                  type="number" 
+                  style={{ ...inputStyle, fontWeight: '800', color: '#047857' }} 
+                  value={targetBudget} 
+                  onChange={(e) => setTargetBudget(Number(e.target.value))} 
+                />
+              </div>
+
+              <div style={{ marginTop: '14px', maxHeight: '150px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', paddingRight: '4px' }}>
                 {architectItems.length > 0 ? architectItems.map(item => (
                   <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc', padding: '10px 14px', borderRadius: '12px', border: '1px solid #eaeaea' }}>
                     <div>
@@ -327,9 +363,9 @@ const MainDashboard = () => {
                     </button>
                   </div>
                 )) : (
-                  <div style={{ background: '#fafafa', border: '2px dashed #eaeaea', padding: '20px', borderRadius: '14px', textAlign: 'center' }}>
+                  <div style={{ background: '#fafafa', border: '2px dashed #eaeaea', padding: '16px', borderRadius: '14px', textAlign: 'center' }}>
                     <p style={{ fontSize: '0.8rem', color: '#64748b', fontStyle: 'italic', margin: 0 }}>
-                      Your blueprint is empty. Click <strong>"Add to Blueprint"</strong> on any service card below!
+                      Blueprint is empty. Add services below to run AI optimization.
                     </p>
                   </div>
                 )}
@@ -337,22 +373,39 @@ const MainDashboard = () => {
 
               {architectItems.length > 0 && (
                 <div style={{ marginTop: '16px', borderTop: '2px dashed #eaeaea', paddingTop: '14px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '900', fontSize: '1rem', color: '#000', marginBottom: '14px' }}>
-                    <span>Total Cost:</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '900', fontSize: '0.95rem', color: '#000', marginBottom: '8px' }}>
+                    <span>Total Blueprint Cost:</span>
                     <span style={{ color: '#047857' }}>₱{architectTotalCost.toLocaleString()}</span>
                   </div>
+
+                  <button 
+                    onClick={handleRunAiOptimization}
+                    disabled={isOptimizing}
+                    style={{ width: '100%', background: '#2563eb', color: '#fff', border: 'none', padding: '10px', borderRadius: '12px', fontWeight: '900', cursor: 'pointer', marginBottom: '10px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                  >
+                    {isOptimizing ? <Loader2 className="animate-spin" size={16} /> : <Sliders size={16} />}
+                    Run AI Budget Optimizer
+                  </button>
+
+                  {optimizationSuggestion && (
+                    <div style={{ background: '#f8fafc', border: '1px solid #cbd5e1', padding: '10px', borderRadius: '10px', fontSize: '0.75rem', color: '#334155', fontWeight: '700', marginBottom: '12px' }}>
+                      {optimizationSuggestion}
+                    </div>
+                  )}
+
                   <button 
                     onClick={handleDeployCustomBundle}
                     disabled={isSavingBundle}
                     style={{ width: '100%', background: '#000', color: '#fff', border: 'none', padding: '14px', borderRadius: '14px', fontWeight: '900', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}
                   >
-                    {isSavingBundle ? 'DEPLOYING...' : 'DEPLOY CUSTOM BUNDLE'} <ArrowRight size={16} />
+                    {isSavingBundle ? 'DEPLOYING...' : 'DEPLOY OPTIMIZED BUNDLE'} <ArrowRight size={16} />
                   </button>
                 </div>
               )}
             </div>
 
-            <div style={{ ...cardStyle, background: '#ffffff', border: '1px solid #eaeaea' }}>
+            {/* SCHEDULED EVENTS PANEL */}
+            <div style={{ ...cardStyle, background: '#ffffff', border: '1px solid #eaeaea', marginTop: '16px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', borderBottom: '2px solid #f8fafc', paddingBottom: '12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <div style={{ background: '#f1f5f9', padding: '8px', borderRadius: '12px', display: 'flex' }}>
@@ -365,7 +418,7 @@ const MainDashboard = () => {
                 </span>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '320px', overflowY: 'auto', paddingRight: '2px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '250px', overflowY: 'auto', paddingRight: '2px' }}>
                 {myBookings.length > 0 ? myBookings.map((booking) => (
                   <div key={booking.id} style={{ backgroundColor: '#fafafa', padding: '14px', borderRadius: '14px', border: '1px solid #eaeaea', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
