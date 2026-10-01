@@ -4,7 +4,7 @@ import api from '../api';
 import './dashboard.css'; 
 import ServiceCard from '../components/ServiceCard';
 import { notifyNewBooking } from '../toastUtils.jsx'; 
-import { AlertTriangle, Loader2, CheckCircle, ShoppingBag, Trash2, Plus, ArrowRight, Calendar, Layers, Wrench, Package } from 'lucide-react';
+import { AlertTriangle, Loader2, CheckCircle, ShoppingBag, Trash2, Plus, ArrowRight, Calendar, Layers, Tag, Package } from 'lucide-react';
 
 const MainDashboard = () => {
   const navigate = useNavigate();
@@ -15,7 +15,8 @@ const MainDashboard = () => {
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   
-  const [activeTab, setActiveTab] = useState('all');
+  // Pinalitan ang default 'all' at ginawang category-based ang filtering
+  const [activeCategory, setActiveCategory] = useState('All');
 
   const [architectItems, setArchitectItems] = useState([]);
   const [bundleName, setBundleName] = useState('My Custom Event Blueprint');
@@ -52,6 +53,7 @@ const MainDashboard = () => {
             allServices.push({
               ...service,
               type: 'service',
+              category: service.category || 'General',
               business_name: service.vendor?.business_name || service.business_name || 'My Business',
               location: service.location || 'Manila'
             });
@@ -65,6 +67,7 @@ const MainDashboard = () => {
                 allServices.push({
                   ...service,
                   type: 'service',
+                  category: service.category || 'General',
                   business_name: vendor.name || vendor.business_name || 'Verified Vendor',
                   vendor_id: vendor.id,
                   location: vendor.address || 'Manila'
@@ -82,6 +85,7 @@ const MainDashboard = () => {
           allServices.push({
             ...bundle,
             type: 'bundle',
+            category: 'Bundle Package',
             id: 'bundle_' + bundle.id,
             title: bundle.bundle_name || bundle.name,
             name: bundle.bundle_name || bundle.name,
@@ -123,6 +127,17 @@ const MainDashboard = () => {
     if (userRole === 'admin') return; 
     fetchData();
   }, [userRole]); 
+
+  // Kunin ang lahat ng unique categories mula sa mga nakuha nating services
+  const availableCategories = useMemo(() => {
+    const categories = new Set();
+    services.forEach(s => {
+      if (s.category) {
+        categories.add(s.category.trim());
+      }
+    });
+    return ['All', ...Array.from(categories)];
+  }, [services]);
 
   const handleToggleStatus = async (id) => {
     try {
@@ -174,6 +189,7 @@ const MainDashboard = () => {
     }
   };
 
+  // Filtering based on search input and selected category tab
   const filteredServices = useMemo(() => {
     return services.filter((service) => {
       const term = searchTerm.toLowerCase();
@@ -183,11 +199,11 @@ const MainDashboard = () => {
                             (service.title || "").toLowerCase().includes(term) ||
                             (service.description || "").toLowerCase().includes(term);
       
-      const matchesTab = activeTab === 'all' ? true : service.type === activeTab;
+      const matchesCategory = activeCategory === 'All' || (service.category && service.category.toLowerCase() === activeCategory.toLowerCase());
 
-      return matchesSearch && matchesTab;
+      return matchesSearch && matchesCategory;
     });
-  }, [services, searchTerm, activeTab]);
+  }, [services, searchTerm, activeCategory]);
 
   const confirmCancelBooking = async () => {
     if (!bookingToCancel) return;
@@ -244,7 +260,7 @@ const MainDashboard = () => {
               {userRole === 'vendor' ? 'Manage Business & Services' : 'Design Your Perfect Event'}
             </h1>
             <p className="dashboard-main-subtitle">
-              {userRole === 'vendor' ? 'Control your listed service status and business offerings.' : 'Explore service catalogs, build blueprints, and manage your schedules.'}
+              {userRole === 'vendor' ? 'Control your listed service status and business offerings.' : 'Explore service catalogs by category, build blueprints, and manage your schedules.'}
             </p>
           </div>
           
@@ -388,30 +404,23 @@ const MainDashboard = () => {
               />
             </div>
 
-            <div className="dashboard-tabs-container">
-              <button 
-                onClick={() => setActiveTab('all')}
-                className={`dashboard-tab-btn ${activeTab === 'all' ? 'active' : ''}`}
-              >
-                <Layers size={16} /> All Catalog ({services.length})
-              </button>
-              <button 
-                onClick={() => setActiveTab('service')}
-                className={`dashboard-tab-btn ${activeTab === 'service' ? 'active' : ''}`}
-              >
-                <Wrench size={16} /> Independent Services ({services.filter(s => s.type === 'service').length})
-              </button>
-              <button 
-                onClick={() => setActiveTab('bundle')}
-                className={`dashboard-tab-btn ${activeTab === 'bundle' ? 'active' : ''}`}
-              >
-                <Package size={16} /> Pre-made Bundles ({services.filter(s => s.type === 'bundle').length})
-              </button>
+            {/* Dynamic Category Tabs */}
+            <div className="dashboard-tabs-container" style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '10px', marginBottom: '20px' }}>
+              {availableCategories.map((category) => (
+                <button 
+                  key={category}
+                  onClick={() => setActiveCategory(category)}
+                  className={`dashboard-tab-btn ${activeCategory === category ? 'active' : ''}`}
+                  style={{ whiteSpace: 'nowrap' }}
+                >
+                  <Tag size={14} /> {category} {category === 'All' ? `(${services.length})` : `(${services.filter(s => s.category?.toLowerCase() === category.toLowerCase()).length})`}
+                </button>
+              ))}
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
               <h2 className="text-xl font-black text-black tracking-tight" style={{ margin: 0 }}>
-                {activeTab === 'all' ? 'Available Services & Bundles' : (activeTab === 'service' ? 'Independent Services Catalog' : 'Pre-made Vendor Bundles')}
+                {activeCategory === 'All' ? 'All Available Services & Bundles' : `${activeCategory} Services`}
               </h2>
               <span className="text-xs font-extrabold text-slate-600 bg-slate-50 px-4 py-2 rounded-full border border-slate-200">
                 {filteredServices.length} Results
