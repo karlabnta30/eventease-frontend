@@ -8,6 +8,18 @@ const NotificationPage = () => {
   const [loading, setLoading] = useState(true);
   const lastNotifId = useRef(null); 
 
+  // Mobile responsiveness state
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  // Monitor screen size
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   // --- FETCH LOGIC ---
   const fetchNotifs = useCallback(async (isAutoPoll = false) => {
     try {
@@ -91,15 +103,77 @@ const NotificationPage = () => {
   };
 
   const styles = {
-    container: { padding: '40px 60px', backgroundColor: '#ffffff', minHeight: '100vh', fontFamily: "'Inter', sans-serif" },
-    header: { fontSize: '2.5rem', fontWeight: '900', letterSpacing: '-1.5px', marginBottom: '10px', color: '#000' },
-    bulkActions: { display: 'flex', gap: '15px', marginBottom: '35px' },
-    readAllBtn: { background: '#000', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '12px', fontWeight: '700', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' },
-    clearBtn: { background: '#fff', color: '#ff4d4d', border: '1px solid #fee2e2', padding: '10px 20px', borderRadius: '12px', fontWeight: '700', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' },
+    container: { 
+      padding: isMobile ? '20px 16px' : '40px 60px', 
+      backgroundColor: '#ffffff', 
+      minHeight: '100vh', 
+      fontFamily: "'Inter', sans-serif" 
+    },
+    header: { 
+      fontSize: isMobile ? '1.8rem' : '2.5rem', 
+      fontWeight: '900', 
+      letterSpacing: '-1.5px', 
+      marginBottom: '8px', 
+      color: '#000' 
+    },
+    bulkActions: { 
+      display: 'flex', 
+      flexDirection: isMobile ? 'column' : 'row',
+      gap: '12px', 
+      marginBottom: '25px' 
+    },
+    readAllBtn: { 
+      background: '#000', 
+      color: '#fff', 
+      border: 'none', 
+      padding: '12px 20px', 
+      borderRadius: '12px', 
+      fontWeight: '700', 
+      fontSize: '0.85rem', 
+      cursor: 'pointer', 
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'center',
+      gap: '8px',
+      width: isMobile ? '100%' : 'auto'
+    },
+    clearBtn: { 
+      background: '#fff', 
+      color: '#ff4d4d', 
+      border: '1px solid #fee2e2', 
+      padding: '12px 20px', 
+      borderRadius: '12px', 
+      fontWeight: '700', 
+      fontSize: '0.85rem', 
+      cursor: 'pointer', 
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'center',
+      gap: '8px',
+      width: isMobile ? '100%' : 'auto'
+    },
     card: (isRead) => ({ 
-      padding: '25px', backgroundColor: isRead ? '#fff' : '#fcfcfc', borderRadius: '20px', border: isRead ? '1px solid #eee' : '2px solid #000', marginBottom: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: '0.3s ease', boxShadow: isRead ? 'none' : '0 8px 24px rgba(0,0,0,0.08)'
+      padding: isMobile ? '18px' : '25px', 
+      backgroundColor: isRead ? '#fff' : '#fcfcfc', 
+      borderRadius: '20px', 
+      border: isRead ? '1px solid #eee' : '2px solid #000', 
+      marginBottom: '15px', 
+      display: 'flex', 
+      flexDirection: isMobile ? 'column' : 'row',
+      justifyContent: 'space-between', 
+      alignItems: isMobile ? 'flex-start' : 'center', 
+      gap: isMobile ? '15px' : '0',
+      transition: '0.3s ease', 
+      boxShadow: isRead ? 'none' : '0 8px 24px rgba(0,0,0,0.08)'
     }),
-    unreadDot: { width: '10px', height: '10px', background: '#000', borderRadius: '50%', marginRight: '15px' },
+    unreadDot: { 
+      width: '10px', 
+      height: '10px', 
+      background: '#000', 
+      borderRadius: '50%', 
+      marginRight: isMobile ? '10px' : '15px',
+      flexShrink: 0
+    },
     emptyState: { textAlign: 'center', padding: '100px 0', color: '#aaa' }
   };
 
@@ -108,7 +182,7 @@ const NotificationPage = () => {
   return (
     <div style={styles.container}>
       <h1 style={styles.header}>Notifications</h1>
-      <p style={{ color: '#666', marginBottom: '30px' }}>Stay updated with your event schedules and service requests.</p>
+      <p style={{ color: '#666', marginBottom: '25px', fontSize: isMobile ? '0.9rem' : '1rem' }}>Stay updated with your event schedules and service requests.</p>
       
       {notifications.length > 0 && (
         <div style={styles.bulkActions}>
@@ -125,19 +199,36 @@ const NotificationPage = () => {
       ) : (
         notifications.map(n => (
           <div key={n.id} style={styles.card(n.is_read)}>
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-              {!n.is_read && <div style={styles.unreadDot} />}
-              <div>
-                <h4 style={{ margin: 0, fontWeight: '850', fontSize: '1.1rem' }}>{n.title || 'Event Update'}</h4>
-                <p style={{ margin: '5px 0 0 0', color: '#555', lineHeight: '1.4' }}>{n.message}</p>
+            <div style={{ display: 'flex', alignItems: 'flex-start', width: '100%' }}>
+              {!n.is_read && <div style={{ ...styles.unreadDot, marginTop: '6px' }} />}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <h4 style={{ margin: 0, fontWeight: '850', fontSize: isMobile ? '1rem' : '1.1rem', wordBreak: 'break-word' }}>{n.title || 'Event Update'}</h4>
+                <p style={{ margin: '5px 0 0 0', color: '#555', lineHeight: '1.4', fontSize: isMobile ? '0.88rem' : '0.95rem', wordBreak: 'break-word' }}>{n.message}</p>
                 <small style={{ color: '#999', marginTop: '10px', display: 'block', fontSize: '0.75rem' }}>
                     {new Date(n.created_at).toLocaleString()}
                 </small>
               </div>
             </div>
             {!n.is_read && (
-              <button onClick={() => markRead(n.id)} style={{ border: 'none', background: '#000', color: '#fff', padding: '12px', borderRadius: '12px', cursor: 'pointer' }}>
-                <Check size={18} />
+              <button 
+                onClick={() => markRead(n.id)} 
+                style={{ 
+                  border: 'none', 
+                  background: '#000', 
+                  color: '#fff', 
+                  padding: isMobile ? '10px 16px' : '12px', 
+                  borderRadius: '12px', 
+                  cursor: 'pointer',
+                  width: isMobile ? '100%' : 'auto',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  fontWeight: '700',
+                  fontSize: '0.85rem'
+                }}
+              >
+                <Check size={18} /> {isMobile && "Mark as Read"}
               </button>
             )}
           </div>
