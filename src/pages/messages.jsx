@@ -104,20 +104,15 @@ const Messages = () => {
     try {
       let fileUrl = '';
 
+      // Gumamit ng tamang endpoint depende kung may active booking o wala, nang walang 404 fallback
       if (activeBooking?.id) {
-        try {
-          const res = await api.post(`/bookings/${activeBooking.id}/attach-document`, formData, {
-            headers: { 'Content-Type': 'multipart/form-data' }
-          });
-          fileUrl = res.data.file_url || res.data.url;
-        } catch (bookingErr) {
-          const fallbackRes = await api.post('/upload', formData, {
-            headers: { 'Content-Type': 'multipart/form-data' }
-          });
-          fileUrl = fallbackRes.data.file_url || fallbackRes.data.url;
-        }
+        const res = await api.post(`/bookings/${activeBooking.id}/attach-document`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        fileUrl = res.data.file_url || res.data.url;
       } else {
-        const res = await api.post('/upload', formData, {
+        // Direct message attachment endpoint kung sinusuportahan ng backend, o gamitin ang messages endpoint na tumatanggap ng file
+        const res = await api.post('/messages/upload', formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
         fileUrl = res.data.file_url || res.data.url;
@@ -139,7 +134,7 @@ const Messages = () => {
       toast.success("File attached successfully!");
     } catch (err) {
       console.error("Upload error:", err);
-      toast.error(err.response?.data?.error || err.message || "Failed to upload and attach file.");
+      toast.error(err.response?.data?.error || err.message || "Failed to upload and attach file. Please ensure the backend supports the upload route.");
     } finally {
       setUploading(false);
       e.target.value = null;
