@@ -21,7 +21,16 @@ const Register = () => {
   const [showTermsModal, setShowTermsModal] = useState(false);
   
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -74,8 +83,71 @@ const Register = () => {
     }
   };
 
+  const dynamicStyles = {
+    pageContainer: {
+      display: 'flex',
+      minHeight: '100vh',
+      width: '100vw',
+      backgroundColor: '#070b19',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
+      padding: isMobile ? '16px' : '40px',
+      boxSizing: 'border-box',
+      position: 'relative',
+      overflow: 'hidden'
+    },
+    cardWrapper: {
+      display: 'flex',
+      width: '100%',
+      maxWidth: '1150px',
+      height: isMobile ? 'auto' : '740px',
+      backgroundColor: '#ffffff',
+      borderRadius: isMobile ? '24px' : '36px',
+      boxShadow: '0 25px 60px rgba(0, 0, 0, 0.4)',
+      overflow: 'hidden',
+      border: '1px solid rgba(255, 255, 255, 0.15)',
+      position: 'relative',
+      zIndex: 2,
+      flexDirection: isMobile ? 'column' : 'row'
+    },
+    leftCardSection: {
+      display: isMobile ? 'none' : 'flex',
+      flex: '1.1',
+      position: 'relative',
+      overflow: 'hidden',
+      backgroundColor: '#070b19',
+      borderTopLeftRadius: '28px',
+      borderBottomLeftRadius: '28px',
+      borderTopRightRadius: '160px',
+      borderBottomRightRadius: '28px',
+      margin: '12px',
+      flexDirection: 'column',
+      justifyContent: 'space-between',
+      padding: '30px 40px',
+      boxSizing: 'border-box'
+    },
+    rightCardSection: {
+      flex: '1.2',
+      display: 'flex',
+      flexDirection: 'column',
+      padding: isMobile ? '24px 20px' : '24px 50px',
+      boxSizing: 'border-box',
+      backgroundColor: '#ffffff',
+      overflowY: 'auto',
+      width: '100%'
+    },
+    headingTitle: {
+      fontSize: isMobile ? '1.6rem' : '1.9rem',
+      fontWeight: '900',
+      color: '#0f172a',
+      margin: '0 0 2px 0',
+      letterSpacing: '-1.5px'
+    }
+  };
+
   return (
-    <div style={styles.pageContainer}>
+    <div style={dynamicStyles.pageContainer}>
       
       {/* SYNCHRONIZED FULL-PAGE BACKGROUND CAROUSEL */}
       {partyImages.map((img, index) => (
@@ -91,10 +163,10 @@ const Register = () => {
       <div style={styles.globalBackdropOverlay} />
 
       {/* CENTRAL CARD CONTAINER WITH MATCHING DESIGN AS LOGIN */}
-      <div style={styles.cardWrapper}>
+      <div style={dynamicStyles.cardWrapper}>
         
-        {/* Left Side: Curved Artwork Box synchronized with the background */}
-        <div style={styles.leftCardSection}>
+        {/* Left Side: Curved Artwork Box synchronized with the background (Hidden on Mobile) */}
+        <div style={dynamicStyles.leftCardSection}>
           {partyImages.map((img, index) => (
             <div 
               key={index}
@@ -126,18 +198,17 @@ const Register = () => {
         </div>
 
         {/* Right Side: Clean Form Section */}
-        <div style={styles.rightCardSection}>
+        <div style={dynamicStyles.rightCardSection}>
           <div style={styles.rightTopBar}>
             <div style={styles.logoGroup} onClick={() => navigate('/')}>
               <div style={styles.logoBadge}></div>
               <span style={styles.brandTitle}>EventEase</span>
             </div>
-            {/* Language selector removed */}
           </div>
 
           <div style={styles.formContentArea}>
             <div style={styles.welcomeHeader}>
-              <h1 style={styles.headingTitle}>Create Account</h1>
+              <h1 style={dynamicStyles.headingTitle}>Create Account</h1>
               <p style={styles.headingSub}>Join the EventEase Community</p>
             </div>
 
@@ -291,19 +362,6 @@ const Register = () => {
 };
 
 const styles = {
-  pageContainer: {
-    display: 'flex',
-    minHeight: '100vh',
-    width: '100vw',
-    backgroundColor: '#070b19',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
-    padding: '40px',
-    boxSizing: 'border-box',
-    position: 'relative',
-    overflow: 'hidden'
-  },
   globalBackground: {
     position: 'absolute',
     inset: '-30px',
@@ -318,35 +376,6 @@ const styles = {
     inset: 0,
     backgroundColor: 'rgba(7, 11, 25, 0.65)',
     zIndex: 1
-  },
-  cardWrapper: {
-    display: 'flex',
-    width: '100%',
-    maxWidth: '1150px',
-    height: '740px',
-    backgroundColor: '#ffffff',
-    borderRadius: '36px',
-    boxShadow: '0 25px 60px rgba(0, 0, 0, 0.4)',
-    overflow: 'hidden',
-    border: '1px solid rgba(255, 255, 255, 0.15)',
-    position: 'relative',
-    zIndex: 2
-  },
-  leftCardSection: {
-    flex: '1.1',
-    position: 'relative',
-    overflow: 'hidden',
-    backgroundColor: '#070b19',
-    borderTopLeftRadius: '28px',
-    borderBottomLeftRadius: '28px',
-    borderTopRightRadius: '160px',
-    borderBottomRightRadius: '28px',
-    margin: '12px',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'space-between',
-    padding: '30px 40px',
-    boxSizing: 'border-box'
   },
   carouselImage: {
     position: 'absolute',
@@ -413,15 +442,6 @@ const styles = {
     fontSize: '0.75rem',
     fontWeight: '600'
   },
-  rightCardSection: {
-    flex: '1.2',
-    display: 'flex',
-    flexDirection: 'column',
-    padding: '24px 50px',
-    boxSizing: 'border-box',
-    backgroundColor: '#ffffff',
-    overflowY: 'auto'
-  },
   rightTopBar: {
     display: 'flex',
     justifyContent: 'flex-start',
@@ -459,13 +479,6 @@ const styles = {
   },
   welcomeHeader: {
     marginBottom: '14px'
-  },
-  headingTitle: {
-    fontSize: '1.9rem',
-    fontWeight: '900',
-    color: '#0f172a',
-    margin: '0 0 2px 0',
-    letterSpacing: '-1.5px'
   },
   headingSub: {
     color: '#64748b',

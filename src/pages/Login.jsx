@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../api';
-import { ArrowRight, Lock, Mail } from 'lucide-react';
+import { Lock, Mail } from 'lucide-react';
 
 const partyImages = [
   "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?auto=format&fit=crop&w=1600&q=80", 
@@ -17,6 +17,15 @@ const Login = () => {
   const [error, setError] = useState('');
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -59,8 +68,73 @@ const Login = () => {
     }
   };
 
+  const dynamicStyles = {
+    pageContainer: {
+      display: 'flex',
+      minHeight: '100vh',
+      width: '100vw',
+      backgroundColor: '#070b19',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
+      padding: isMobile ? '16px' : '40px',
+      boxSizing: 'border-box',
+      position: 'relative',
+      overflow: 'hidden'
+    },
+    cardWrapper: {
+      display: 'flex',
+      width: '100%',
+      maxWidth: '1100px',
+      height: isMobile ? 'auto' : '680px',
+      backgroundColor: '#ffffff',
+      borderRadius: isMobile ? '24px' : '36px',
+      boxShadow: '0 25px 60px rgba(0, 0, 0, 0.3)',
+      overflow: 'hidden',
+      border: '1px solid rgba(255, 255, 255, 0.1)',
+      position: 'relative',
+      zIndex: 2,
+      flexDirection: isMobile ? 'column' : 'row'
+    },
+    leftCardSection: {
+      display: isMobile ? 'none' : 'flex',
+      flex: '1.1',
+      position: 'relative',
+      overflow: 'hidden',
+      backgroundColor: '#070b19',
+      borderRadius: '28px',
+      margin: '12px',
+      flexDirection: 'column',
+      justifyContent: 'space-between',
+      padding: '30px 40px',
+      boxSizing: 'border-box'
+    },
+    rightCardSection: {
+      flex: '1.2',
+      display: 'flex',
+      flexDirection: 'column',
+      padding: isMobile ? '24px 20px' : '30px 60px',
+      boxSizing: 'border-box',
+      backgroundColor: '#ffffff',
+      width: '100%'
+    },
+    rightTopBar: {
+      display: 'flex',
+      justifyContent: 'flex-start',
+      alignItems: 'center',
+      marginBottom: isMobile ? '24px' : '40px'
+    },
+    headingTitle: {
+      fontSize: isMobile ? '2rem' : '2.4rem',
+      fontWeight: '900',
+      color: '#0f172a',
+      margin: '0 0 6px 0',
+      letterSpacing: '-1.5px'
+    }
+  };
+
   return (
-    <div style={styles.pageContainer}>
+    <div style={dynamicStyles.pageContainer}>
       
       {/* BACKGROUND ARTWORK BLUR/MATCH THAT EXTENDS OUTSIDE THE CARD */}
       {partyImages.map((img, index) => (
@@ -75,10 +149,10 @@ const Login = () => {
       ))}
       <div style={styles.globalBackdropOverlay} />
 
-      <div style={styles.cardWrapper}>
+      <div style={dynamicStyles.cardWrapper}>
         
-        {/* Left Side: Curved Artwork Box synchronized with carousel */}
-        <div style={styles.leftCardSection}>
+        {/* Left Side: Curved Artwork Box synchronized with carousel (Hidden on Mobile) */}
+        <div style={dynamicStyles.leftCardSection}>
           {partyImages.map((img, index) => (
             <div 
               key={index}
@@ -111,18 +185,17 @@ const Login = () => {
         </div>
 
         {/* Right Side: Clean Form Section */}
-        <div style={styles.rightCardSection}>
-          <div style={styles.rightTopBar}>
+        <div style={dynamicStyles.rightCardSection}>
+          <div style={dynamicStyles.rightTopBar}>
             <div style={styles.logoGroup} onClick={() => navigate('/')}>
               <div style={styles.logoBadge}></div>
               <span style={styles.brandTitle}>EventEase</span>
             </div>
-            {/* Language selector removed */}
           </div>
 
           <div style={styles.formContentArea}>
             <div style={styles.welcomeHeader}>
-              <h1 style={styles.headingTitle}>Hi Planner</h1>
+              <h1 style={dynamicStyles.headingTitle}>Hi Planner</h1>
               <p style={styles.headingSub}>Welcome to EventEase</p>
             </div>
 
@@ -187,19 +260,6 @@ const Login = () => {
 };
 
 const styles = {
-  pageContainer: {
-    display: 'flex',
-    minHeight: '100vh',
-    width: '100vw',
-    backgroundColor: '#070b19',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
-    padding: '40px',
-    boxSizing: 'border-box',
-    position: 'relative',
-    overflow: 'hidden'
-  },
   globalBackgroundMatch: {
     position: 'absolute',
     inset: '-20px',
@@ -214,32 +274,6 @@ const styles = {
     inset: 0,
     backgroundColor: 'rgba(7, 11, 25, 0.45)',
     zIndex: 1
-  },
-  cardWrapper: {
-    display: 'flex',
-    width: '100%',
-    maxWidth: '1100px',
-    height: '680px',
-    backgroundColor: '#ffffff',
-    borderRadius: '36px',
-    boxShadow: '0 25px 60px rgba(0, 0, 0, 0.3)',
-    overflow: 'hidden',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
-    position: 'relative',
-    zIndex: 2
-  },
-  leftCardSection: {
-    flex: '1.1',
-    position: 'relative',
-    overflow: 'hidden',
-    backgroundColor: '#070b19',
-    borderRadius: '28px',
-    margin: '12px',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'space-between',
-    padding: '30px 40px',
-    boxSizing: 'border-box'
   },
   carouselImage: {
     position: 'absolute',
@@ -315,20 +349,6 @@ const styles = {
     fontSize: '0.75rem',
     fontWeight: '600'
   },
-  rightCardSection: {
-    flex: '1.2',
-    display: 'flex',
-    flexDirection: 'column',
-    padding: '30px 60px',
-    boxSizing: 'border-box',
-    backgroundColor: '#ffffff'
-  },
-  rightTopBar: {
-    display: 'flex',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    marginBottom: '40px'
-  },
   logoGroup: {
     display: 'flex',
     alignItems: 'center',
@@ -360,13 +380,6 @@ const styles = {
   },
   welcomeHeader: {
     marginBottom: '30px'
-  },
-  headingTitle: {
-    fontSize: '2.4rem',
-    fontWeight: '900',
-    color: '#0f172a',
-    margin: '0 0 6px 0',
-    letterSpacing: '-1.5px'
   },
   headingSub: {
     color: '#64748b',
