@@ -11,15 +11,15 @@ const SuccessDeleteModal = ({ isOpen, onClose, eventName }) => {
       position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
       backgroundColor: 'rgba(0, 0, 0, 0.8)', display: 'flex',
       alignItems: 'center', justifyContent: 'center', zIndex: 2000,
-      backdropFilter: 'blur(8px)' 
+      backdropFilter: 'blur(8px)', padding: '15px'
     }}>
       <div style={{
-        background: '#ffffff', padding: '40px', borderRadius: '24px',
-        textAlign: 'center', maxWidth: '400px', width: '90%',
+        background: '#ffffff', padding: '30px 20px', borderRadius: '24px',
+        textAlign: 'center', maxWidth: '400px', width: '100%',
         boxShadow: '0 20px 40px rgba(0,0,0,0.15)', border: '1px solid #eaeaea'
       }}>
         <div style={{ fontSize: '48px', marginBottom: '16px' }}>🗑️</div>
-        <h2 style={{ color: '#000', fontSize: '1.8rem', fontWeight: '900', letterSpacing: '-1px', marginBottom: '10px' }}>
+        <h2 style={{ color: '#000', fontSize: '1.6rem', fontWeight: '900', letterSpacing: '-1px', marginBottom: '10px' }}>
           Event Cancelled
         </h2>
         <p style={{ color: '#666', lineHeight: '1.5', marginBottom: '25px', fontSize: '0.95rem', fontWeight: '500' }}>
@@ -47,15 +47,15 @@ const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, eventName }) => {
       position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
       backgroundColor: 'rgba(0, 0, 0, 0.8)', display: 'flex',
       alignItems: 'center', justifyContent: 'center', zIndex: 1100,
-      backdropFilter: 'blur(8px)' 
+      backdropFilter: 'blur(8px)', padding: '15px'
     }}>
       <div style={{
-        background: '#ffffff', padding: '40px', borderRadius: '24px',
-        textAlign: 'center', maxWidth: '400px', width: '90%',
+        background: '#ffffff', padding: '30px 20px', borderRadius: '24px',
+        textAlign: 'center', maxWidth: '400px', width: '100%',
         boxShadow: '0 20px 40px rgba(0,0,0,0.15)', border: '1px solid #eaeaea'
       }}>
         <div style={{ fontSize: '40px', marginBottom: '16px' }}>⚠️</div>
-        <h2 style={{ color: '#000', fontSize: '1.6rem', fontWeight: '900', letterSpacing: '-1px', marginBottom: '10px' }}>Cancel Event?</h2>
+        <h2 style={{ color: '#000', fontSize: '1.5rem', fontWeight: '900', letterSpacing: '-1px', marginBottom: '10px' }}>Cancel Event?</h2>
         <p style={{ color: '#666', lineHeight: '1.5', marginBottom: '25px', fontWeight: '500', fontSize: '0.9rem' }}>
           Are you sure you want to cancel <strong>"{eventName || 'this event'}"</strong>? This action cannot be undone.
         </p>
@@ -72,7 +72,7 @@ const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, eventName }) => {
           </button>
           <button 
             onClick={onClose}
-            style={{ background: 'none', border: 'none', color: '#666', cursor: 'pointer', fontWeight: '800', fontSize: '0.85rem' }}
+            style={{ background: 'none', border: 'none', color: '#666', cursor: 'pointer', fontWeight: '800', fontSize: '0.85rem', padding: '10px' }}
           >
             No, keep it
           </button>
@@ -87,11 +87,18 @@ const LiveEvents = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isSuccessDeleteOpen, setIsSuccessDeleteOpen] = useState(false); 
   const [eventToDelete, setEventToDelete] = useState(null);
   const [lastDeletedName, setLastDeletedName] = useState('');
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     const userRole = localStorage.getItem('userRole'); 
@@ -106,7 +113,6 @@ const LiveEvents = () => {
         const res = await api.get(url);
         const rawBookings = res.data.data || (Array.isArray(res.data) ? res.data : []);
 
-        // Automatically filter out bookings where no vendor/service is assigned
         const assignedBookings = rawBookings.filter(item => item.vendor_id || item.vendor || item.service_id);
         setBookings(assignedBookings);
       } catch (err) { 
@@ -149,26 +155,26 @@ const LiveEvents = () => {
     container: { 
         backgroundColor: '#ffffff', 
         minHeight: '100vh', 
-        padding: '50px 60px', 
+        padding: isMobile ? '20px 16px' : '50px 60px', 
         fontFamily: "'Inter', sans-serif"
     },
     content: { maxWidth: '1300px', margin: '0 auto' },
     headerWrapper: { 
         display: 'flex', 
         justifyContent: 'space-between', 
-        alignItems: 'flex-end', 
-        marginBottom: '40px',
+        alignItems: isMobile ? 'flex-start' : 'flex-end', 
+        marginBottom: '30px',
         borderBottom: '2px solid #f0f0f0',
-        paddingBottom: '25px',
+        paddingBottom: '20px',
         flexWrap: 'wrap',
-        gap: '20px'
+        gap: '15px'
     },
-    greeting: { fontSize: '2.5rem', fontWeight: '900', letterSpacing: '-1.5px', color: '#000', margin: '0 0 6px 0' },
+    greeting: { fontSize: isMobile ? '1.8rem' : '2.5rem', fontWeight: '900', letterSpacing: '-1.5px', color: '#000', margin: '0 0 6px 0' },
     description: { fontSize: '0.95rem', color: '#64748b', fontWeight: '600', margin: 0 },
-    grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '30px' },
+    grid: { display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(340px, 1fr))', gap: '20px' },
     card: { 
         background: '#ffffff', 
-        padding: '30px', 
+        padding: isMobile ? '20px' : '30px', 
         borderRadius: '24px', 
         border: '1px solid #eaeaea', 
         position: 'relative', 
@@ -180,8 +186,8 @@ const LiveEvents = () => {
     },
     deleteBtn: { 
         position: 'absolute', 
-        top: '25px', 
-        right: '25px', 
+        top: '20px', 
+        right: '20px', 
         background: '#fee2e2', 
         border: 'none', 
         color: '#ef4444', 
@@ -206,10 +212,10 @@ const LiveEvents = () => {
         gap: '6px',
         border: status === 'accepted' ? '1px solid #a7f3d0' : '1px solid #e2e8f0'
     }),
-    infoRow: { display: 'flex', alignItems: 'center', gap: '10px', color: '#64748b', marginBottom: '10px', fontSize: '0.9rem' },
+    infoRow: { display: 'flex', alignItems: 'center', gap: '10px', color: '#64748b', marginBottom: '10px', fontSize: '0.9rem', wordBreak: 'break-word' },
     detailsBtn: { 
         width: '100%', 
-        marginTop: '20px', 
+        marginTop: '15px', 
         padding: '14px', 
         borderRadius: '14px', 
         background: '#000', 
@@ -224,7 +230,7 @@ const LiveEvents = () => {
         fontSize: '0.85rem'
     },
     paymentBtn: {
-        marginTop: '14px',
+        marginTop: '12px',
         background: '#10b981',
         color: '#fff',
         width: '100%',
@@ -237,7 +243,7 @@ const LiveEvents = () => {
         alignItems: 'center',
         justifyContent: 'center',
         gap: '8px',
-        fontSize: '0.85rem'
+        fontSize: '0.8rem'
     }
   };
 
@@ -272,7 +278,7 @@ const LiveEvents = () => {
               style={{ 
                   background: '#000', 
                   color: '#fff', 
-                  padding: '14px 24px', 
+                  padding: '12px 20px', 
                   borderRadius: '14px', 
                   fontWeight: '900', 
                   border: 'none', 
@@ -280,7 +286,9 @@ const LiveEvents = () => {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
-                  fontSize: '0.9rem'
+                  fontSize: '0.85rem',
+                  width: isMobile ? '100%' : 'auto',
+                  justifyContent: 'center'
               }}
             >
               <Plus size={16} /> Plan New Event
@@ -321,15 +329,15 @@ const LiveEvents = () => {
                       {item.status === 'accepted' ? 'VENDOR CONFIRMED' : (item.category || 'Event')}
                   </span>
                   
-                  <h3 style={{ fontSize: '1.3rem', fontWeight: '900', marginBottom: '14px', color: '#000', letterSpacing: '-0.5px' }}>{item.event_name}</h3>
+                  <h3 style={{ fontSize: '1.2rem', fontWeight: '900', marginBottom: '14px', color: '#000', letterSpacing: '-0.5px', wordBreak: 'break-word' }}>{item.event_name}</h3>
                   
                   <div style={styles.infoRow}>
-                    <MapPin size={16} color="#000" />
+                    <MapPin size={16} color="#000" style={{ flexShrink: 0 }} />
                     <span style={{ fontWeight: '600' }}>{item.location || 'Venue TBD'}</span>
                   </div>
                   
                   <div style={styles.infoRow}>
-                    <CreditCard size={16} color="#000" />
+                    <CreditCard size={16} color="#000" style={{ flexShrink: 0 }} />
                     <span style={{ fontWeight: '800', color: '#000' }}>
                       Service Cost: ₱{parseFloat(payableAmount).toLocaleString()}
                     </span>
@@ -347,7 +355,7 @@ const LiveEvents = () => {
                   )}
 
                   {isPaid && (
-                      <div style={{ marginTop: '14px', color: '#047857', fontWeight: '900', display: 'flex', alignItems: 'center', gap: '8px', background: '#ecfdf5', padding: '12px', borderRadius: '12px', justifyContent: 'center', fontSize: '0.8rem', border: '1px solid #a7f3d0' }}>
+                      <div style={{ marginTop: '12px', color: '#047857', fontWeight: '900', display: 'flex', alignItems: 'center', gap: '8px', background: '#ecfdf5', padding: '12px', borderRadius: '12px', justifyContent: 'center', fontSize: '0.8rem', border: '1px solid #a7f3d0' }}>
                           <CheckCircle size={16} /> BOOKING FULLY PAID
                       </div>
                   )}
@@ -361,7 +369,7 @@ const LiveEvents = () => {
                 </div>
               </div>
             )}) : (
-                <div style={{ textAlign: 'center', gridColumn: '1/-1', padding: '80px 20px', background: '#fafafa', borderRadius: '24px', border: '2px dashed #e2e8f0' }}>
+                <div style={{ textAlign: 'center', gridColumn: '1/-1', padding: '60px 20px', background: '#fafafa', borderRadius: '24px', border: '2px dashed #e2e8f0' }}>
                     <div style={{ fontSize: '40px', marginBottom: '15px' }}>🎈</div>
                     <p style={{ color: '#64748b', fontWeight: '700', fontSize: '1rem', margin: 0 }}>Your active event list is currently empty.</p>
                 </div>

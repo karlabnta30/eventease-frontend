@@ -10,23 +10,23 @@ const SuccessModal = ({ isOpen, onClose }) => {
       position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
       backgroundColor: 'rgba(0, 0, 0, 0.7)', display: 'flex',
       alignItems: 'center', justifyContent: 'center', zIndex: 1000,
-      backdropFilter: 'blur(6px)' 
+      backdropFilter: 'blur(6px)', padding: '15px'
     }}>
       <div style={{
-        background: 'white', padding: '40px', borderRadius: '24px',
-        textAlign: 'center', maxWidth: '420px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)'
+        background: 'white', padding: '30px 20px', borderRadius: '24px',
+        textAlign: 'center', maxWidth: '420px', width: '100%', boxShadow: '0 20px 40px rgba(0,0,0,0.2)'
       }}>
-        <div style={{ fontSize: '60px', marginBottom: '20px' }}>📩</div>
-        <h2 style={{ color: '#000', fontSize: '1.8rem', fontWeight: 'bold' }}>Feedback Sent!</h2>
-        <p style={{ color: '#000', lineHeight: '1.6', marginBottom: '30px', fontWeight: '500' }}>
+        <div style={{ fontSize: '50px', marginBottom: '15px' }}>📩</div>
+        <h2 style={{ color: '#000', fontSize: '1.6rem', fontWeight: 'bold' }}>Feedback Sent!</h2>
+        <p style={{ color: '#000', lineHeight: '1.6', marginBottom: '25px', fontWeight: '500', fontSize: '0.92rem' }}>
           Thank you for helping us improve. Your feedback and targeted vendor notice have been recorded successfully.
         </p>
         <button 
           onClick={onClose}
           style={{
             background: '#000', color: 'white', border: 'none',
-            padding: '15px 40px', borderRadius: '12px', fontWeight: 'bold',
-            cursor: 'pointer', width: '100%', fontSize: '1rem'
+            padding: '14px 20px', borderRadius: '12px', fontWeight: 'bold',
+            cursor: 'pointer', width: '100%', fontSize: '0.9rem'
           }}
         >
           BACK TO HOME
@@ -41,13 +41,19 @@ const ContactPage = () => {
   const [loading, setLoading] = useState(false);
   const [isSuccessOpen, setIsSuccessOpen] = useState(false);
   const [userName, setUserName] = useState(''); 
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 900);
   const [formData, setFormData] = useState({
     subject: '',
-    vendor_email: '', // Added targeted vendor email field as requested by TA notes
+    vendor_email: '', 
     message: ''
   });
 
-  // Comprehensive User Detection Fix
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 900);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   useEffect(() => {
     const keys = ['user', 'userData', 'authUser', 'profile', 'username'];
     let foundName = '';
@@ -68,21 +74,28 @@ const ContactPage = () => {
   }, []);
 
   const styles = {
-    container: { display: 'flex', height: 'calc(100vh - 80px)', fontFamily: "'Inter', sans-serif", backgroundColor: '#ffffff' },
+    container: { 
+      display: 'flex', 
+      flexDirection: isMobile ? 'column' : 'row', 
+      minHeight: isMobile ? 'auto' : 'calc(100vh - 80px)', 
+      fontFamily: "'Inter', sans-serif", 
+      backgroundColor: '#ffffff' 
+    },
     leftPanel: { 
-        flex: '0 0 45%', 
+        flex: isMobile ? 'none' : '0 0 45%', 
+        height: isMobile ? '180px' : 'auto',
         display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative', 
         backgroundImage: 'url("https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1200&q=80")', 
         backgroundSize: 'cover', backgroundPosition: 'center' 
     },
     overlay: { position: 'absolute', inset: 0, backgroundColor: 'rgba(255, 255, 255, 0.05)', zIndex: 1 },
-    heroTitle: { position: 'relative', zIndex: 2, fontSize: '5rem', fontWeight: '900', color: '#000000', letterSpacing: '-3px', textTransform: 'lowercase' },
+    heroTitle: { position: 'relative', zIndex: 2, fontSize: isMobile ? '3rem' : '5rem', fontWeight: '900', color: '#000000', letterSpacing: '-3px', textTransform: 'lowercase' },
     rightPanel: { 
         flex: '1', 
         display: 'flex', 
         flexDirection: 'column', 
         justifyContent: 'center', 
-        padding: '0 10% 0 12%',
+        padding: isMobile ? '30px 20px' : '0 10% 0 12%',
         overflowY: 'auto'
     },
     label: { fontSize: '0.85rem', fontWeight: '800', color: '#000000', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', display: 'block' },
@@ -120,11 +133,11 @@ const ContactPage = () => {
       </div>
 
       <div style={styles.rightPanel}>
-        <div style={{ maxWidth: '480px', width: '100%', margin: '40px 0' }}>
-          <h2 style={{ color: '#000000', fontSize: '2.5rem', marginBottom: '12px', fontWeight: '900', letterSpacing: '-1.5px' }}>
+        <div style={{ maxWidth: '480px', width: '100%', margin: isMobile ? '0 auto' : '40px 0' }}>
+          <h2 style={{ color: '#000000', fontSize: isMobile ? '2rem' : '2.5rem', marginBottom: '12px', fontWeight: '900', letterSpacing: '-1.5px', wordBreak: 'break-word' }}>
             Hi {userName}, help us improve.
           </h2>
-          <p style={{ color: '#000000', marginBottom: '35px', fontSize: '1.1rem', lineHeight: '1.5', fontWeight: '500' }}>
+          <p style={{ color: '#000000', marginBottom: '30px', fontSize: '1rem', lineHeight: '1.5', fontWeight: '500' }}>
             Share your thoughts, report issues, or provide targeted feedback directly to a vendor.
           </p>
           
