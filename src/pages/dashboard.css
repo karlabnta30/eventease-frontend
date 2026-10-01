@@ -1,4 +1,6 @@
-/* RESET AND BACKGROUND */
+/* ==========================================
+   1. RESET AND BACKGROUND
+   ========================================== */
 html, body, #root, .dashboard-content {
   background-color: #ffffff !important;
   background-image: none !important; /* Kills any gradients */
@@ -6,9 +8,16 @@ html, body, #root, .dashboard-content {
   margin: 0;
   padding: 0;
   font-family: 'Inter', sans-serif;
+  box-sizing: border-box;
 }
 
-/* NAVIGATION */
+*, *:before, *:after {
+  box-sizing: inherit;
+}
+
+/* ==========================================
+   2. NAVIGATION
+   ========================================== */
 .top-nav {
   display: flex;
   justify-content: space-between;
@@ -33,7 +42,9 @@ html, body, #root, .dashboard-content {
   font-size: 0.9rem;
 }
 
-/* BUTTONS - Solid Black Rectangles */
+/* ==========================================
+   3. BUTTONS - Solid Black Rectangles
+   ========================================== */
 .btn-black-small, .btn-black-main {
   background-color: #000000 !important;
   color: #ffffff !important;
@@ -47,7 +58,9 @@ html, body, #root, .dashboard-content {
 .btn-black-small { padding: 8px 16px; font-size: 0.8rem; }
 .btn-black-main { padding: 12px 28px; font-size: 1rem; }
 
-/* HERO SECTION - Left Aligned */
+/* ==========================================
+   4. HERO SECTION - Left Aligned
+   ========================================== */
 .hero-section {
   padding: 60px 60px 30px 60px;
   text-align: left;
@@ -67,7 +80,9 @@ html, body, #root, .dashboard-content {
   margin-bottom: 30px;
 }
 
-/* IMAGES */
+/* ==========================================
+   5. IMAGES
+   ========================================== */
 .main-image-wrapper {
   padding: 0 60px;
   margin-bottom: 60px;
@@ -80,7 +95,9 @@ html, body, #root, .dashboard-content {
   object-fit: cover;
 }
 
-/* FEATURES GRID */
+/* ==========================================
+   6. FEATURES GRID
+   ========================================== */
 .features-section {
   padding: 0 60px 80px 60px;
 }
@@ -117,7 +134,9 @@ html, body, #root, .dashboard-content {
   line-height: 1.5;
 }
 
-/* Split Section */
+/* ==========================================
+   7. SPLIT SECTION
+   ========================================== */
 .info-split-section {
   display: flex;
   padding: 80px 60px;
@@ -133,8 +152,11 @@ html, body, #root, .dashboard-content {
 .info-item h4 { margin-bottom: 8px; font-weight: 700; }
 .info-item p { color: #666; font-size: 0.95rem; line-height: 1.5; }
 
-/* Testimonials */
+/* ==========================================
+   8. TESTIMONIALS
+   ========================================== */
 .testimonials-section { padding: 80px 60px; }
+
 .testimonials-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -154,7 +176,9 @@ html, body, #root, .dashboard-content {
 .user-name { font-weight: 700; font-size: 0.9rem; margin: 0; }
 .user-desc { font-size: 0.8rem; color: #888; margin: 0; }
 
-/* Footer */
+/* ==========================================
+   9. FOOTER
+   ========================================== */
 .footer {
   padding: 80px 60px 40px 60px;
   border-top: 1px solid #eee;
@@ -185,4 +209,191 @@ html, body, #root, .dashboard-content {
   font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
+}
+
+/* ==========================================
+   10. MAIN DASHBOARD STYLES
+   ========================================== */
+.main-dashboard-container {
+  padding: 40px 50px 100px;
+  box-sizing: border-box;
+}
+
+.dashboard-wrapper {
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+.dashboard-header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 35px;
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 25px;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.dashboard-main-title {
+  font-size: 2.4rem;
+  font-weight: 900;
+  letter-spacing: -1.5px;
+  color: #000;
+  margin: 0 0 6px 0;
+}
+
+.dashboard-main-subtitle {
+  font-size: 0.95rem;
+  color: #64748b;
+  font-weight: 600;
+  margin: 0;
+}
+
+.new-event-btn {
+  background: #000;
+  color: #fff;
+  padding: 14px 24px;
+  border-radius: 14px;
+  font-weight: 900;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.dashboard-content-grid {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 35px;
+  align-items: start;
+}
+
+.dashboard-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  position: sticky;
+  top: 30px;
+}
+
+.dashboard-main-area {
+  width: 100%;
+  min-width: 0;
+}
+
+.dashboard-tabs-container {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 25px;
+  border-bottom: 2px solid #eaeaea;
+  padding-bottom: 15px;
+  flex-wrap: wrap;
+}
+
+.dashboard-tab-btn {
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 0.85rem;
+  cursor: pointer;
+  background: #fff;
+  color: #666;
+  border: 1px solid #eaeaea;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dashboard-tab-btn.active {
+  background: #000;
+  color: #fff;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.dashboard-services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 24px;
+}
+
+/* ==========================================
+   11. TABLET & MOBILE RESPONSIVENESS
+   ========================================== */
+@media screen and (max-width: 1024px) {
+  .dashboard-content-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .dashboard-sidebar {
+    position: static;
+  }
+
+  .features-grid,
+  .testimonials-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .info-split-section {
+    flex-direction: column;
+    padding: 50px 30px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  /* General Spacing & Padding Adjustments */
+  .top-nav {
+    padding: 15px 20px;
+  }
+
+  .hero-section,
+  .main-image-wrapper,
+  .features-section,
+  .info-split-section,
+  .testimonials-section,
+  .footer,
+  .main-dashboard-container {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .hero-heading {
+    font-size: 2.4rem;
+  }
+
+  /* Grids to Single Column */
+  .features-grid,
+  .testimonials-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Footer Layout for Mobile */
+  .footer-top {
+    flex-direction: column;
+    gap: 40px;
+  }
+
+  .footer-links {
+    flex-direction: column;
+    gap: 30px;
+  }
+
+  /* Dashboard Adjustments */
+  .dashboard-main-title {
+    font-size: 1.8rem;
+  }
+
+  .dashboard-header-container {
+    align-items: flex-start;
+  }
+
+  .new-event-btn {
+    width: 100%;
+    justify-content: center;
+  }
 }

@@ -27,7 +27,6 @@ const MainDashboard = () => {
     try {
       const endpoint = userRole === 'vendor' ? '/vendor/services' : '/vendors';
       
-      // Sabay-sabay nating kinukuha ang services, bookings, bundles, at notifications para mabilis
       const promises = [api.get(endpoint)];
       const token = localStorage.getItem('token');
       
@@ -45,7 +44,6 @@ const MainDashboard = () => {
       
       let allServices = [];
 
-      // 1. Services / Vendors Result
       if (results[0].status === 'fulfilled') {
         const servicesRes = results[0].value;
         if (userRole === 'vendor') {
@@ -77,7 +75,6 @@ const MainDashboard = () => {
         }
       }
 
-      // 2. Bundles Result (Kung client/user)
       if (userRole !== 'admin' && userRole !== 'vendor' && results[1] && results[1].status === 'fulfilled') {
         const bundlesRes = results[1].value;
         const bundleList = bundlesRes.data.data || bundlesRes.data || [];
@@ -96,7 +93,6 @@ const MainDashboard = () => {
 
       setServices(allServices);
 
-      // 3. Bookings & Notifications Result
       const bookingsIndex = userRole !== 'vendor' ? 2 : 1;
       const notifsIndex = userRole !== 'vendor' ? 3 : 2;
 
@@ -207,9 +203,9 @@ const MainDashboard = () => {
 
   if (userRole === 'admin') {
     return (
-      <div className="flex flex-col items-center justify-center h-screen bg-slate-900 text-white">
-        <h2 className="text-2xl font-black mb-2">Admin Portal Active</h2>
-        <p className="text-slate-400 mb-6">Manage platform verifications and system logs.</p>
+      <div className="flex flex-col items-center justify-center h-screen bg-slate-900 text-white p-4">
+        <h2 className="text-2xl font-black mb-2 text-center">Admin Portal Active</h2>
+        <p className="text-slate-400 mb-6 text-center">Manage platform verifications and system logs.</p>
         <button className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg shadow-blue-600/30" onClick={() => navigate('/admin-dashboard')}>
           Go to Admin Panel
         </button>
@@ -238,16 +234,16 @@ const MainDashboard = () => {
   };
 
   return (
-    <div className="main-dashboard" style={{ backgroundColor: '#ffffff', minHeight: '100vh', fontFamily: "'Inter', sans-serif", padding: '40px 50px 100px' }}>
+    <div className="main-dashboard-container" style={{ backgroundColor: '#ffffff', minHeight: '100vh', fontFamily: "'Inter', sans-serif" }}>
       
-      <div style={{ width: '100%', maxWidth: '1600px', margin: '0 auto' }}>
+      <div className="dashboard-wrapper">
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '35px', borderBottom: '2px solid #f0f0f0', paddingBottom: '25px', flexWrap: 'wrap', gap: '20px' }}>
+        <div className="dashboard-header-container">
           <div>
-            <h1 style={{ fontSize: '2.4rem', fontWeight: '900', letterSpacing: '-1.5px', color: '#000', margin: '0 0 6px 0' }}>
+            <h1 className="dashboard-main-title">
               {userRole === 'vendor' ? 'Manage Business & Services' : 'Design Your Perfect Event'}
             </h1>
-            <p style={{ fontSize: '0.95rem', color: '#64748b', fontWeight: '600', margin: 0 }}>
+            <p className="dashboard-main-subtitle">
               {userRole === 'vendor' ? 'Control your listed service status and business offerings.' : 'Explore service catalogs, build blueprints, and manage your schedules.'}
             </p>
           </div>
@@ -255,20 +251,7 @@ const MainDashboard = () => {
           {userRole !== 'admin' && (
             <button 
               onClick={() => navigate('/create-event')} 
-              style={{ 
-                  background: '#000', 
-                  color: '#fff', 
-                  padding: '14px 24px', 
-                  borderRadius: '14px', 
-                  fontWeight: '900', 
-                  border: 'none', 
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  fontSize: '0.9rem',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
-              }}
+              className="new-event-btn"
             >
               <Plus size={16} /> New Event Plan
             </button>
@@ -293,9 +276,9 @@ const MainDashboard = () => {
           </div>
         )}
 
-        <div style={{ display: 'grid', gridTemplateColumns: '380px 1fr', gap: '35px', alignItems: 'start' }}>
+        <div className="dashboard-content-grid">
           
-          <aside style={{ display: 'flex', flexDirection: 'column', gap: '25px', position: 'sticky', top: '30px' }}>
+          <aside className="dashboard-sidebar">
             
             <div style={{ ...cardStyle, border: '2px solid #000', background: '#ffffff' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
@@ -393,7 +376,7 @@ const MainDashboard = () => {
 
           </aside>
 
-          <main style={{ width: '100%', minWidth: 0 }}>
+          <main className="dashboard-main-area">
             
             <div style={{ marginBottom: '20px' }}>
               <input 
@@ -405,49 +388,28 @@ const MainDashboard = () => {
               />
             </div>
 
-            <div style={{ display: 'flex', gap: '10px', marginBottom: '25px', borderBottom: '2px solid #eaeaea', paddingBottom: '15px', flexWrap: 'wrap' }}>
+            <div className="dashboard-tabs-container">
               <button 
                 onClick={() => setActiveTab('all')}
-                style={{
-                  padding: '10px 20px', borderRadius: '12px', fontWeight: '800', fontSize: '0.85rem', cursor: 'pointer',
-                  background: activeTab === 'all' ? '#000' : '#fff',
-                  color: activeTab === 'all' ? '#fff' : '#666',
-                  border: activeTab === 'all' ? 'none' : '1px solid #eaeaea',
-                  display: 'flex', alignItems: 'center', gap: '6px',
-                  boxShadow: activeTab === 'all' ? '0 4px 12px rgba(0,0,0,0.15)' : 'none'
-                }}
+                className={`dashboard-tab-btn ${activeTab === 'all' ? 'active' : ''}`}
               >
                 <Layers size={16} /> All Catalog ({services.length})
               </button>
               <button 
                 onClick={() => setActiveTab('service')}
-                style={{
-                  padding: '10px 20px', borderRadius: '12px', fontWeight: '800', fontSize: '0.85rem', cursor: 'pointer',
-                  background: activeTab === 'service' ? '#000' : '#fff',
-                  color: activeTab === 'service' ? '#fff' : '#666',
-                  border: activeTab === 'service' ? 'none' : '1px solid #eaeaea',
-                  display: 'flex', alignItems: 'center', gap: '6px',
-                  boxShadow: activeTab === 'service' ? '0 4px 12px rgba(0,0,0,0.15)' : 'none'
-                }}
+                className={`dashboard-tab-btn ${activeTab === 'service' ? 'active' : ''}`}
               >
                 <Wrench size={16} /> Independent Services ({services.filter(s => s.type === 'service').length})
               </button>
               <button 
                 onClick={() => setActiveTab('bundle')}
-                style={{
-                  padding: '10px 20px', borderRadius: '12px', fontWeight: '800', fontSize: '0.85rem', cursor: 'pointer',
-                  background: activeTab === 'bundle' ? '#000' : '#fff',
-                  color: activeTab === 'bundle' ? '#fff' : '#666',
-                  border: activeTab === 'bundle' ? 'none' : '1px solid #eaeaea',
-                  display: 'flex', alignItems: 'center', gap: '6px',
-                  boxShadow: activeTab === 'bundle' ? '0 4px 12px rgba(0,0,0,0.15)' : 'none'
-                }}
+                className={`dashboard-tab-btn ${activeTab === 'bundle' ? 'active' : ''}`}
               >
                 <Package size={16} /> Pre-made Bundles ({services.filter(s => s.type === 'bundle').length})
               </button>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
               <h2 className="text-xl font-black text-black tracking-tight" style={{ margin: 0 }}>
                 {activeTab === 'all' ? 'Available Services & Bundles' : (activeTab === 'service' ? 'Independent Services Catalog' : 'Pre-made Vendor Bundles')}
               </h2>
@@ -457,7 +419,7 @@ const MainDashboard = () => {
             </div>
             
             {filteredServices.length > 0 ? (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))', gap: '24px' }}>
+              <div className="dashboard-services-grid">
                 {filteredServices.map(s => {
                   const isAlreadyAdded = architectItems.some(item => item.id === s.id);
 
