@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   Home, CalendarDays, PlusCircle, ChevronLeft, ChevronRight, 
-  LogOut, MessageSquare, Info, Mail, List, Bell 
+  LogOut, MessageSquare, Info, Mail, List, Bell, User as UserIcon 
 } from 'lucide-react';
 
 const Sidebar = ({ children }) => {
@@ -62,7 +62,7 @@ const Sidebar = ({ children }) => {
   const styles = {
     layout: { 
       display: 'flex', 
-      flexDirection: isMobile ? 'column' : 'row', // Magiging patayo kapag mobile
+      flexDirection: isMobile ? 'column' : 'row', 
       height: isMobile ? 'auto' : '100vh', 
       width: '100vw', 
       overflowX: 'hidden' 
@@ -74,11 +74,20 @@ const Sidebar = ({ children }) => {
       borderBottom: isMobile ? '1px solid #eee' : 'none',
       padding: '15px 10px',
       display: 'flex',
-      flexDirection: isMobile ? 'row' : 'column', // Maging pahiga o patayo depende sa screen
+      flexDirection: isMobile ? 'row' : 'column',
       justifyContent: 'space-between',
       alignItems: isMobile ? 'center' : 'stretch',
       transition: 'width 0.2s ease-in-out',
       flexShrink: 0
+    },
+    mobileTopBar: {
+      display: isMobile ? 'flex' : 'none',
+      width: '100%',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingBottom: '10px',
+      borderBottom: '1px solid #f1f5f9',
+      marginBottom: '10px'
     },
     menuContainer: {
       display: 'flex',
@@ -92,12 +101,12 @@ const Sidebar = ({ children }) => {
       width: '100%'
     },
     profileSection: {
-      display: isMobile ? 'none' : 'flex', // Pwedeng itago ang profile o pasimplihin sa mobile para hindi masikip
+      display: 'flex',
       alignItems: 'center',
-      justify5Content: isCollapsed ? 'center' : 'flex-start',
+      justifyContent: isCollapsed && !isMobile ? 'center' : 'flex-start',
       gap: '10px',
       padding: '10px',
-      marginBottom: '15px',
+      marginBottom: isMobile ? '0' : '15px',
       borderRadius: '10px',
       cursor: 'pointer',
       backgroundColor: location.pathname === '/profile' ? '#f4f1ea' : 'transparent',
@@ -131,7 +140,7 @@ const Sidebar = ({ children }) => {
       justifyContent: 'center',
     },
     bottomSection: {
-      display: isMobile ? 'none' : 'block', // Itago muna ang collapse/signout sa bottom kapag mobile para hindi magulo, o ilagay sa menu
+      display: isMobile ? 'none' : 'block',
       borderTop: '1px solid #eee',
       paddingTop: '10px',
       marginTop: '10px'
@@ -165,17 +174,29 @@ const Sidebar = ({ children }) => {
     <div style={styles.layout}>
       <div style={styles.sidebar}>
         
-        <div style={styles.menuContainer}>
-          {/* Profile Section */}
-          <div style={styles.profileSection} onClick={() => navigate('/profile')}>
-            <div style={styles.avatar}>{userName.charAt(0).toUpperCase()}</div>
-            {!isCollapsed && (
-              <div style={{ overflow: 'hidden' }}>
-                <p style={{ margin: 0, fontSize: '13px', fontWeight: '800', color: '#1a1a1a' }}>{userName}</p>
-                <p style={{ margin: 0, fontSize: '10px', color: '#888' }}>{userRole}</p>
-              </div>
-            )}
+        {/* Mobile Header Top Bar containing Brand and Profile Avatar */}
+        {isMobile && (
+          <div style={styles.mobileTopBar}>
+            <h3 style={{ margin: 0, fontWeight: '900', fontSize: '1.2rem', letterSpacing: '-0.5px' }}>EVENTEASE</h3>
+            <div style={styles.avatar} onClick={() => navigate('/profile')} title="View Profile">
+              {userName.charAt(0).toUpperCase()}
+            </div>
           </div>
+        )}
+
+        <div style={styles.menuContainer}>
+          {/* Profile Section for Desktop */}
+          {!isMobile && (
+            <div style={styles.profileSection} onClick={() => navigate('/profile')}>
+              <div style={styles.avatar}>{userName.charAt(0).toUpperCase()}</div>
+              {!isCollapsed && (
+                <div style={{ overflow: 'hidden' }}>
+                  <p style={{ margin: 0, fontSize: '13px', fontWeight: '800', color: '#1a1a1a' }}>{userName}</p>
+                  <p style={{ margin: 0, fontSize: '10px', color: '#888' }}>{userRole}</p>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Create Button */}
           {userRole !== 'admin' && (
