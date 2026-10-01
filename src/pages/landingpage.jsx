@@ -1,9 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const LandingPage = () => {
   const navigate = useNavigate();
   const [activeModal, setActiveModal] = useState(null); // 'privacy' | 'terms' | 'security' | null
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  // Dynamic screen listener para sa mobile responsiveness
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // SMART NAVIGATION: Sinusuri kung naka-login na ang user o admin para hindi na sila pabalikin sa login page
   const handleStartPlanning = () => {
@@ -51,16 +61,18 @@ const LandingPage = () => {
     },
     heroSection: {
       display: 'flex',
+      flexDirection: isMobile ? 'column' : 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      padding: '24px 40px',
-      gap: '40px',
+      padding: isMobile ? '24px 20px' : '24px 40px',
+      gap: isMobile ? '30px' : '40px',
       maxWidth: '1440px',
       margin: '0 auto',
       minHeight: 'auto',
     },
     heroContent: {
-      flex: '1 1 650px',
+      flex: '1 1 100%',
+      width: '100%',
     },
     pillTag: {
       display: 'inline-flex',
@@ -78,7 +90,7 @@ const LandingPage = () => {
       marginBottom: '12px',
     },
     heroHeading: {
-      fontSize: '3.6rem',
+      fontSize: isMobile ? '2.4rem' : '3.6rem',
       fontWeight: '900',
       lineHeight: '1.08',
       letterSpacing: '-2px',
@@ -86,7 +98,8 @@ const LandingPage = () => {
       color: '#0f172a',
     },
     heroSubheading: {
-      fontSize: '1.05rem',
+      fontSize: isMobile = '1rem',
+      fontSize: isMobile ? '0.95rem' : '1.05rem',
       color: '#64748b',
       lineHeight: '1.6',
       marginBottom: '24px',
@@ -95,8 +108,9 @@ const LandingPage = () => {
     },
     heroButtons: {
       display: 'flex',
+      flexDirection: isMobile ? 'column' : 'row',
       gap: '14px',
-      alignItems: 'center',
+      alignItems: isMobile ? 'stretch' : 'center',
       marginBottom: '24px',
     },
     primaryBtn: {
@@ -110,6 +124,7 @@ const LandingPage = () => {
       cursor: 'pointer',
       boxShadow: '0 10px 30px rgba(16, 185, 129, 0.25)',
       transition: 'all 0.2s ease',
+      textAlign: 'center',
     },
     secondaryBtn: {
       backgroundColor: 'transparent',
@@ -121,10 +136,11 @@ const LandingPage = () => {
       fontSize: '0.90rem',
       cursor: 'pointer',
       transition: 'all 0.2s ease',
+      textAlign: 'center',
     },
     ratingsRow: {
       display: 'flex',
-      gap: '15px',
+      gap: '10px',
       alignItems: 'center',
       fontSize: '0.8rem',
       color: '#475569',
@@ -143,11 +159,12 @@ const LandingPage = () => {
       border: '1px solid #e2e8f0',
     },
     photoGrid: {
-      flex: '1 1 550px',
+      flex: '1 1 100%',
+      width: '100%',
       display: 'grid',
       gridTemplateColumns: 'repeat(3, 1fr)',
       gap: '12px',
-      height: '420px',
+      height: isMobile ? '280px' : '420px',
     },
     collageCol: {
       display: 'flex',
@@ -163,25 +180,25 @@ const LandingPage = () => {
       boxShadow: '0 15px 30px rgba(0,0,0,0.05)',
     },
     featureSection: {
-      padding: '40px 40px',
+      padding: isMobile ? '24px 20px' : '40px 40px',
       maxWidth: '1300px',
       margin: '0 auto',
       display: 'grid',
-      gridTemplateColumns: '1fr 1fr',
+      gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
       gap: '24px',
     },
     featureCard: {
       backgroundColor: '#f8fafc',
       border: '1px solid #e2e8f0',
       borderRadius: '28px',
-      padding: '36px',
+      padding: isMobile ? '24px' : '36px',
       display: 'flex',
       flexDirection: 'column',
       justifyContent: 'space-between',
       boxShadow: '0 10px 30px -10px rgba(0,0,0,0.03)',
     },
     featureHeading: {
-      fontSize: '1.8rem',
+      fontSize: isMobile ? '1.5rem' : '1.8rem',
       fontWeight: '900',
       marginBottom: '12px',
       letterSpacing: '-1px',
@@ -194,14 +211,14 @@ const LandingPage = () => {
       marginBottom: '20px',
     },
     industrySection: {
-      padding: '40px 40px',
+      padding: isMobile ? '24px 20px' : '40px 40px',
       textAlign: 'center',
       maxWidth: '1200px',
       margin: '0 auto',
     },
     industryGrid: {
       display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+      gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(200px, 1fr))',
       gap: '16px',
       marginTop: '30px',
     },
@@ -227,14 +244,14 @@ const LandingPage = () => {
       background: 'linear-gradient(to top, rgba(15,23,42,0.85) 10%, rgba(15,23,42,0.2) 100%)',
     },
     testimonialSection: {
-      padding: '50px 40px',
+      padding: isMobile ? '30px 20px' : '50px 40px',
       backgroundColor: '#f8fafc',
       borderTop: '1px solid #e2e8f0',
       borderBottom: '1px solid #e2e8f0',
     },
     testimonialGrid: {
       display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
       gap: '24px',
       maxWidth: '1300px',
       margin: '30px auto 0',
@@ -243,18 +260,21 @@ const LandingPage = () => {
       backgroundColor: '#ffffff',
       border: '1px solid #e2e8f0',
       borderRadius: '22px',
-      padding: '30px',
+      padding: isMobile ? '20px' : '30px',
       boxShadow: '0 10px 30px rgba(0,0,0,0.02)',
     },
     footer: {
-      padding: '30px 40px',
+      padding: isMobile ? '24px 20px' : '30px 40px',
       maxWidth: '1300px',
       margin: '0 auto',
       display: 'flex',
+      flexDirection: isMobile ? 'column' : 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
+      gap: isMobile ? '15px' : '0',
       color: '#64748b',
       fontSize: '0.80rem',
+      textAlign: isMobile ? 'center' : 'left',
     },
     footerLink: {
       cursor: 'pointer',
@@ -274,7 +294,7 @@ const LandingPage = () => {
     modalCard: {
       backgroundColor: '#ffffff',
       borderRadius: '24px',
-      padding: '32px',
+      padding: isMobile ? '24px' : '32px',
       maxWidth: '500px',
       width: '100%',
       boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
@@ -303,7 +323,8 @@ const LandingPage = () => {
       fontWeight: '800',
       fontSize: '0.85rem',
       cursor: 'pointer',
-      float: 'right',
+      width: isMobile ? '100%' : 'auto',
+      float: isMobile ? 'none' : 'right',
     }
   };
 
@@ -357,15 +378,15 @@ const LandingPage = () => {
         <div style={styles.photoGrid}>
           <div style={styles.collageCol}>
             <img src="https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=400&q=80" alt="Event 1" style={styles.collageImg} />
-            <img src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=400&q=80" alt="Event 2" style={{...styles.collageImg, height: '170px'}} />
+            <img src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=400&q=80" alt="Event 2" style={{...styles.collageImg, height: isMobile ? '120px' : '170px'}} />
           </div>
-          <div style={{...styles.collageCol, marginTop: '25px'}}>
-            <img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=400&q=80" alt="Event 3" style={{...styles.collageImg, height: '170px'}} />
+          <div style={{...styles.collageCol, marginTop: isMobile ? '10px' : '25px'}}>
+            <img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=400&q=80" alt="Event 3" style={{...styles.collageImg, height: isMobile ? '120px' : '170px'}} />
             <img src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=400&q=80" alt="Event 4" style={styles.collageImg} />
           </div>
           <div style={styles.collageCol}>
             <img src="https://images.unsplash.com/photo-1465847899084-d164df4dedc6?auto=format&fit=crop&w=400&q=80" alt="Event 5" style={styles.collageImg} />
-            <img src="https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?auto=format&fit=crop&w=400&q=80" alt="Event 6" style={{...styles.collageImg, height: '170px'}} />
+            <img src="https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?auto=format&fit=crop&w=400&q=80" alt="Event 6" style={{...styles.collageImg, height: isMobile ? '120px' : '170px'}} />
           </div>
         </div>
       </section>
@@ -380,7 +401,7 @@ const LandingPage = () => {
               Curate independent vendor services and pre-made bundles into a unified custom blueprint backed seamlessly by your Aiven cloud database infrastructure.
             </p>
           </div>
-          <button style={{ ...styles.primaryBtn, width: 'fit-content' }} onClick={handleStartPlanning}>
+          <button style={{ ...styles.primaryBtn, width: isMobile ? '100%' : 'fit-content', marginTop: '16px' }} onClick={handleStartPlanning}>
             Try Bundle Architect &rarr;
           </button>
         </div>
@@ -393,7 +414,7 @@ const LandingPage = () => {
               Enjoy frictionless onboarding with instant email OTP verification and quick resend handling, alongside secure per-service transactions via PayMongo.
             </p>
           </div>
-          <button style={{ ...styles.primaryBtn, width: 'fit-content' }} onClick={handleStartPlanning}>
+          <button style={{ ...styles.primaryBtn, width: isMobile ? '100%' : 'fit-content', marginTop: '16px' }} onClick={handleStartPlanning}>
             Explore Security Features &rarr;
           </button>
         </div>
@@ -401,7 +422,7 @@ const LandingPage = () => {
 
       {/* TRUSTED INDUSTRIES SECTION */}
       <section style={styles.industrySection}>
-        <h2 style={{ fontSize: '2rem', fontWeight: '900', letterSpacing: '-1px', color: '#0f172a' }}>Engineered for elite event categories</h2>
+        <h2 style={{ fontSize: isMobile ? '1.6rem' : '2rem', fontWeight: '900', letterSpacing: '-1px', color: '#0f172a' }}>Engineered for elite event categories</h2>
         <div style={styles.industryGrid}>
           <div style={{ ...styles.industryCard, backgroundImage: `url('https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=300&q=80')` }}>
             <div style={styles.industryOverlay}></div>
@@ -429,7 +450,7 @@ const LandingPage = () => {
       {/* TESTIMONIALS SECTION */}
       <section style={styles.testimonialSection}>
         <div style={{ maxWidth: '1300px', margin: '0 auto', textAlign: 'center' }}>
-          <h2 style={{ fontSize: '2rem', fontWeight: '900', letterSpacing: '-1px', color: '#0f172a' }}>Trusted by elite event organizers</h2>
+          <h2 style={{ fontSize: isMobile ? '1.6rem' : '2rem', fontWeight: '900', letterSpacing: '-1px', color: '#0f172a' }}>Trusted by elite event organizers</h2>
           <p style={{ color: '#64748b', marginTop: '6px', fontSize: '0.90rem' }}>Maintaining top-tier reliability across authentication and booking workflows.</p>
         </div>
         <div style={styles.testimonialGrid}>
@@ -457,7 +478,7 @@ const LandingPage = () => {
       {/* FOOTER */}
       <footer style={styles.footer}>
         <div>© 2026 EventEase Inc. All rights reserved.</div>
-        <div style={{ display: 'flex', gap: '20px', color: '#64748b', fontWeight: '600' }}>
+        <div style={{ display: 'flex', gap: '20px', color: '#64748b', fontWeight: '600', flexWrap: 'wrap', justifyContent: 'center' }}>
           <span 
             style={styles.footerLink} 
             onClick={() => setActiveModal('privacy')}
