@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
-import echo from '../echo'; // I-import ang ginawa nating echo configuration
 import { Send, ShieldAlert, CheckCircle2, XCircle, Paperclip, X, Clock, Check } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
@@ -14,7 +13,6 @@ const Messages = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   
   const userRole = localStorage.getItem('userRole');
-  const currentUserId = localStorage.getItem('userId') || localStorage.getItem('id'); // Kunin ang ID ng kasalukuyang user para sa channel
 
   // 1. Kunin ang Contacts List sa unang pasok
   useEffect(() => {
@@ -30,7 +28,7 @@ const Messages = () => {
     fetchContacts();
   }, []);
 
-  // 2. Kunin ang Messages at gamitin ang WebSockets (Reverb) sa halip na setInterval
+  // 2. Kunin ang Messages at gamitin ang Polling (setInterval) para sa stable real-time update
   useEffect(() => {
     if (!activeContact?.id) return;
 
@@ -44,20 +42,13 @@ const Messages = () => {
       }
     };
 
-    // Kunin ang initial data sa paglipat ng contact
+    // Kunin agad ang initial data
     fetchConversationData();
 
-    // Reverb WebSocket Listener (Instant push, walang delay o lag!)
-    const channelName = `chat.${Math.min(Number(currentUserId || 1), Number(activeContact.id))}.${Math.max(Number(currentUserId || 1), Number(activeContact.id))}`;
-    
-    const channel = echo.private(channelName)
-      .listen('MessageSent', (e) => {
-        setMessages((prev) => [...prev, e.message]);
-      });
+    // Mag-poll kada 3 segundo para sa bagong messages nang walang WebSocket errors
+    const interval = setInterval(fetchConversationData, 3000);
 
-    return () => {
-      echo.leave(channelName);
-    };
+    return () => clearInterval(interval);
   }, [activeContact?.id]);
 
   const handleSend = async (e) => {
@@ -70,7 +61,6 @@ const Messages = () => {
         message: newMessage
       });
       
-      // Idagdag agad sa state para sa mabilis na UI feedback
       if (res.data && res.data.message) {
         setMessages((prev) => [...prev, res.data.message]);
       }
@@ -97,7 +87,6 @@ const Messages = () => {
     }
   };
 
-  // Fixed File Upload Error Handler
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file || !activeContact?.id) return;
@@ -109,13 +98,12 @@ const Messages = () => {
 
     const formData = new FormData();
     formData.append('attachment', file);
-    formData.append('receiver_id', activeContact.id); // Sinisigurong kasama ang receiver_id para hindi mag-error ang backend
+    formData.append('receiver_id', activeContact.id);
 
     setUploading(true);
     try {
       let fileUrl = '';
 
-      // Sinisigurong tama ang endpoint na tinatamaan depende kung may active booking o pangkalahatang upload
       if (activeBooking?.id) {
         try {
           const res = await api.post(`/bookings/${activeBooking.id}/attach-document`, formData, {
@@ -123,7 +111,6 @@ const Messages = () => {
           });
           fileUrl = res.data.file_url || res.data.url;
         } catch (bookingErr) {
-          // Fallback sa general upload kung sakaling mag-fail ang booking specific route
           const fallbackRes = await api.post('/upload', formData, {
             headers: { 'Content-Type': 'multipart/form-data' }
           });
@@ -140,7 +127,6 @@ const Messages = () => {
         throw new Error("Server did not return a valid file URL.");
       }
 
-      // I-send bilang chat message ang attachment URL
       const msgRes = await api.post('/messages', {
         receiver_id: activeContact.id,
         message: `[Attachment]: ${fileUrl}`
@@ -227,7 +213,7 @@ const Messages = () => {
               </div>
             </div>
 
-            {/* MESSENGER/GMAIL STYLE BOOKING REQUEST ACTION BANNER */}
+            {/* BOOKING REQUEST ACTION BANNER */}
             {activeBooking && (
               <div style={{ background: '#f8fafc', borderBottom: '1px solid #eaeaea', padding: '16px 30px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '15px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -244,7 +230,7 @@ const Messages = () => {
                   </div>
                 </div>
 
-                {/* VENDOR ACCEPT / DECLINE ACTIONS */}
+                {/* VENDOR ACTIONS */}
                 {userRole === 'vendor' && activeBooking.status !== 'accepted' && (
                   <div style={{ display: 'flex', gap: '10px' }}>
                     <button 
