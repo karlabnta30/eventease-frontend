@@ -221,10 +221,10 @@ const MainDashboard = () => {
     return services.filter((service) => {
       const term = searchTerm.toLowerCase();
       const matchesSearch = (service.business_name || service.name || "").toLowerCase().includes(term) || 
-                          (service.category || "").toLowerCase().includes(term) || 
-                          (service.location || "").toLowerCase().includes(term) ||
-                          (service.title || "").toLowerCase().includes(term) ||
-                          (service.description || "").toLowerCase().includes(term);
+                            (service.category || "").toLowerCase().includes(term) || 
+                            (service.location || "").toLowerCase().includes(term) ||
+                            (service.title || "").toLowerCase().includes(term) ||
+                            (service.description || "").toLowerCase().includes(term);
       
       const matchesCategory = activeCategory === 'All' || (service.category && service.category.toLowerCase() === activeCategory.toLowerCase());
 
@@ -278,9 +278,10 @@ const MainDashboard = () => {
 
   return (
     <div className="main-dashboard-container" style={{ backgroundColor: '#ffffff', minHeight: '100vh', fontFamily: "'Inter', sans-serif" }}>
-      <div className="dashboard-wrapper">
+      {/* Inayos ang top padding/margin dito para direktang sumabay sa linya ng sidebar */}
+      <div className="dashboard-wrapper" style={{ paddingTop: '20px' }}>
 
-        <div className="dashboard-header-container">
+        <div className="dashboard-header-container" style={{ marginTop: '0', paddingTop: '0' }}>
           <div>
             <h1 className="dashboard-main-title">
               {userRole === 'vendor' ? 'Manage Business & Services' : 'Design & Optimize Your Event'}
