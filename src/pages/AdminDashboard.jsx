@@ -47,15 +47,22 @@ const AdminDashboard = () => {
 
   const handleVerificationAction = async (vendorId, status) => {
     const token = localStorage.getItem('token');
+    
+    // 1. Optimistic Update (Instant sa UI nang hindi naghihintay ng buong fetch)
+    setVendorPermits(prevPermits => 
+      prevPermits.map(v => v.id === vendorId ? { ...v, verification_status: status } : v)
+    );
+    toast.success(`Vendor permit ${status}!`);
+
     try {
+      // 2. I-send sa Backend sa background
       await api.patch(`/admin/vendors/${vendorId}/verify`, { status }, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      toast.success(`Vendor permit ${status}!`);
-      fetchAdminData();
     } catch (error) {
       console.error("Verification update error:", error);
-      toast.error("Failed to update verification status.");
+      toast.error("Failed to sync status with server.");
+      fetchAdminData(); // I-revert o i-fetch ulit kung nagka-error
     }
   };
 
