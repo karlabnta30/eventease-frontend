@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   Home, CalendarDays, PlusCircle, ChevronLeft, ChevronRight, 
-  LogOut, MessageSquare, Info, Mail, List, Bell, User as UserIcon 
+  LogOut, MessageSquare, Info, Mail, List, Bell 
 } from 'lucide-react';
 
 const Sidebar = ({ children }) => {
@@ -13,7 +13,6 @@ const Sidebar = ({ children }) => {
   const userRole = localStorage.getItem('userRole');
   const userName = localStorage.getItem('userName') || 'User';
 
-  // Monitor screen size for mobile responsiveness
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth <= 768);
@@ -74,20 +73,11 @@ const Sidebar = ({ children }) => {
       borderBottom: isMobile ? '1px solid #eee' : 'none',
       padding: '15px 10px',
       display: 'flex',
-      flexDirection: isMobile ? 'row' : 'column',
+      flexDirection: isMobile ? 'row' : 'column', 
       justifyContent: 'space-between',
       alignItems: isMobile ? 'center' : 'stretch',
       transition: 'width 0.2s ease-in-out',
       flexShrink: 0
-    },
-    mobileTopBar: {
-      display: isMobile ? 'flex' : 'none',
-      width: '100%',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      paddingBottom: '10px',
-      borderBottom: '1px solid #f1f5f9',
-      marginBottom: '10px'
     },
     menuContainer: {
       display: 'flex',
@@ -101,12 +91,12 @@ const Sidebar = ({ children }) => {
       width: '100%'
     },
     profileSection: {
-      display: 'flex',
+      display: isMobile ? 'none' : 'flex', 
       alignItems: 'center',
-      justifyContent: isCollapsed && !isMobile ? 'center' : 'flex-start',
+      justifyContent: isCollapsed ? 'center' : 'flex-start',
       gap: '10px',
       padding: '10px',
-      marginBottom: isMobile ? '0' : '15px',
+      marginBottom: '15px',
       borderRadius: '10px',
       cursor: 'pointer',
       backgroundColor: location.pathname === '/profile' ? '#f4f1ea' : 'transparent',
@@ -140,7 +130,7 @@ const Sidebar = ({ children }) => {
       justifyContent: 'center',
     },
     bottomSection: {
-      display: isMobile ? 'none' : 'block',
+      display: isMobile ? 'none' : 'block', 
       borderTop: '1px solid #eee',
       paddingTop: '10px',
       marginTop: '10px'
@@ -174,29 +164,17 @@ const Sidebar = ({ children }) => {
     <div style={styles.layout}>
       <div style={styles.sidebar}>
         
-        {/* Mobile Header Top Bar containing Brand and Profile Avatar */}
-        {isMobile && (
-          <div style={styles.mobileTopBar}>
-            <h3 style={{ margin: 0, fontWeight: '900', fontSize: '1.2rem', letterSpacing: '-0.5px' }}>EVENTEASE</h3>
-            <div style={styles.avatar} onClick={() => navigate('/profile')} title="View Profile">
-              {userName.charAt(0).toUpperCase()}
-            </div>
-          </div>
-        )}
-
         <div style={styles.menuContainer}>
-          {/* Profile Section for Desktop */}
-          {!isMobile && (
-            <div style={styles.profileSection} onClick={() => navigate('/profile')}>
-              <div style={styles.avatar}>{userName.charAt(0).toUpperCase()}</div>
-              {!isCollapsed && (
-                <div style={{ overflow: 'hidden' }}>
-                  <p style={{ margin: 0, fontSize: '13px', fontWeight: '800', color: '#1a1a1a' }}>{userName}</p>
-                  <p style={{ margin: 0, fontSize: '10px', color: '#888' }}>{userRole}</p>
-                </div>
-              )}
-            </div>
-          )}
+          {/* Profile Section */}
+          <div style={styles.profileSection} onClick={() => navigate('/profile')}>
+            <div style={styles.avatar}>{userName.charAt(0).toUpperCase()}</div>
+            {!isCollapsed && (
+              <div style={{ overflow: 'hidden' }}>
+                <p style={{ margin: 0, fontSize: '13px', fontWeight: '800', color: '#1a1a1a' }}>{userName}</p>
+                <p style={{ margin: 0, fontSize: '10px', color: '#888' }}>{userRole}</p>
+              </div>
+            )}
+          </div>
 
           {/* Create Button */}
           {userRole !== 'admin' && (
