@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
+import echo from '../echo'; // I-import ang ginawa nating echo configuration
 import { Send, ShieldAlert, CheckCircle2, XCircle, Paperclip, X, Clock, Check } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
@@ -13,7 +14,9 @@ const Messages = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   
   const userRole = localStorage.getItem('userRole');
+  const currentUserId = localStorage.getItem('userId') || localStorage.getItem('id'); // Kunin ang ID ng kasalukuyang user para sa channel
 
+  // 1. Kunin ang Contacts List sa unang pasok
   useEffect(() => {
     const fetchContacts = async () => {
       try {
@@ -27,6 +30,7 @@ const Messages = () => {
     fetchContacts();
   }, []);
 
+  // 2. Kunin ang Messages at gamitin ang WebSockets (Reverb) sa halip na setInterval
   useEffect(() => {
     if (!activeContact?.id) return;
 
@@ -40,9 +44,20 @@ const Messages = () => {
       }
     };
 
+    // Kunin ang initial data sa paglipat ng contact
     fetchConversationData();
-    const interval = setInterval(fetchConversationData, 3000); 
-    return () => clearInterval(interval);
+
+    // Reverb WebSocket Listener (Instant push, walang delay o lag!)
+    const channelName = `chat.${Math.min(Number(currentUserId || 1), Number(activeContact.id))}.${Math.max(Number(currentUserId || 1), Number(activeContact.id))}`;
+    
+    const channel = echo.private(channelName)
+      .listen('MessageSent', (e) => {
+        setMessages((prev) => [...prev, e.message]);
+      });
+
+    return () => {
+      echo.leave(channelName);
+    };
   }, [activeContact?.id]);
 
   const handleSend = async (e) => {
@@ -50,15 +65,16 @@ const Messages = () => {
     if (!newMessage.trim() || userRole === 'admin' || !activeContact?.id) return;
 
     try {
-      await api.post('/messages', {
+      const res = await api.post('/messages', {
         receiver_id: activeContact.id,
         message: newMessage
       });
-      setNewMessage('');
       
-      const res = await api.get(`/messages/${activeContact.id}`);
-      setMessages(res.data.messages || []);
-      setActiveBooking(res.data.booking || null);
+      // Idagdag agad sa state para sa mabilis na UI feedback
+      if (res.data && res.data.message) {
+        setMessages((prev) => [...prev, res.data.message]);
+      }
+      setNewMessage('');
     } catch (err) {
       toast.error(err.response?.data?.error || "Failed to send message. You must have an active booking with this user.");
     }
@@ -81,6 +97,7 @@ const Messages = () => {
     }
   };
 
+  // Fixed File Upload Error Handler
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file || !activeContact?.id) return;
@@ -92,16 +109,26 @@ const Messages = () => {
 
     const formData = new FormData();
     formData.append('attachment', file);
+    formData.append('receiver_id', activeContact.id); // Sinisigurong kasama ang receiver_id para hindi mag-error ang backend
 
     setUploading(true);
     try {
       let fileUrl = '';
 
+      // Sinisigurong tama ang endpoint na tinatamaan depende kung may active booking o pangkalahatang upload
       if (activeBooking?.id) {
-        const res = await api.post(`/bookings/${activeBooking.id}/attach-document`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
-        fileUrl = res.data.file_url || res.data.url;
+        try {
+          const res = await api.post(`/bookings/${activeBooking.id}/attach-document`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+          });
+          fileUrl = res.data.file_url || res.data.url;
+        } catch (bookingErr) {
+          // Fallback sa general upload kung sakaling mag-fail ang booking specific route
+          const fallbackRes = await api.post('/upload', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+          });
+          fileUrl = fallbackRes.data.file_url || fallbackRes.data.url;
+        }
       } else {
         const res = await api.post('/upload', formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
@@ -113,14 +140,17 @@ const Messages = () => {
         throw new Error("Server did not return a valid file URL.");
       }
 
-      await api.post('/messages', {
+      // I-send bilang chat message ang attachment URL
+      const msgRes = await api.post('/messages', {
         receiver_id: activeContact.id,
         message: `[Attachment]: ${fileUrl}`
       });
 
+      if (msgRes.data && msgRes.data.message) {
+        setMessages((prev) => [...prev, msgRes.data.message]);
+      }
+
       toast.success("File attached successfully!");
-      const refreshRes = await api.get(`/messages/${activeContact.id}`);
-      setMessages(refreshRes.data.messages || []);
     } catch (err) {
       console.error("Upload error:", err);
       toast.error(err.response?.data?.error || err.message || "Failed to upload and attach file.");
@@ -243,7 +273,7 @@ const Messages = () => {
                 const isImage = fileUrl.match(/\.(jpeg|jpg|png|gif|webp)$/i);
 
                 return (
-                  <div key={msg.id} style={{ alignSelf: isMe ? 'flex-end' : 'flex-start', maxWidth: '65%' }}>
+                  <div key={msg.id || Math.random()} style={{ alignSelf: isMe ? 'flex-end' : 'flex-start', maxWidth: '65%' }}>
                     <div style={{ 
                       padding: '14px 18px', borderRadius: '18px', fontSize: '0.92rem', fontWeight: '500',
                       background: isMe ? '#000000' : '#f1f5f9', 
