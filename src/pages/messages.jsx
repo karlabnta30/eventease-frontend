@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
-import { Send, ShieldAlert, CheckCircle2, XCircle, Paperclip, X, Clock, Check } from 'lucide-react';
+import { Send, ShieldAlert, CheckCircle2, XCircle, Paperclip, X, Clock, Check, ArrowLeft } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 const Messages = () => {
@@ -12,7 +12,23 @@ const Messages = () => {
   const [uploading, setUploading] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   
+  // Mobile responsiveness state
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [showMobileChat, setShowMobileChat] = useState(false);
+  
   const userRole = localStorage.getItem('userRole');
+
+  // Monitor screen size
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+      if (window.innerWidth > 768) {
+        setShowMobileChat(false);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // 1. Kunin ang Contacts List sa unang pasok
   useEffect(() => {
@@ -104,14 +120,12 @@ const Messages = () => {
     try {
       let fileUrl = '';
 
-      // Gumamit ng tamang endpoint depende kung may active booking o wala, nang walang 404 fallback
       if (activeBooking?.id) {
         const res = await api.post(`/bookings/${activeBooking.id}/attach-document`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
         fileUrl = res.data.file_url || res.data.url;
       } else {
-        // Direct message attachment endpoint kung sinusuportahan ng backend, o gamitin ang messages endpoint na tumatanggap ng file
         const res = await api.post('/messages/upload', formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
@@ -142,7 +156,17 @@ const Messages = () => {
   };
 
   return (
-    <div style={{ display: 'flex', height: 'calc(100vh - 120px)', background: '#fff', borderRadius: '24px', border: '1px solid #eaeaea', overflow: 'hidden', margin: '30px 40px', position: 'relative', boxShadow: '0 10px 30px rgba(0,0,0,0.02)' }}>
+    <div style={{ 
+      display: 'flex', 
+      height: isMobile ? 'calc(100vh - 90px)' : 'calc(100vh - 120px)', 
+      background: '#fff', 
+      borderRadius: isMobile ? '12px' : '24px', 
+      border: '1px solid #eaeaea', 
+      overflow: 'hidden', 
+      margin: isMobile ? '10px' : '30px 40px', 
+      position: 'relative', 
+      boxShadow: '0 10px 30px rgba(0,0,0,0.02)' 
+    }}>
       
       {/* FULL-SCREEN IMAGE POPUP MODAL */}
       {selectedImage && (
@@ -158,9 +182,16 @@ const Messages = () => {
       )}
 
       {/* LEFT SIDE: Conversations List */}
-      <div style={{ width: '340px', borderRight: '1px solid #eaeaea', display: 'flex', flexDirection: 'column', background: '#fafafa' }}>
-        <div style={{ padding: '24px', borderBottom: '1px solid #eaeaea' }}>
-          <h2 style={{ fontSize: '1.3rem', fontWeight: '900', color: '#000', margin: 0 }}>Message Requests</h2>
+      <div style={{ 
+        width: isMobile ? '100%' : '340px', 
+        display: isMobile && showMobileChat ? 'none' : 'flex', 
+        flexDirection: 'column', 
+        background: '#fafafa',
+        borderRight: isMobile ? 'none' : '1px solid #eaeaea',
+        flexShrink: 0
+      }}>
+        <div style={{ padding: isMobile ? '16px' : '24px', borderBottom: '1px solid #eaeaea' }}>
+          <h2 style={{ fontSize: isMobile ? '1.1rem' : '1.3rem', fontWeight: '900', color: '#000', margin: 0 }}>Message Requests</h2>
           <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '4px', fontWeight: '600' }}>Inbox & Booking Inquiries</p>
           {userRole === 'admin' && (
             <span style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.75rem', color: '#b91c1c', fontWeight: '800', marginTop: '6px' }}>
@@ -172,15 +203,18 @@ const Messages = () => {
           {conversations.length > 0 ? conversations.map(contact => (
             <div 
               key={contact.id} 
-              onClick={() => setActiveContact(contact)}
+              onClick={() => {
+                setActiveContact(contact);
+                if (isMobile) setShowMobileChat(true);
+              }}
               style={{ 
-                padding: '18px 24px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer',
+                padding: isMobile ? '14px 16px' : '18px 24px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer',
                 background: activeContact?.id === contact.id ? '#ffffff' : 'transparent',
                 borderBottom: '1px solid #f0f0f0', borderLeft: activeContact?.id === contact.id ? '4px solid #000' : '4px solid transparent',
                 transition: 'all 0.2s'
               }}
             >
-              <div style={{ width: '42px', height: '42px', borderRadius: '14px', background: '#000', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '900', fontSize: '0.9rem' }}>
+              <div style={{ width: '42px', height: '42px', borderRadius: '14px', background: '#000', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '900', fontSize: '0.9rem', flexShrink: 0 }}>
                 {contact.name.charAt(0)}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -197,29 +231,45 @@ const Messages = () => {
       </div>
 
       {/* RIGHT SIDE: Chat Window & Request Hub */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#fff' }}>
+      <div style={{ 
+        flex: 1, 
+        display: isMobile && !showMobileChat ? 'none' : 'flex', 
+        flexDirection: 'column', 
+        background: '#fff',
+        width: isMobile ? '100%' : 'auto'
+      }}>
         {activeContact ? (
           <>
             {/* Chat Header */}
-            <div style={{ padding: '20px 30px', borderBottom: '1px solid #eaeaea', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div>
-                <h3 style={{ fontSize: '1.1rem', fontWeight: '900', color: '#000', margin: '0 0 2px 0' }}>{activeContact.name}</h3>
-                <span style={{ fontSize: '0.7rem', background: '#f1f5f9', padding: '3px 8px', borderRadius: '6px', color: '#475569', fontWeight: '800', textTransform: 'uppercase' }}>{activeContact.role}</span>
+            <div style={{ padding: isMobile ? '14px 16px' : '20px 30px', borderBottom: '1px solid #eaeaea', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                {isMobile && (
+                  <button 
+                    onClick={() => setShowMobileChat(false)}
+                    style={{ background: '#f1f5f9', border: 'none', borderRadius: '8px', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                  >
+                    <ArrowLeft size={18} color="#000" />
+                  </button>
+                )}
+                <div>
+                  <h3 style={{ fontSize: isMobile ? '1rem' : '1.1rem', fontWeight: '900', color: '#000', margin: '0 0 2px 0' }}>{activeContact.name}</h3>
+                  <span style={{ fontSize: '0.7rem', background: '#f1f5f9', padding: '3px 8px', borderRadius: '6px', color: '#475569', fontWeight: '800', textTransform: 'uppercase' }}>{activeContact.role}</span>
+                </div>
               </div>
             </div>
 
             {/* BOOKING REQUEST ACTION BANNER */}
             {activeBooking && (
-              <div style={{ background: '#f8fafc', borderBottom: '1px solid #eaeaea', padding: '16px 30px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '15px' }}>
+              <div style={{ background: '#f8fafc', borderBottom: '1px solid #eaeaea', padding: isMobile ? '12px 16px' : '16px 30px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '15px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <div style={{ background: '#e2e8f0', padding: '10px', borderRadius: '12px', display: 'flex' }}>
                     <Clock size={20} color="#000" />
                   </div>
                   <div>
-                    <div style={{ fontSize: '0.9rem', fontWeight: '900', color: '#000' }}>
+                    <div style={{ fontSize: isMobile ? '0.85rem' : '0.9rem', fontWeight: '900', color: '#000' }}>
                       Inquiry for "{activeBooking.event_name}" ({activeBooking.event_date})
                     </div>
-                    <div style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: '600', marginTop: '2px' }}>
+                    <div style={{ fontSize: isMobile ? '0.75rem' : '0.8rem', color: '#64748b', fontWeight: '600', marginTop: '2px' }}>
                       Budget: ₱{parseFloat(activeBooking.budget || 0).toLocaleString()} • Status: <strong style={{ textTransform: 'uppercase', color: activeBooking.status === 'accepted' ? '#047857' : '#d97706' }}>{activeBooking.status}</strong>
                     </div>
                   </div>
@@ -227,16 +277,16 @@ const Messages = () => {
 
                 {/* VENDOR ACTIONS */}
                 {userRole === 'vendor' && activeBooking.status !== 'accepted' && (
-                  <div style={{ display: 'flex', gap: '10px' }}>
+                  <div style={{ display: 'flex', gap: '10px', width: isMobile ? '100%' : 'auto' }}>
                     <button 
                       onClick={() => handleBookingAction('accepted')}
-                      style={{ background: '#047857', color: '#fff', border: 'none', padding: '10px 18px', borderRadius: '10px', fontWeight: '900', fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                      style={{ background: '#047857', color: '#fff', border: 'none', padding: '10px 18px', borderRadius: '10px', fontWeight: '900', fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', flex: isMobile ? 1 : 'unset' }}
                     >
-                      <Check size={14} /> Accept Request
+                      <Check size={14} /> Accept
                     </button>
                     <button 
                       onClick={() => handleBookingAction('rejected')}
-                      style={{ background: '#fee2e2', color: '#991b1b', border: 'none', padding: '10px 18px', borderRadius: '10px', fontWeight: '900', fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                      style={{ background: '#fee2e2', color: '#991b1b', border: 'none', padding: '10px 18px', borderRadius: '10px', fontWeight: '900', fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', flex: isMobile ? 1 : 'unset' }}
                     >
                       <XCircle size={14} /> Decline
                     </button>
@@ -246,7 +296,7 @@ const Messages = () => {
             )}
 
             {/* Messages Feed */}
-            <div style={{ flex: 1, padding: '24px 30px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '14px', background: '#ffffff' }}>
+            <div style={{ flex: 1, padding: isMobile ? '16px' : '24px 30px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '14px', background: '#ffffff' }}>
               {messages.map((msg) => {
                 const isMe = msg.sender_id !== activeContact.id;
                 const isAttachment = msg.message && msg.message.startsWith('[Attachment]:');
@@ -254,7 +304,7 @@ const Messages = () => {
                 const isImage = fileUrl.match(/\.(jpeg|jpg|png|gif|webp)$/i);
 
                 return (
-                  <div key={msg.id || Math.random()} style={{ alignSelf: isMe ? 'flex-end' : 'flex-start', maxWidth: '65%' }}>
+                  <div key={msg.id || Math.random()} style={{ alignSelf: isMe ? 'flex-end' : 'flex-start', maxWidth: isMobile ? '85%' : '65%' }}>
                     <div style={{ 
                       padding: '14px 18px', borderRadius: '18px', fontSize: '0.92rem', fontWeight: '500',
                       background: isMe ? '#000000' : '#f1f5f9', 
@@ -295,8 +345,8 @@ const Messages = () => {
 
             {/* Chat Input Footer */}
             {userRole !== 'admin' ? (
-              <form onSubmit={handleSend} style={{ padding: '20px 30px', borderTop: '1px solid #eaeaea', display: 'flex', alignItems: 'center', gap: '12px', background: '#fff' }}>
-                <label style={{ cursor: 'pointer', background: '#f1f5f9', padding: '12px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s' }}>
+              <form onSubmit={handleSend} style={{ padding: isMobile ? '12px 16px' : '20px 30px', borderTop: '1px solid #eaeaea', display: 'flex', alignItems: 'center', gap: '10px', background: '#fff' }}>
+                <label style={{ cursor: 'pointer', background: '#f1f5f9', padding: '12px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s', flexShrink: 0 }}>
                   <Paperclip size={20} color="#475569" />
                   <input type="file" onChange={handleFileUpload} style={{ display: 'none' }} disabled={uploading} />
                 </label>
@@ -306,9 +356,9 @@ const Messages = () => {
                   onChange={(e) => setNewMessage(e.target.value)}
                   placeholder={uploading ? "Uploading file..." : "Type your message..."}
                   disabled={uploading}
-                  style={{ flex: 1, padding: '12px 18px', borderRadius: '12px', border: '1px solid #e2e8f0', outline: 'none', fontSize: '0.9rem', background: '#f8fafc' }}
+                  style={{ flex: 1, padding: '12px 16px', borderRadius: '12px', border: '1px solid #e2e8f0', outline: 'none', fontSize: '0.9rem', background: '#f8fafc', minWidth: 0 }}
                 />
-                <button type="submit" style={{ background: '#000', color: '#fff', border: 'none', padding: '12px 20px', borderRadius: '12px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <button type="submit" style={{ background: '#000', color: '#fff', border: 'none', padding: '12px 16px', borderRadius: '12px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
                   <Send size={18} />
                 </button>
               </form>
@@ -319,7 +369,7 @@ const Messages = () => {
             )}
           </>
         ) : (
-          <div style={{ flex: '1', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontWeight: '700' }}>
+          <div style={{ flex: '1', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontWeight: '700', padding: '20px', textAlign: 'center' }}>
             Select a conversation to start messaging
           </div>
         )}
