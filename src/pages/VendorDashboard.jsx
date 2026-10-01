@@ -13,7 +13,7 @@ const VendorDashboard = () => {
   const [bookings, setBookings] = useState([]);
   const [vendorBundles, setVendorBundles] = useState([]);
   const [stats, setStats] = useState({ earnings: 0, pending: 0 });
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Hindi na naka-block ang buong page sa initial render
   const [selectedDate, setSelectedDate] = useState(new Date());
   
   // State for tracking active bill negotiation edits
@@ -25,29 +25,35 @@ const VendorDashboard = () => {
       const userRole = localStorage.getItem('userRole'); 
 
       try {
-        const res = await api.get('/vendor/bookings');
-        setBookings(res.data.data || res.data.bookings || []);
-        setStats(res.data.stats || { earnings: 0, pending: 0 });
+        const results = await Promise.allSettled([
+          api.get('/vendor/bookings'),
+          api.get('/bundles'),
+          api.get('/notifications')
+        ]);
 
-        // Fetch bundles with fallback parsing for safe data handling
-        const bundlesRes = await api.get('/bundles');
-        const bundlesData = Array.isArray(bundlesRes.data) ? bundlesRes.data : (bundlesRes.data.data || []);
-        setVendorBundles(bundlesData);
+        if (results[0].status === 'fulfilled') {
+          setBookings(results[0].value.data.data || results[0].value.data.bookings || []);
+          setStats(results[0].value.data.stats || { earnings: 0, pending: 0 });
+        }
 
-        const notifRes = await api.get('/notifications');
-        const notifications = Array.isArray(notifRes.data) ? notifRes.data : (notifRes.data.data || []);
-        const unread = notifications.filter(n => !n.is_read);
+        if (results[1].status === 'fulfilled') {
+          const bundlesData = Array.isArray(results[1].value.data) ? results[1].value.data : (results[1].value.data.data || []);
+          setVendorBundles(bundlesData);
+        }
 
-        unread.slice(0, 3).forEach((n, i) => {
-          if (userRole === 'vendor') {
-            setTimeout(() => { notifyNewBooking(n.message); }, i * 1500);
-          }
-        });
+        if (results[2].status === 'fulfilled') {
+          const notifications = Array.isArray(results[2].value.data) ? results[2].value.data : (results[2].value.data.data || []);
+          const unread = notifications.filter(n => !n.is_read);
+
+          unread.slice(0, 3).forEach((n, i) => {
+            if (userRole === 'vendor') {
+              setTimeout(() => { notifyNewBooking(n.message); }, i * 1500);
+            }
+          });
+        }
 
       } catch (err) { 
         console.error("Dashboard Fetch Error:", err); 
-      } finally { 
-        setLoading(false); 
       }
     };
     fetchData();
@@ -120,8 +126,6 @@ const VendorDashboard = () => {
   const selectedDateBookings = bookings.filter(b => 
     b.status === 'accepted' && new Date(b.event_date).toDateString() === selectedDate.toDateString()
   );
-
-  if (loading) return <div style={{ padding: '100px', textAlign: 'center', fontWeight: '800' }}>Synchronizing Command Center...</div>;
 
   return (
     <div style={{ padding: '40px', backgroundColor: '#ffffff', minHeight: '100vh', fontFamily: "'Inter', sans-serif" }}>

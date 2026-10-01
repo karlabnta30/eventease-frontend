@@ -1,8 +1,24 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const LandingPage = () => {
   const navigate = useNavigate();
+  const [activeModal, setActiveModal] = useState(null); // 'privacy' | 'terms' | 'security' | null
+
+  const modalContent = {
+    privacy: {
+      title: 'Privacy Policy',
+      text: 'At EventEase, we respect your privacy and are committed to protecting your personal data. This policy outlines how we collect, use, and secure your information when you interact with our platform, vendor directory, and payment gateways.'
+    },
+    terms: {
+      title: 'Terms of Service',
+      text: 'By accessing or using EventEase, you agree to be bound by these Terms of Service. Whether you are booking custom bundles or managing vendor operations, you agree to adhere to our community guidelines, scheduling policies, and secure transaction workflows.'
+    },
+    security: {
+      title: 'Security Infrastructure',
+      text: 'We protect your data using industry-standard protocols, including robust Aiven cloud database encryption, secure email OTP verification loops, and token-authenticated dashboard routing to ensure your planning workspace remains safe and protected.'
+    }
+  };
 
   const styles = {
     pageWrapper: {
@@ -13,7 +29,6 @@ const LandingPage = () => {
       overflowX: 'hidden',
       position: 'relative',
     },
-    // Tightened padding and min-height to eliminate excessive whitespace
     heroSection: {
       display: 'flex',
       justifyContent: 'space-between',
@@ -107,8 +122,6 @@ const LandingPage = () => {
       borderRadius: '12px',
       border: '1px solid #e2e8f0',
     },
-    
-    // Photo Collage Right Grid - Compacted height
     photoGrid: {
       flex: '1 1 550px',
       display: 'grid',
@@ -129,8 +142,6 @@ const LandingPage = () => {
       border: '1px solid #e2e8f0',
       boxShadow: '0 15px 30px rgba(0,0,0,0.05)',
     },
-
-    // 3. Core Features Showcase Section
     featureSection: {
       padding: '40px 40px',
       maxWidth: '1300px',
@@ -162,8 +173,6 @@ const LandingPage = () => {
       lineHeight: '1.65',
       marginBottom: '20px',
     },
-
-    // 4. Trusted Industries Section
     industrySection: {
       padding: '40px 40px',
       textAlign: 'center',
@@ -197,8 +206,6 @@ const LandingPage = () => {
       inset: 0,
       background: 'linear-gradient(to top, rgba(15,23,42,0.85) 10%, rgba(15,23,42,0.2) 100%)',
     },
-
-    // 5. Testimonials Section
     testimonialSection: {
       padding: '50px 40px',
       backgroundColor: '#f8fafc',
@@ -219,8 +226,6 @@ const LandingPage = () => {
       padding: '30px',
       boxShadow: '0 10px 30px rgba(0,0,0,0.02)',
     },
-
-    // 6. Footer
     footer: {
       padding: '30px 40px',
       maxWidth: '1300px',
@@ -230,13 +235,62 @@ const LandingPage = () => {
       alignItems: 'center',
       color: '#64748b',
       fontSize: '0.80rem',
+    },
+    footerLink: {
+      cursor: 'pointer',
+      transition: 'color 0.2s ease',
+    },
+    // Modal Overlay styles
+    modalOverlay: {
+      position: 'fixed',
+      inset: 0,
+      backgroundColor: 'rgba(15, 23, 42, 0.6)',
+      backdropFilter: 'blur(4px)',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 2000,
+      padding: '20px',
+    },
+    modalCard: {
+      backgroundColor: '#ffffff',
+      borderRadius: '24px',
+      padding: '32px',
+      maxWidth: '500px',
+      width: '100%',
+      boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
+      position: 'relative',
+      border: '1px solid #e2e8f0',
+    },
+    modalTitle: {
+      fontSize: '1.5rem',
+      fontWeight: '900',
+      color: '#0f172a',
+      marginBottom: '12px',
+      letterSpacing: '-0.5px',
+    },
+    modalText: {
+      color: '#64748b',
+      fontSize: '0.95rem',
+      lineHeight: '1.6',
+      marginBottom: '24px',
+    },
+    modalCloseBtn: {
+      backgroundColor: '#0f172a',
+      color: '#ffffff',
+      border: 'none',
+      padding: '10px 20px',
+      borderRadius: '12px',
+      fontWeight: '800',
+      fontSize: '0.85rem',
+      cursor: 'pointer',
+      float: 'right',
     }
   };
 
   return (
     <div style={styles.pageWrapper}>
-      
-      {/* 2. HERO SECTION */}
+      {/* HERO SECTION */}
       <section style={styles.heroSection}>
         <div style={styles.heroContent}>
           <div style={styles.pillTag}>
@@ -267,7 +321,6 @@ const LandingPage = () => {
             </button>
           </div>
 
-          {/* Ratings row featuring Aiven & PayMongo */}
           <div style={styles.ratingsRow}>
             <div style={styles.ratingItem}>
               <span>⭐</span> <strong>Aiven Database</strong> Reliability
@@ -298,7 +351,7 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* 3. CORE ARCHITECT & SECURE PAYMENTS FEATURE SECTION */}
+      {/* CORE ARCHITECT & SECURE PAYMENTS FEATURE SECTION */}
       <section style={styles.featureSection}>
         <div style={styles.featureCard}>
           <div>
@@ -327,7 +380,7 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* 4. TRUSTED INDUSTRIES SECTION */}
+      {/* TRUSTED INDUSTRIES SECTION */}
       <section style={styles.industrySection}>
         <h2 style={{ fontSize: '2rem', fontWeight: '900', letterSpacing: '-1px', color: '#0f172a' }}>Engineered for elite event categories</h2>
         <div style={styles.industryGrid}>
@@ -354,7 +407,7 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* 5. TESTIMONIALS SECTION */}
+      {/* TESTIMONIALS SECTION */}
       <section style={styles.testimonialSection}>
         <div style={{ maxWidth: '1300px', margin: '0 auto', textAlign: 'center' }}>
           <h2 style={{ fontSize: '2rem', fontWeight: '900', letterSpacing: '-1px', color: '#0f172a' }}>Trusted by elite event organizers</h2>
@@ -382,16 +435,50 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* 6. FOOTER */}
+      {/* FOOTER */}
       <footer style={styles.footer}>
         <div>© 2026 EventEase Inc. All rights reserved.</div>
         <div style={{ display: 'flex', gap: '20px', color: '#64748b', fontWeight: '600' }}>
-          <span style={{ cursor: 'pointer' }}>Privacy Policy</span>
-          <span style={{ cursor: 'pointer' }}>Terms of Service</span>
-          <span style={{ cursor: 'pointer' }}>Security</span>
+          <span 
+            style={styles.footerLink} 
+            onClick={() => setActiveModal('privacy')}
+            onMouseOver={(e) => e.currentTarget.style.color = '#0f172a'}
+            onMouseOut={(e) => e.currentTarget.style.color = '#64748b'}
+          >
+            Privacy Policy
+          </span>
+          <span 
+            style={styles.footerLink} 
+            onClick={() => setActiveModal('terms')}
+            onMouseOver={(e) => e.currentTarget.style.color = '#0f172a'}
+            onMouseOut={(e) => e.currentTarget.style.color = '#64748b'}
+          >
+            Terms of Service
+          </span>
+          <span 
+            style={styles.footerLink} 
+            onClick={() => setActiveModal('security')}
+            onMouseOver={(e) => e.currentTarget.style.color = '#0f172a'}
+            onMouseOut={(e) => e.currentTarget.style.color = '#64748b'}
+          >
+            Security
+          </span>
         </div>
       </footer>
 
+      {/* POPUP MODAL */}
+      {activeModal && (
+        <div style={styles.modalOverlay} onClick={() => setActiveModal(null)}>
+          <div style={styles.modalCard} onClick={(e) => e.stopPropagation()}>
+            <h3 style={styles.modalTitle}>{modalContent[activeModal].title}</h3>
+            <p style={styles.modalText}>{modalContent[activeModal].text}</p>
+            <button style={styles.modalCloseBtn} onClick={() => setActiveModal(null)}>
+              Close Window
+            </button>
+            <div style={{ clear: 'both' }}></div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,5 +1,5 @@
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
 
 function Navbar() {
   const location = useLocation();
@@ -9,11 +9,9 @@ function Navbar() {
   const [userName, setUserName] = useState(null);
 
   useEffect(() => {
-    // Retrieve token inside useEffect so it updates on every page/route check
     const currentToken = localStorage.getItem('token');
     
     if (!currentToken) {
-      // If there is no token, ensure state is completely cleared
       setUserName(null);
       return;
     }
@@ -29,16 +27,15 @@ function Navbar() {
     } else {
       setUserName('Account');
     }
-  }, [location]); // Re-run check whenever the route changes
+  }, [location]);
 
   const handleDashboardRedirect = () => {
     const userRole = localStorage.getItem('userRole');
     if (userRole === 'admin') navigate('/admin-dashboard');
     else if (userRole === 'vendor') navigate('/vendor-dashboard');
-    else navigate('/main-dashboard');
+    else navigate('/dashboard');
   };
 
-  // Re-evaluate token for conditional rendering in JSX
   const hasToken = !!localStorage.getItem('token');
 
   return (

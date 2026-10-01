@@ -12,7 +12,7 @@ const MainDashboard = () => {
   
   const [services, setServices] = useState([]); 
   const [myBookings, setMyBookings] = useState([]); 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   
   const [activeTab, setActiveTab] = useState('all');
@@ -24,81 +24,102 @@ const MainDashboard = () => {
   const [bookingToCancel, setBookingToCancel] = useState(null);
 
   const fetchData = async () => {
-    setLoading(true);
     try {
       const endpoint = userRole === 'vendor' ? '/vendor/services' : '/vendors';
-      const servicesRes = await api.get(endpoint);
+      
+      // Sabay-sabay nating kinukuha ang services, bookings, bundles, at notifications para mabilis
+      const promises = [api.get(endpoint)];
+      const token = localStorage.getItem('token');
+      
+      if (userRole !== 'admin') {
+        if (userRole !== 'vendor') {
+          promises.push(api.get('/bundles').catch(() => ({ data: [] })));
+        }
+        if (token) {
+          promises.push(api.get('/bookings').catch(() => ({ data: [] })));
+          promises.push(api.get('/notifications').catch(() => ({ data: [] })));
+        }
+      }
+
+      const results = await Promise.allSettled(promises);
       
       let allServices = [];
 
-      if (userRole === 'vendor') {
-        const vendorServicesList = servicesRes.data.data || servicesRes.data || [];
-        vendorServicesList.forEach(service => {
-          allServices.push({
-            ...service,
-            type: 'service',
-            business_name: service.vendor?.business_name || service.business_name || 'My Business',
-            location: service.location || 'Manila'
-          });
-        });
-      } else {
-        const vendorList = servicesRes.data.data || servicesRes.data || [];
-        
-        vendorList.forEach(vendor => {
-          const vendorServices = vendor.services || vendor.vendor_services || vendor.offerings || [];
-          if (Array.isArray(vendorServices) && vendorServices.length > 0) {
-            vendorServices.forEach(service => {
-              allServices.push({
-                ...service,
-                type: 'service',
-                business_name: vendor.name || vendor.business_name || 'Verified Vendor',
-                vendor_id: vendor.id,
-                location: vendor.address || 'Manila'
-              });
-            });
-          }
-        });
-
-        try {
-          const bundlesRes = await api.get('/bundles');
-          const bundleList = bundlesRes.data.data || bundlesRes.data || [];
-          bundleList.forEach(bundle => {
+      // 1. Services / Vendors Result
+      if (results[0].status === 'fulfilled') {
+        const servicesRes = results[0].value;
+        if (userRole === 'vendor') {
+          const vendorServicesList = servicesRes.data.data || servicesRes.data || [];
+          vendorServicesList.forEach(service => {
             allServices.push({
-              ...bundle,
-              type: 'bundle',
-              id: 'bundle_' + bundle.id,
-              title: bundle.bundle_name || bundle.name,
-              name: bundle.bundle_name || bundle.name,
-              business_name: bundle.vendor?.business_name || bundle.vendor?.name || 'Vendor Bundle Package',
-              location: bundle.vendor?.address || 'Available Nationwide'
+              ...service,
+              type: 'service',
+              business_name: service.vendor?.business_name || service.business_name || 'My Business',
+              location: service.location || 'Manila'
             });
           });
-        } catch (bundleErr) {
-          console.error("Bundle fetch error:", bundleErr);
+        } else {
+          const vendorList = servicesRes.data.data || servicesRes.data || [];
+          vendorList.forEach(vendor => {
+            const vendorServices = vendor.services || vendor.vendor_services || vendor.offerings || [];
+            if (Array.isArray(vendorServices) && vendorServices.length > 0) {
+              vendorServices.forEach(service => {
+                allServices.push({
+                  ...service,
+                  type: 'service',
+                  business_name: vendor.name || vendor.business_name || 'Verified Vendor',
+                  vendor_id: vendor.id,
+                  location: vendor.address || 'Manila'
+                });
+              });
+            }
+          });
         }
+      }
+
+      // 2. Bundles Result (Kung client/user)
+      if (userRole !== 'admin' && userRole !== 'vendor' && results[1] && results[1].status === 'fulfilled') {
+        const bundlesRes = results[1].value;
+        const bundleList = bundlesRes.data.data || bundlesRes.data || [];
+        bundleList.forEach(bundle => {
+          allServices.push({
+            ...bundle,
+            type: 'bundle',
+            id: 'bundle_' + bundle.id,
+            title: bundle.bundle_name || bundle.name,
+            name: bundle.bundle_name || bundle.name,
+            business_name: bundle.vendor?.business_name || bundle.vendor?.name || 'Vendor Bundle Package',
+            location: bundle.vendor?.address || 'Available Nationwide'
+          });
+        });
       }
 
       setServices(allServices);
 
-      const token = localStorage.getItem('token');
-      if (token && userRole !== 'admin') {
-        const bookingsRes = await api.get('/bookings');
-        const rawBookings = bookingsRes.data.data || (Array.isArray(bookingsRes.data) ? bookingsRes.data : []);
-        
-        // Filter out bookings that don't have an assigned vendor or service
-        const assignedBookings = rawBookings.filter(item => item.vendor_id || item.vendor || item.service_id);
-        setMyBookings(assignedBookings);
+      // 3. Bookings & Notifications Result
+      const bookingsIndex = userRole !== 'vendor' ? 2 : 1;
+      const notifsIndex = userRole !== 'vendor' ? 3 : 2;
 
-        const notifRes = await api.get('/notifications');
-        const unread = notifRes.data.filter(n => !n.is_read);
-        if (unread.length > 0) {
-          notifyNewBooking(unread[0].message);
+      if (token && userRole !== 'admin') {
+        if (results[bookingsIndex] && results[bookingsIndex].status === 'fulfilled') {
+          const bookingsRes = results[bookingsIndex].value;
+          const rawBookings = bookingsRes.data.data || (Array.isArray(bookingsRes.data) ? bookingsRes.data : []);
+          const assignedBookings = rawBookings.filter(item => item.vendor_id || item.vendor || item.service_id);
+          setMyBookings(assignedBookings);
+        }
+
+        if (results[notifsIndex] && results[notifsIndex].status === 'fulfilled') {
+          const notifRes = results[notifsIndex].value;
+          const notifList = Array.isArray(notifRes.data) ? notifRes.data : (notifRes.data.data || []);
+          const unread = notifList.filter(n => !n.is_read);
+          if (unread.length > 0) {
+            notifyNewBooking(unread[0].message);
+          }
         }
       }
+
     } catch (error) {
       console.error("Dashboard Sync Error:", error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -435,11 +456,7 @@ const MainDashboard = () => {
               </span>
             </div>
             
-            {loading ? (
-              <div style={{ display: 'flex', justifyContent: 'center', padding: '100px 0' }}>
-                <Loader2 size={36} className="animate-spin text-black" />
-              </div>
-            ) : filteredServices.length > 0 ? (
+            {filteredServices.length > 0 ? (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))', gap: '24px' }}>
                 {filteredServices.map(s => {
                   const isAlreadyAdded = architectItems.some(item => item.id === s.id);
