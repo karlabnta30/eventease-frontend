@@ -92,7 +92,7 @@ const Register = () => {
       alignItems: 'center',
       justifyContent: 'center',
       fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
-      padding: isMobile ? '16px' : '40px',
+      padding: isMobile ? '12px' : '40px',
       boxSizing: 'border-box',
       position: 'relative',
       overflow: 'hidden'
@@ -100,10 +100,11 @@ const Register = () => {
     cardWrapper: {
       display: 'flex',
       width: '100%',
-      maxWidth: '1150px',
+      maxWidth: isMobile ? '400px' : '1150px',
       height: isMobile ? 'auto' : '740px',
+      minHeight: isMobile ? '640px' : 'unset',
       backgroundColor: '#ffffff',
-      borderRadius: isMobile ? '24px' : '36px',
+      borderRadius: '36px',
       boxShadow: '0 25px 60px rgba(0, 0, 0, 0.4)',
       overflow: 'hidden',
       border: '1px solid rgba(255, 255, 255, 0.15)',
@@ -117,10 +118,7 @@ const Register = () => {
       position: 'relative',
       overflow: 'hidden',
       backgroundColor: '#070b19',
-      borderTopLeftRadius: '28px',
-      borderBottomLeftRadius: '28px',
-      borderTopRightRadius: '160px',
-      borderBottomRightRadius: '28px',
+      borderRadius: '28px',
       margin: '12px',
       flexDirection: 'column',
       justifyContent: 'space-between',
@@ -131,11 +129,12 @@ const Register = () => {
       flex: '1.2',
       display: 'flex',
       flexDirection: 'column',
-      padding: isMobile ? '24px 20px' : '24px 50px',
+      padding: isMobile ? '28px 20px' : '24px 50px',
       boxSizing: 'border-box',
       backgroundColor: '#ffffff',
       overflowY: 'auto',
-      width: '100%'
+      width: '100%',
+      justifyContent: 'center'
     },
     headingTitle: {
       fontSize: isMobile ? '1.6rem' : '1.9rem',
@@ -156,7 +155,7 @@ const Register = () => {
           style={{
             ...styles.globalBackground,
             backgroundImage: `url(${img})`,
-            opacity: index === currentImageIndex ? 1 : 0,
+            opacity: index === currentImageIndex ? 0.45 : 0,
           }}
         />
       ))}
@@ -367,14 +366,14 @@ const styles = {
     inset: '-30px',
     backgroundSize: 'cover',
     backgroundPosition: 'center',
-    filter: 'blur(45px) brightness(0.4)',
+    filter: 'blur(35px) brightness(0.6)',
     transition: 'opacity 1.5s ease-in-out',
     zIndex: 0
   },
   globalBackdropOverlay: {
     position: 'absolute',
     inset: 0,
-    backgroundColor: 'rgba(7, 11, 25, 0.65)',
+    backgroundColor: 'rgba(7, 11, 25, 0.5)',
     zIndex: 1
   },
   carouselImage: {

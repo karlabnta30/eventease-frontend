@@ -77,7 +77,7 @@ const Login = () => {
       alignItems: 'center',
       justifyContent: 'center',
       fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
-      padding: isMobile ? '16px' : '40px',
+      padding: isMobile ? '12px' : '40px',
       boxSizing: 'border-box',
       position: 'relative',
       overflow: 'hidden'
@@ -85,11 +85,12 @@ const Login = () => {
     cardWrapper: {
       display: 'flex',
       width: '100%',
-      maxWidth: '1100px',
+      maxWidth: isMobile ? '400px' : '1100px',
       height: isMobile ? 'auto' : '680px',
+      minHeight: isMobile ? '580px' : 'unset',
       backgroundColor: '#ffffff',
-      borderRadius: isMobile ? '24px' : '36px',
-      boxShadow: '0 25px 60px rgba(0, 0, 0, 0.3)',
+      borderRadius: '36px',
+      boxShadow: '0 25px 60px rgba(0, 0, 0, 0.4)',
       overflow: 'hidden',
       border: '1px solid rgba(255, 255, 255, 0.1)',
       position: 'relative',
@@ -113,19 +114,20 @@ const Login = () => {
       flex: '1.2',
       display: 'flex',
       flexDirection: 'column',
-      padding: isMobile ? '24px 20px' : '30px 60px',
+      padding: isMobile ? '32px 24px' : '30px 60px',
       boxSizing: 'border-box',
       backgroundColor: '#ffffff',
-      width: '100%'
+      width: '100%',
+      justifyContent: 'center'
     },
     rightTopBar: {
       display: 'flex',
       justifyContent: 'flex-start',
       alignItems: 'center',
-      marginBottom: isMobile ? '24px' : '40px'
+      marginBottom: isMobile ? '20px' : '40px'
     },
     headingTitle: {
-      fontSize: isMobile ? '2rem' : '2.4rem',
+      fontSize: isMobile ? '1.8rem' : '2.4rem',
       fontWeight: '900',
       color: '#0f172a',
       margin: '0 0 6px 0',
@@ -143,7 +145,7 @@ const Login = () => {
           style={{
             ...styles.globalBackgroundMatch,
             backgroundImage: `url(${img})`,
-            opacity: index === currentImageIndex ? 0.35 : 0,
+            opacity: index === currentImageIndex ? 0.45 : 0,
           }}
         />
       ))}
@@ -272,7 +274,7 @@ const styles = {
   globalBackdropOverlay: {
     position: 'absolute',
     inset: 0,
-    backgroundColor: 'rgba(7, 11, 25, 0.45)',
+    backgroundColor: 'rgba(7, 11, 25, 0.5)',
     zIndex: 1
   },
   carouselImage: {
@@ -375,11 +377,10 @@ const styles = {
     margin: '0 auto',
     display: 'flex',
     flexDirection: 'column',
-    justifyContent: 'center',
-    flex: 1
+    justifyContent: 'center'
   },
   welcomeHeader: {
-    marginBottom: '30px'
+    marginBottom: '24px'
   },
   headingSub: {
     color: '#64748b',
@@ -436,7 +437,7 @@ const styles = {
     fontWeight: '700'
   },
   submitBtn: {
-    marginTop: '10px',
+    marginTop: '6px',
     backgroundColor: '#10b981',
     color: '#ffffff',
     border: 'none',
@@ -450,7 +451,7 @@ const styles = {
   },
   footerText: {
     textAlign: 'center',
-    marginTop: '25px',
+    marginTop: '20px',
     color: '#64748b',
     fontSize: '0.85rem',
     fontWeight: '600'
