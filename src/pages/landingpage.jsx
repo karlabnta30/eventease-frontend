@@ -5,6 +5,26 @@ const LandingPage = () => {
   const navigate = useNavigate();
   const [activeModal, setActiveModal] = useState(null); // 'privacy' | 'terms' | 'security' | null
 
+  // SMART NAVIGATION: Sinusuri kung naka-login na ang user o admin para hindi na sila pabalikin sa login page
+  const handleStartPlanning = () => {
+    const token = localStorage.getItem('token');
+    const userRole = localStorage.getItem('userRole');
+
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+
+    // Kung naka-login na, dalhin sila agad sa kaukulang dashboard depende sa role
+    if (userRole === 'admin') {
+      navigate('/admin-dashboard');
+    } else if (userRole === 'vendor') {
+      navigate('/vendor-dashboard');
+    } else {
+      navigate('/dashboard'); // Main dashboard para sa regular client/user
+    }
+  };
+
   const modalContent = {
     privacy: {
       title: 'Privacy Policy',
@@ -240,7 +260,6 @@ const LandingPage = () => {
       cursor: 'pointer',
       transition: 'color 0.2s ease',
     },
-    // Modal Overlay styles
     modalOverlay: {
       position: 'fixed',
       inset: 0,
@@ -305,7 +324,7 @@ const LandingPage = () => {
           <div style={styles.heroButtons}>
             <button 
               style={styles.primaryBtn} 
-              onClick={() => navigate('/login')}
+              onClick={handleStartPlanning}
               onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
               onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
             >
@@ -313,7 +332,7 @@ const LandingPage = () => {
             </button>
             <button 
               style={styles.secondaryBtn} 
-              onClick={() => navigate('/catalog')}
+              onClick={handleStartPlanning}
               onMouseOver={(e) => e.currentTarget.style.borderColor = '#0f172a'}
               onMouseOut={(e) => e.currentTarget.style.borderColor = '#cbd5e1'}
             >
@@ -361,7 +380,7 @@ const LandingPage = () => {
               Curate independent vendor services and pre-made bundles into a unified custom blueprint backed seamlessly by your Aiven cloud database infrastructure.
             </p>
           </div>
-          <button style={{ ...styles.primaryBtn, width: 'fit-content' }} onClick={() => navigate('/login')}>
+          <button style={{ ...styles.primaryBtn, width: 'fit-content' }} onClick={handleStartPlanning}>
             Try Bundle Architect &rarr;
           </button>
         </div>
@@ -374,7 +393,7 @@ const LandingPage = () => {
               Enjoy frictionless onboarding with instant email OTP verification and quick resend handling, alongside secure per-service transactions via PayMongo.
             </p>
           </div>
-          <button style={{ ...styles.primaryBtn, width: 'fit-content' }} onClick={() => navigate('/login')}>
+          <button style={{ ...styles.primaryBtn, width: 'fit-content' }} onClick={handleStartPlanning}>
             Explore Security Features &rarr;
           </button>
         </div>
