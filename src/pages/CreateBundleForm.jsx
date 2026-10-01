@@ -57,18 +57,16 @@ const CreateBundleForm = ({ onBundleCreated }) => {
     }
   };
 
-  const formStyle = { background: '#ffffff', padding: '30px', borderRadius: '24px', border: '1px solid #e2e8f0', maxWidth: '100%', margin: '20px 0', boxShadow: '0 10px 30px -5px rgba(0,0,0,0.03)' };
-  const inputStyle = { width: '100%', padding: '14px 16px', marginTop: '6px', marginBottom: '16px', borderRadius: '14px', border: '2px solid #f1f5f9', background: '#f8fafc', color: '#0f172a', fontWeight: '700', fontSize: '0.95rem', outline: 'none', boxSizing: 'border-box', fontFamily: "'Inter', sans-serif" };
+  const formStyle = { background: '#ffffff', padding: '0px', borderRadius: '0px', border: 'none', maxWidth: '100%', margin: '0', boxShadow: 'none' };
+  const inputStyle = { width: '100%', padding: '14px 16px', marginTop: '6px', marginBottom: '16px', borderRadius: '12px', border: '2px solid #f1f5f9', background: '#f8fafc', color: '#0f172a', fontWeight: '700', fontSize: '0.95rem', outline: 'none', boxSizing: 'border-box', fontFamily: "'Inter', sans-serif" };
 
   return (
     <div style={formStyle}>
-      <h3 style={{ fontSize: '1.25rem', fontWeight: '900', marginBottom: '18px', color: '#0f172a', letterSpacing: '-0.5px' }}>Create Service Bundle</h3>
-      
-      {message && <p style={{ padding: '12px 16px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '0.85rem', marginBottom: '18px', fontWeight: '700', color: '#0f172a' }}>{message}</p>}
+      {message && <p style={{ padding: '12px 16px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '0.85rem', marginBottom: '18px', fontWeight: '700', color: '#0f172a', wordBreak: 'break-word' }}>{message}</p>}
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
         <div>
-          <label style={{ fontSize: '0.75rem', fontWeight: '900', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Bundle Name</label>
+          <label style={{ fontSize: '0.75rem', fontWeight: '900', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block' }}>Bundle Name</label>
           <input 
             type="text" 
             style={inputStyle} 
@@ -80,9 +78,9 @@ const CreateBundleForm = ({ onBundleCreated }) => {
         </div>
 
         <div>
-          <label style={{ fontSize: '0.75rem', fontWeight: '900', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Description</label>
+          <label style={{ fontSize: '0.75rem', fontWeight: '900', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block' }}>Description</label>
           <textarea 
-            style={{ ...inputStyle, height: '100px', resize: 'vertical' }} 
+            style={{ ...inputStyle, height: '90px', resize: 'vertical' }} 
             value={description} 
             onChange={(e) => setDescription(e.target.value)} 
             placeholder="Describe what is included in this package..." 
@@ -90,7 +88,7 @@ const CreateBundleForm = ({ onBundleCreated }) => {
         </div>
 
         <div>
-          <label style={{ fontSize: '0.75rem', fontWeight: '900', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Package Price (₱)</label>
+          <label style={{ fontSize: '0.75rem', fontWeight: '900', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block' }}>Package Price (₱)</label>
           <input 
             type="number" 
             min="0"
@@ -102,19 +100,19 @@ const CreateBundleForm = ({ onBundleCreated }) => {
           />
         </div>
 
-        <div style={{ marginBottom: '24px' }}>
+        <div style={{ marginBottom: '20px' }}>
           <label style={{ fontSize: '0.75rem', fontWeight: '900', color: '#64748b', display: 'block', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Select Included Services</label>
-          <div style={{ maxHeight: '160px', overflowY: 'auto', border: '2px solid #f1f5f9', padding: '14px', borderRadius: '14px', background: '#f8fafc' }}>
+          <div style={{ maxHeight: '160px', overflowY: 'auto', border: '2px solid #f1f5f9', padding: '14px', borderRadius: '12px', background: '#f8fafc', boxSizing: 'border-box' }}>
             {availableServices.length > 0 ? (
               availableServices.map(service => (
-                <label key={service.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.9rem', marginBottom: '10px', cursor: 'pointer', fontWeight: '700', color: '#334155' }}>
+                <label key={service.id} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', fontSize: '0.88rem', marginBottom: '10px', cursor: 'pointer', fontWeight: '700', color: '#334155', wordBreak: 'break-word' }}>
                   <input 
                     type="checkbox" 
                     checked={selectedServices.includes(service.id)} 
                     onChange={() => handleCheckboxChange(service.id)} 
-                    style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: '#0f172a' }}
+                    style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: '#0f172a', flexShrink: '0', marginTop: '1px' }}
                   />
-                  <span>{service.service_name || service.title} <strong style={{ color: '#059669' }}>(₱{Number(service.price || 0).toLocaleString()})</strong></span>
+                  <span>{service.service_name || service.title} <strong style={{ color: '#059669', whiteSpace: 'nowrap' }}>(₱{Number(service.price || 0).toLocaleString()})</strong></span>
                 </label>
               ))
             ) : (

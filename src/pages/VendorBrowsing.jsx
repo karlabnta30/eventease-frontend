@@ -7,6 +7,7 @@ const VendorBrowsing = () => {
     const [vendors, setVendors] = useState([]);
     const [loading, setLoading] = useState(true);
     const [hiringLoading, setHiringLoading] = useState(false);
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
     // Modal State
     const [showModal, setShowModal] = useState(false);
@@ -18,6 +19,12 @@ const VendorBrowsing = () => {
         end_time: '',
         guest_count: ''
     });
+
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth <= 768);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     // Fetch all available vendor services
     useEffect(() => {
@@ -77,17 +84,17 @@ const VendorBrowsing = () => {
     if (loading) return <div style={{ padding: '50px', textAlign: 'center' }}>Loading Services...</div>;
 
     return (
-        <div style={{ padding: '40px', backgroundColor: '#fffafb', minHeight: '100vh' }}>
-            <h1 style={{ fontWeight: '900', color: '#1a1a1a', marginBottom: '30px' }}>Available Services</h1>
+        <div style={{ padding: isMobile ? '20px 16px' : '40px', backgroundColor: '#fffafb', minHeight: '100vh' }}>
+            <h1 style={{ fontWeight: '900', color: '#1a1a1a', marginBottom: '30px', fontSize: isMobile ? '1.8rem' : '2.5rem' }}>Available Services</h1>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '25px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(300px, 1fr))', gap: '25px' }}>
                 {vendors.map(vendor => (
                     <div key={vendor.id} style={cardStyle}>
                         <div style={imagePlaceholder}>Shop Logo/Photo</div>
                         <div style={{ padding: '20px' }}>
-                            <h3 style={{ margin: '0', fontSize: '18px', fontWeight: '800' }}>{vendor.name}</h3>
+                            <h3 style={{ margin: '0', fontSize: '18px', fontWeight: '800', wordBreak: 'break-word' }}>{vendor.name}</h3>
                             <p style={{ color: '#888', fontSize: '14px', marginBottom: '10px' }}>{vendor.category}</p>
-                            <p style={{ fontSize: '14px' }}>📍 {vendor.location}</p>
+                            <p style={{ fontSize: '14px', wordBreak: 'break-word' }}>📍 {vendor.location}</p>
                             <p style={{ fontWeight: 'bold', color: '#d4a5a5' }}>₱{vendor.price}</p>
                             <button 
                                 onClick={() => handleOpenModal(vendor)}
@@ -103,11 +110,11 @@ const VendorBrowsing = () => {
             {/* --- HIRE VENDOR MODAL --- */}
             {showModal && selectedVendor && (
                 <div style={modalOverlay}>
-                    <div style={modalContent}>
+                    <div style={{ ...modalContent, flexDirection: isMobile ? 'column' : 'row', padding: isMobile ? '20px' : '40px', maxHeight: '90vh', overflowY: 'auto' }}>
                         {/* Left Side: Form Details */}
-                        <div style={{ flex: 2, paddingRight: '30px', borderRight: '1px solid #eee' }}>
-                            <h2 style={{ fontWeight: '900', marginBottom: '10px' }}>Confirm Hiring</h2>
-                            <p style={{ color: '#888', marginBottom: '20px' }}>Please provide event details for <strong>{selectedVendor.name}</strong></p>
+                        <div style={{ flex: 2, paddingRight: isMobile ? '0' : '30px', borderRight: isMobile ? 'none' : '1px solid #eee', marginBottom: isMobile ? '20px' : '0' }}>
+                            <h2 style={{ fontWeight: '900', marginBottom: '10px', fontSize: isMobile ? '1.4rem' : '1.8rem' }}>Confirm Hiring</h2>
+                            <p style={{ color: '#888', marginBottom: '20px', fontSize: isMobile ? '0.9rem' : '1rem' }}>Please provide event details for <strong>{selectedVendor.name}</strong></p>
                             
                             <div style={formGroup}>
                                 <label style={labelStyle}>Event Name</label>
@@ -117,7 +124,7 @@ const VendorBrowsing = () => {
                                 />
                             </div>
 
-                            <div style={{ display: 'flex', gap: '10px' }}>
+                            <div style={{ display: 'flex', gap: '10px', flexDirection: isMobile ? 'column' : 'row' }}>
                                 <div style={formGroup}>
                                     <label style={labelStyle}>Date</label>
                                     <input style={inputStyle} type="date" onChange={(e) => setBookingDetails({...bookingDetails, event_date: e.target.value})} />
@@ -128,7 +135,7 @@ const VendorBrowsing = () => {
                                 </div>
                             </div>
 
-                            <div style={{ display: 'flex', gap: '10px' }}>
+                            <div style={{ display: 'flex', gap: '10px', flexDirection: isMobile ? 'column' : 'row' }}>
                                 <div style={formGroup}>
                                     <label style={labelStyle}>Start Time</label>
                                     <input style={inputStyle} type="time" onChange={(e) => setBookingDetails({...bookingDetails, start_time: e.target.value})} />
@@ -141,10 +148,10 @@ const VendorBrowsing = () => {
                         </div>
 
                         {/* Right Side: Summary & Actions */}
-                        <div style={{ flex: 1, paddingLeft: '30px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '15px' }}>
-                            <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+                        <div style={{ flex: 1, paddingLeft: isMobile ? '0' : '30px', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '15px', borderTop: isMobile ? '1px solid #eee' : 'none', paddingTop: isMobile ? '20px' : '0' }}>
+                            <div style={{ textAlign: 'center', marginBottom: '10px' }}>
                                 <p style={{ fontSize: '13px', color: '#999', margin: 0 }}>Total Service Price</p>
-                                <h1 style={{ margin: 0, color: '#d4a5a5' }}>₱{selectedVendor.price}</h1>
+                                <h1 style={{ margin: 0, color: '#d4a5a5', fontSize: isMobile ? '1.8rem' : '2.2rem' }}>₱{selectedVendor.price}</h1>
                             </div>
                             
                             <button 
@@ -188,26 +195,26 @@ const hireButtonStyle = {
 
 const modalOverlay = {
     position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
-    backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000
+    backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: '15px'
 };
 
 const modalContent = {
     background: 'white', padding: '40px', borderRadius: '20px', display: 'flex',
-    width: '850px', maxWidth: '90%', boxShadow: '0 20px 40px rgba(0,0,0,0.2)'
+    width: '850px', maxWidth: '100%', boxShadow: '0 20px 40px rgba(0,0,0,0.2)'
 };
 
 const formGroup = { marginBottom: '15px', flex: 1 };
 const labelStyle = { display: 'block', fontSize: '12px', fontWeight: 'bold', marginBottom: '5px', color: '#666' };
-const inputStyle = { width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ddd' };
+const inputStyle = { width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ddd', boxSizing: 'border-box' };
 
 const continueButtonStyle = {
     background: '#1a1a1a', color: 'white', padding: '15px', border: 'none',
-    borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer'
+    borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', width: '100%'
 };
 
 const cancelButtonStyle = {
     background: '#f5f5f5', color: '#555', padding: '15px', border: 'none',
-    borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer'
+    borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', width: '100%'
 };
 
 export default VendorBrowsing;

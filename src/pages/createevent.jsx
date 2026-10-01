@@ -16,16 +16,16 @@ const SuccessModal = ({ isOpen, onClose, eventId, currentBudget }) => {
       position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
       backgroundColor: 'rgba(15, 23, 42, 0.85)', display: 'flex',
       alignItems: 'center', justifyContent: 'center', zIndex: 2000,
-      backdropFilter: 'blur(12px)' 
+      backdropFilter: 'blur(12px)', padding: '15px'
     }}>
       <div style={{
-        background: '#ffffff', padding: '45px', borderRadius: '32px',
-        textAlign: 'center', maxWidth: '450px', width: '90%',
+        background: '#ffffff', padding: '35px 25px', borderRadius: '32px',
+        textAlign: 'center', maxWidth: '450px', width: '100%',
         boxShadow: '0 25px 50px rgba(0,0,0,0.25)', border: '1px solid #e2e8f0'
       }}>
-        <div style={{ fontSize: '60px', marginBottom: '16px' }}>🎊</div>
-        <h2 style={{ color: '#0f172a', fontSize: '2rem', fontWeight: '900', letterSpacing: '-1px', marginBottom: '12px' }}>Plan Initiated!</h2>
-        <p style={{ color: '#64748b', lineHeight: '1.6', marginBottom: '30px', fontWeight: '500', fontSize: '0.95rem' }}>
+        <div style={{ fontSize: '50px', marginBottom: '16px' }}>🎊</div>
+        <h2 style={{ color: '#0f172a', fontSize: '1.8rem', fontWeight: '900', letterSpacing: '-1px', marginBottom: '12px' }}>Plan Initiated!</h2>
+        <p style={{ color: '#64748b', lineHeight: '1.6', marginBottom: '25px', fontWeight: '500', fontSize: '0.92rem' }}>
           Your event is now in our system, complete with your signed vendor agreement. Next, let's find the perfect vendors and services to bring your vision to life.
         </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -34,7 +34,7 @@ const SuccessModal = ({ isOpen, onClose, eventId, currentBudget }) => {
             style={{
               background: '#0f172a', color: 'white', border: 'none',
               padding: '16px', borderRadius: '14px', fontWeight: '900',
-              cursor: 'pointer', width: '100%', fontSize: '1rem',
+              cursor: 'pointer', width: '100%', fontSize: '0.95rem',
               boxShadow: '0 4px 14px rgba(15, 23, 42, 0.3)'
             }}
           >
@@ -42,7 +42,7 @@ const SuccessModal = ({ isOpen, onClose, eventId, currentBudget }) => {
           </button>
           <button 
             onClick={onClose}
-            style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontWeight: '800', fontSize: '0.9rem' }}
+            style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontWeight: '800', fontSize: '0.9rem', padding: '8px' }}
           >
             View Event Summary
           </button>
@@ -62,39 +62,39 @@ const ContractModal = ({ isOpen, onClose, onConfirm, vendorTerms, loading }) => 
       position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
       backgroundColor: 'rgba(15, 23, 42, 0.85)', display: 'flex',
       alignItems: 'center', justifyContent: 'center', zIndex: 1900,
-      backdropFilter: 'blur(12px)'
+      backdropFilter: 'blur(12px)', padding: '15px'
     }}>
       <div style={{
-        background: '#ffffff', padding: '40px', borderRadius: '28px',
-        maxWidth: '480px', width: '90%', boxShadow: '0 25px 50px rgba(0,0,0,0.25)',
+        background: '#ffffff', padding: '30px 20px', borderRadius: '28px',
+        maxWidth: '480px', width: '100%', boxShadow: '0 25px 50px rgba(0,0,0,0.25)',
         border: '1px solid #e2e8f0', fontFamily: "'Inter', sans-serif"
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
-          <FileText size={22} color="#2563eb" />
-          <h3 style={{ fontSize: '1.1rem', fontWeight: '900', textTransform: 'uppercase', margin: 0, color: '#0f172a' }}>
+          <FileText size={22} color="#2563eb" style={{ flexShrink: 0 }} />
+          <h3 style={{ fontSize: '1rem', fontWeight: '900', textTransform: 'uppercase', margin: 0, color: '#0f172a', wordBreak: 'break-word' }}>
             Vendor Contract & Service Agreement
           </h3>
         </div>
 
-        <p style={{ fontSize: '0.85rem', color: '#64748b', maxHeight: '150px', overflowY: 'auto', marginBottom: '20px', background: '#f8fafc', padding: '16px', borderRadius: '14px', border: '1px solid #e2e8f0', lineHeight: '1.6' }}>
+        <p style={{ fontSize: '0.85rem', color: '#64748b', maxHeight: '150px', overflowY: 'auto', marginBottom: '20px', background: '#f8fafc', padding: '14px', borderRadius: '14px', border: '1px solid #e2e8f0', lineHeight: '1.6' }}>
           {vendorTerms || "Standard EventEase Service Agreement applies: 50% downpayment required upon booking confirmation. Cancellation must be requested at least 2 weeks prior to the scheduled event date to be eligible for partial refunds."}
         </p>
 
-        <label style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', fontSize: '0.85rem', fontWeight: '700', cursor: 'pointer', color: '#334155', marginBottom: '25px', userSelect: 'none' }}>
+        <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', fontSize: '0.82rem', fontWeight: '700', cursor: 'pointer', color: '#334155', marginBottom: '20px', userSelect: 'none' }}>
           <input 
             type="checkbox" 
             checked={agreed} 
             onChange={(e) => setAgreed(e.target.checked)} 
-            style={{ width: '18px', height: '18px', cursor: 'pointer', marginTop: '1px', accentColor: '#2563eb' }}
+            style={{ width: '18px', height: '18px', cursor: 'pointer', marginTop: '1px', accentColor: '#2563eb', flexShrink: 0 }}
           />
           <span>I have read, understood, and agree to the binding service agreement and cancellation policies.</span>
         </label>
 
-        <div style={{ display: 'flex', gap: '12px' }}>
+        <div style={{ display: 'flex', gap: '10px', flexDirection: 'row' }}>
           <button 
             type="button" 
             onClick={onClose} 
-            style={{ flex: 1, padding: '14px', borderRadius: '14px', border: '1px solid #cbd5e1', background: '#f1f5f9', cursor: 'pointer', fontWeight: '800', color: '#475569' }}
+            style={{ flex: 1, padding: '14px 10px', borderRadius: '14px', border: '1px solid #cbd5e1', background: '#f1f5f9', cursor: 'pointer', fontWeight: '800', color: '#475569', fontSize: '0.85rem' }}
           >
             Cancel
           </button>
@@ -103,9 +103,9 @@ const ContractModal = ({ isOpen, onClose, onConfirm, vendorTerms, loading }) => 
             disabled={!agreed || loading}
             onClick={onConfirm} 
             style={{ 
-              flex: 2, padding: '14px', borderRadius: '14px', border: 'none', 
+              flex: 1.8, padding: '14px 10px', borderRadius: '14px', border: 'none', 
               background: !agreed ? '#cbd5e1' : '#0f172a', color: 'white', 
-              cursor: !agreed || loading ? 'not-allowed' : 'pointer', fontWeight: '900', fontSize: '0.95rem',
+              cursor: !agreed || loading ? 'not-allowed' : 'pointer', fontWeight: '900', fontSize: '0.85rem',
               boxShadow: !agreed ? 'none' : '0 4px 14px rgba(15, 23, 42, 0.3)'
             }}
           >
@@ -162,9 +162,9 @@ const BudgetOptimizerWidget = ({ category, pax, budget }) => {
   };
 
   return (
-    <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', padding: '24px', borderRadius: '24px', marginBottom: '24px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-        <h4 style={{ margin: 0, fontWeight: '900', display: 'flex', alignItems: 'center', gap: '8px', color: '#0f172a', fontSize: '0.85rem', textTransform: 'uppercase' }}>
+    <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', padding: '20px', borderRadius: '24px', marginBottom: '24px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
+        <h4 style={{ margin: 0, fontWeight: '900', display: 'flex', alignItems: 'center', gap: '8px', color: '#0f172a', fontSize: '0.8rem', textTransform: 'uppercase' }}>
           <Sparkles size={16} color="#3b82f6" /> AI Budget Optimizer
         </h4>
         <button 
@@ -178,8 +178,8 @@ const BudgetOptimizerWidget = ({ category, pax, budget }) => {
       </div>
 
       {optimizationResult && (
-        <div style={{ marginTop: '14px', background: '#fff', padding: '16px', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px', fontWeight: '900', fontSize: '0.85rem', color: optimizationResult.status === 'Optimal' ? '#166534' : '#991b1b' }}>
+        <div style={{ marginTop: '14px', background: '#fff', padding: '14px', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px', fontWeight: '900', fontSize: '0.82rem', color: optimizationResult.status === 'Optimal' ? '#166534' : '#991b1b' }}>
             {optimizationResult.status === 'Optimal' ? <CheckCircle size={14} /> : <AlertTriangle size={14} />}
             <span>{optimizationResult.status} Status</span>
           </div>
@@ -187,9 +187,9 @@ const BudgetOptimizerWidget = ({ category, pax, budget }) => {
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             {optimizationResult.breakdown.map((row, index) => (
-              <div key={index} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', padding: '4px 0', borderBottom: '1px solid #f1f5f9' }}>
+              <div key={index} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', padding: '4px 0', borderBottom: '1px solid #f1f5f9', gap: '10px' }}>
                 <span style={{ fontWeight: '700', color: '#475569' }}>{row.item} ({row.percentage})</span>
-                <span style={{ fontWeight: '900', color: '#0f172a' }}>₱{row.recommended_amount.toLocaleString()}</span>
+                <span style={{ fontWeight: '900', color: '#0f172a', whiteSpace: 'nowrap' }}>₱{row.recommended_amount.toLocaleString()}</span>
               </div>
             ))}
           </div>
@@ -210,6 +210,7 @@ const CreateEvent = () => {
   const [loading, setLoading] = useState(false);
   const [vendorTerms, setVendorTerms] = useState("");
   const [formError, setFormError] = useState("");
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 900);
 
   const [eventData, setEventData] = useState({
     name: '',
@@ -221,6 +222,12 @@ const CreateEvent = () => {
     budget: '',
     service_id: prefilledServiceId ? parseInt(prefilledServiceId) : null
   });
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 900);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Fetch vendor terms if a service ID is pre-selected or attached
   useEffect(() => {
@@ -319,7 +326,7 @@ const CreateEvent = () => {
   const styles = {
     container: { backgroundColor: '#f8fafc', minHeight: '100vh', paddingBottom: '80px', fontFamily: "'Inter', sans-serif" },
     hero: { 
-        height: '360px', 
+        height: isMobile ? '240px' : '360px', 
         backgroundImage: `linear-gradient(rgba(15, 23, 42, 0.8), rgba(30, 41, 59, 0.85)), url('https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1200&q=80')`, 
         backgroundSize: 'cover', 
         backgroundPosition: 'center', 
@@ -330,18 +337,18 @@ const CreateEvent = () => {
         textAlign: 'center',
         boxShadow: '0 10px 30px rgba(0,0,0,0.1)'
     },
-    heroContent: { padding: '0 20px' },
-    heroTitle: { fontSize: '3.5rem', fontWeight: '900', letterSpacing: '-2px', marginBottom: '8px' },
-    heroSub: { fontSize: '1rem', fontWeight: '600', opacity: 0.85, letterSpacing: '0.5px', textTransform: 'uppercase' },
-    mainGrid: { maxWidth: '1200px', margin: '-70px auto 0', padding: '0 24px', display: 'grid', gridTemplateColumns: '1.3fr 1fr', gap: '30px', position: 'relative', zIndex: 10 },
-    card: { background: '#ffffff', padding: '32px', borderRadius: '24px', border: '1px solid #e2e8f0', boxShadow: '0 10px 30px -5px rgba(0,0,0,0.04)', marginBottom: '24px' },
-    sectionHeader: { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px', color: '#0f172a' },
+    heroContent: { padding: '0 16px' },
+    heroTitle: { fontSize: isMobile ? '2.1rem' : '3.5rem', fontWeight: '900', letterSpacing: '-2px', marginBottom: '8px', wordBreak: 'break-word' },
+    heroSub: { fontSize: isMobile ? '0.85rem' : '1rem', fontWeight: '600', opacity: 0.85, letterSpacing: '0.5px', textTransform: 'uppercase' },
+    mainGrid: { maxWidth: '1200px', margin: isMobile ? '-30px auto 0' : '-70px auto 0', padding: isMobile ? '0 16px' : '0 24px', display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1.3fr 1fr', gap: '20px', position: 'relative', zIndex: 10 },
+    card: { background: '#ffffff', padding: isMobile ? '20px' : '32px', borderRadius: '24px', border: '1px solid #e2e8f0', boxShadow: '0 10px 30px -5px rgba(0,0,0,0.04)', marginBottom: '20px' },
+    sectionHeader: { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', color: '#0f172a' },
     label: { fontSize: '0.75rem', fontWeight: '900', textTransform: 'uppercase', color: '#64748b', marginBottom: '8px', display: 'block', letterSpacing: '0.5px' },
     input: { width: '100%', padding: '14px 16px', border: '2px solid #f1f5f9', borderRadius: '14px', fontSize: '0.95rem', fontWeight: '700', outline: 'none', backgroundColor: '#f8fafc', color: '#0f172a', transition: 'all 0.2s', boxSizing: 'border-box', fontFamily: "'Inter', sans-serif" },
     select: { width: '100%', padding: '14px 16px', border: '2px solid #f1f5f9', borderRadius: '14px', fontSize: '0.95rem', fontWeight: '700', outline: 'none', backgroundColor: '#f8fafc', color: '#0f172a', transition: 'all 0.2s', boxSizing: 'border-box', fontFamily: "'Inter', sans-serif", cursor: 'pointer' },
     venueToggle: { backgroundColor: '#0f172a', color: 'white', padding: '14px', borderRadius: '14px', textAlign: 'center', fontWeight: '900', fontSize: '0.85rem', marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' },
-    btnPrimary: { flex: 2, padding: '16px', borderRadius: '14px', border: 'none', background: '#0f172a', color: 'white', cursor: 'pointer', fontWeight: '900', fontSize: '1rem', boxShadow: '0 4px 14px rgba(15, 23, 42, 0.3)', transition: 'all 0.2s' },
-    btnSecondary: { flex: 1, padding: '16px', borderRadius: '14px', border: '1px solid #cbd5e1', background: '#f1f5f9', cursor: 'pointer', fontWeight: '800', color: '#475569' },
+    btnPrimary: { flex: 2, padding: '16px', borderRadius: '14px', border: 'none', background: '#0f172a', color: 'white', cursor: 'pointer', fontWeight: '900', fontSize: '0.95rem', boxShadow: '0 4px 14px rgba(15, 23, 42, 0.3)', transition: 'all 0.2s' },
+    btnSecondary: { flex: 1, padding: '16px', borderRadius: '14px', border: '1px solid #cbd5e1', background: '#f1f5f9', cursor: 'pointer', fontWeight: '800', color: '#475569', fontSize: '0.9rem' },
     errorBox: {
         gridColumn: 'span 2',
         backgroundColor: '#fef2f2',
@@ -349,7 +356,7 @@ const CreateEvent = () => {
         color: '#991b1b',
         padding: '14px 18px',
         borderRadius: '14px',
-        fontSize: '0.9rem',
+        fontSize: '0.88rem',
         fontWeight: '700',
         display: 'flex',
         alignItems: 'center',
@@ -360,13 +367,14 @@ const CreateEvent = () => {
       gridColumn: 'span 2', 
       marginTop: '-10px', 
       marginBottom: '20px', 
-      padding: '16px 20px', 
+      padding: '16px', 
       backgroundColor: '#ffffff', 
       border: '1px solid #e2e8f0', 
       borderRadius: '18px', 
       display: 'flex', 
+      flexDirection: isMobile ? 'column' : 'row',
       justifyContent: 'space-between', 
-      alignItems: 'center', 
+      alignItems: isMobile ? 'stretch' : 'center', 
       gap: '12px', 
       fontSize: '0.85rem',
       boxShadow: '0 4px 12px rgba(0,0,0,0.02)'
@@ -375,15 +383,16 @@ const CreateEvent = () => {
       background: '#0f172a', 
       color: '#fff', 
       border: 'none', 
-      padding: '8px 14px', 
+      padding: '10px 14px', 
       borderRadius: '10px', 
       fontSize: '0.75rem', 
       fontWeight: '800', 
       cursor: 'pointer', 
       display: 'flex', 
       alignItems: 'center', 
+      justifyContent: 'center',
       gap: '6px',
-      whiteSpace: 'nowrap',
+      width: isMobile ? '100%' : 'auto',
       boxShadow: '0 2px 6px rgba(15, 23, 42, 0.2)'
     }
   };
@@ -465,7 +474,7 @@ const CreateEvent = () => {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '20px' }}>
             <div style={styles.card}>
                 <div style={{display:'flex', alignItems: 'center', gap:'8px', marginBottom:'12px'}}>
                   <Users size={18} color="#3b82f6"/> 
@@ -538,7 +547,7 @@ const CreateEvent = () => {
             budget={eventData.budget}
           />
 
-          <div style={{ display: 'flex', gap: '15px' }}>
+          <div style={{ display: 'flex', gap: '12px', flexDirection: isMobile ? 'column' : 'row' }}>
             <button type="button" onClick={() => navigate('/live-events')} style={styles.btnSecondary}>Cancel</button>
             <button 
                 type="button"

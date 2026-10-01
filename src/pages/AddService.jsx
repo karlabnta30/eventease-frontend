@@ -10,6 +10,7 @@ const AddService = () => {
   const [loading, setLoading] = useState(false);
   const [checkingStatus, setCheckingStatus] = useState(true);
   const [isVerified, setIsVerified] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 960);
   const [serviceData, setServiceData] = useState({
     business_name: '',
     category: '',
@@ -20,6 +21,12 @@ const AddService = () => {
     terms_and_conditions: '', 
     is_available: true 
   });
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 960);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     const checkVerification = async () => {
@@ -76,30 +83,30 @@ const AddService = () => {
   }
 
   return (
-    <div style={{ padding: '50px 20px', maxWidth: '1400px', margin: '0 auto', fontFamily: "'Inter', sans-serif", background: '#f8fafc', minHeight: '100vh' }}>
+    <div style={{ padding: isMobile ? '20px 16px' : '50px 20px', maxWidth: '1400px', margin: '0 auto', fontFamily: "'Inter', sans-serif", background: '#f8fafc', minHeight: '100vh' }}>
       
       {/* Top Banner Header */}
-      <div style={{ marginBottom: '40px', textAlign: 'center' }}>
-        <h1 style={{ fontSize: '2.5rem', fontWeight: '900', color: '#0f172a', letterSpacing: '-1px', margin: '0 0 10px 0' }}>
+      <div style={{ marginBottom: '35px', textAlign: 'center' }}>
+        <h1 style={{ fontSize: isMobile ? '1.8rem' : '2.5rem', fontWeight: '900', color: '#0f172a', letterSpacing: '-1px', margin: '0 0 10px 0', wordBreak: 'break-word' }}>
           Vendor Operations Hub
         </h1>
-        <p style={{ fontSize: '1rem', color: '#64748b', fontWeight: '500', maxWidth: '600px', margin: '0 auto' }}>
+        <p style={{ fontSize: isMobile ? '0.9rem' : '1rem', color: '#64748b', fontWeight: '500', maxWidth: '600px', margin: '0 auto', padding: '0 10px' }}>
           Publish your standalone professional services and bundle packages to expand your reach across client bookings.
         </p>
       </div>
 
-      {/* Side-by-side layout container */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '35px', alignItems: 'start' }}>
+      {/* Side-by-side or stacked layout container */}
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '30px', alignItems: 'start' }}>
         
         {/* Left Column: Service Creator Form */}
-        <div style={{ background: '#fff', padding: '40px', borderRadius: '28px', border: '1px solid #e2e8f0', boxShadow: '0 10px 25px rgba(0,0,0,0.03)' }}>
+        <div style={{ background: '#fff', padding: isMobile ? '24px 20px' : '40px', borderRadius: '28px', border: '1px solid #e2e8f0', boxShadow: '0 10px 25px rgba(0,0,0,0.03)', boxSizing: 'border-box' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '25px' }}>
-            <div style={{ background: '#0f172a', padding: '12px', borderRadius: '16px', color: '#fff' }}>
+            <div style={{ background: '#0f172a', padding: '12px', borderRadius: '16px', color: '#fff', flexShrink: 0 }}>
               <Briefcase size={22} />
             </div>
             <div>
-              <h2 style={{ fontWeight: '900', fontSize: '1.4rem', color: '#0f172a', margin: 0 }}>Add Standalone Service</h2>
-              <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '2px 0 0 0' }}>Configure your primary offering details</p>
+              <h2 style={{ fontWeight: '900', fontSize: isMobile ? '1.2rem' : '1.4rem', color: '#0f172a', margin: 0, wordBreak: 'break-word' }}>Add Standalone Service</h2>
+              <p style={{ fontSize: '0.82rem', color: '#64748b', margin: '2px 0 0 0' }}>Configure your primary offering details</p>
             </div>
           </div>
           
@@ -107,23 +114,23 @@ const AddService = () => {
             <div style={{ 
               backgroundColor: '#fffbeb', 
               border: '1px solid #fde68a', 
-              padding: '20px', 
+              padding: '16px', 
               borderRadius: '16px', 
               marginBottom: '25px', 
               display: 'flex', 
               alignItems: 'flex-start', 
-              gap: '14px', 
+              gap: '12px', 
               color: '#92400e', 
               fontWeight: '600',
-              fontSize: '0.9rem',
+              fontSize: '0.85rem',
               lineHeight: '1.5'
             }}>
-              <AlertCircle size={22} style={{ flexShrink: 0, marginTop: '2px', color: '#d97706' }} />
+              <AlertCircle size={20} style={{ flexShrink: 0, marginTop: '2px', color: '#d97706' }} />
               <span><strong>Verification Required:</strong> You must have a verified business permit to publish services. Bundle creation is also locked until verification is approved.</span>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px', opacity: isVerified ? 1 : 0.65 }}>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px', opacity: isVerified ? 1 : 0.65 }}>
             <div>
               <label style={labelStyle}>Business / Service Name</label>
               <input 
@@ -137,7 +144,7 @@ const AddService = () => {
               />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '15px' }}>
               <div>
                 <label style={labelStyle}>Category</label>
                 <select 
@@ -215,12 +222,13 @@ const AddService = () => {
                 borderRadius: '14px', 
                 border: 'none', 
                 fontWeight: '800', 
-                fontSize: '1rem',
+                fontSize: '0.95rem',
                 letterSpacing: '0.5px',
                 cursor: !isVerified || loading ? 'not-allowed' : 'pointer',
                 marginTop: '10px',
                 boxShadow: isVerified ? '0 4px 14px rgba(15, 23, 42, 0.2)' : 'none',
-                transition: 'all 0.2s'
+                transition: 'all 0.2s',
+                width: '100%'
               }}
             >
               {loading ? 'PUBLISHING...' : 'PUBLISH SERVICE'}
@@ -231,18 +239,19 @@ const AddService = () => {
         {/* Right Column: Bundle Creator Form (Conditional on Verification) */}
         <div style={{ 
           background: '#fff', 
-          padding: '40px', 
+          padding: isMobile ? '24px 20px' : '40px', 
           borderRadius: '28px', 
           border: '1px solid #e2e8f0', 
           boxShadow: '0 10px 25px rgba(0,0,0,0.03)',
           position: 'relative',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          boxSizing: 'border-box'
         }}>
           {!isVerified && (
             <div style={{
               position: 'absolute',
               inset: 0,
-              background: 'rgba(255, 255, 255, 0.88)',
+              background: 'rgba(255, 255, 255, 0.9)',
               backdropFilter: 'blur(6px)',
               zIndex: 10,
               display: 'flex',
@@ -250,25 +259,26 @@ const AddService = () => {
               alignItems: 'center',
               justifyContent: 'center',
               textAlign: 'center',
-              padding: '40px'
+              padding: isMobile ? '20px' : '40px',
+              boxSizing: 'border-box'
             }}>
               <div style={{ background: '#fef3c7', padding: '16px', borderRadius: '50%', color: '#d97706', marginBottom: '16px', display: 'inline-flex' }}>
-                <ShieldCheck size={36} />
+                <ShieldCheck size={32} />
               </div>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: '900', color: '#0f172a', margin: '0 0 8px 0' }}>Bundle Creator Locked</h3>
-              <p style={{ fontSize: '0.9rem', color: '#64748b', lineHeight: '1.5', margin: 0 }}>
+              <h3 style={{ fontSize: '1.15rem', fontWeight: '900', color: '#0f172a', margin: '0 0 8px 0' }}>Bundle Creator Locked</h3>
+              <p style={{ fontSize: '0.85rem', color: '#64748b', lineHeight: '1.5', margin: 0 }}>
                 You must achieve <strong>Verified Status</strong> by uploading a valid business permit to unlock service bundle creation and packaging.
               </p>
             </div>
           )}
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '25px' }}>
-            <div style={{ background: '#059669', padding: '12px', borderRadius: '16px', color: '#fff' }}>
+            <div style={{ background: '#059669', padding: '12px', borderRadius: '16px', color: '#fff', flexShrink: 0 }}>
               <Layers size={22} />
             </div>
             <div>
-              <h2 style={{ fontWeight: '900', fontSize: '1.4rem', color: '#0f172a', margin: 0 }}>Bundle Maker</h2>
-              <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '2px 0 0 0' }}>Combine multiple services into a unified package</p>
+              <h2 style={{ fontWeight: '900', fontSize: isMobile ? '1.2rem' : '1.4rem', color: '#0f172a', margin: 0, wordBreak: 'break-word' }}>Bundle Maker</h2>
+              <p style={{ fontSize: '0.82rem', color: '#64748b', margin: '2px 0 0 0' }}>Combine multiple services into a unified package</p>
             </div>
           </div>
 
@@ -284,11 +294,11 @@ const AddService = () => {
 
 const labelStyle = { 
   display: 'block', 
-  fontSize: '0.8rem', 
+  fontSize: '0.78rem', 
   fontWeight: '800', 
   textTransform: 'uppercase', 
   color: '#475569', 
-  marginBottom: '8px',
+  marginBottom: '6px',
   letterSpacing: '0.5px' 
 };
 
