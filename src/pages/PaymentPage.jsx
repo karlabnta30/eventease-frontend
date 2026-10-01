@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import api from '../api';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -9,6 +9,13 @@ const PaymentPage = () => {
   
   const [loading, setLoading] = useState(false);
   const [cardNumber, setCardNumber] = useState('');
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const handlePayment = async (e) => {
     e.preventDefault();
@@ -33,21 +40,21 @@ const PaymentPage = () => {
   };
 
   const styles = {
-    container: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', backgroundColor: '#fff', fontFamily: 'Inter' },
-    card: { padding: '40px', border: '2px solid #000', borderRadius: '24px', maxWidth: '400px', width: '90%' },
-    title: { fontWeight: '900', fontSize: '2rem', marginBottom: '20px' },
-    input: { width: '100%', padding: '15px', margin: '10px 0', border: '2px solid #000', borderRadius: '12px', boxSizing: 'border-box' },
-    btn: { width: '100%', padding: '15px', background: '#000', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer', marginTop: '20px' }
+    container: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', backgroundColor: '#fff', fontFamily: 'Inter', boxSizing: 'border-box', padding: isMobile ? '20px' : '0' },
+    card: { padding: isMobile ? '25px 20px' : '40px', border: '2px solid #000', borderRadius: '24px', maxWidth: '400px', width: '100%', boxSizing: 'border-box' },
+    title: { fontWeight: '900', fontSize: isMobile ? '1.75rem' : '2rem', marginBottom: '20px', wordBreak: 'break-word' },
+    input: { width: '100%', padding: '15px', margin: '10px 0', border: '2px solid #000', borderRadius: '12px', boxSizing: 'border-box', fontSize: '1rem', outline: 'none' },
+    btn: { width: '100%', padding: '15px', background: '#000', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer', marginTop: '20px', boxSizing: 'border-box' }
   };
 
   return (
     <div style={styles.container}>
       <div style={styles.card}>
         <h2 style={styles.title}>gcash card.</h2>
-        <p>Paying for Booking: <strong>#{bookingData.bookingId}</strong></p>
-        <p>Total Amount: <strong>PHP {bookingData.amount}</strong></p>
+        <p style={{ wordBreak: 'break-word', fontSize: '0.95rem' }}>Paying for Booking: <strong>#{bookingData.bookingId}</strong></p>
+        <p style={{ wordBreak: 'break-word', fontSize: '0.95rem', marginBottom: '20px' }}>Total Amount: <strong>PHP {bookingData.amount}</strong></p>
         <form onSubmit={handlePayment}>
-          <label style={{fontWeight: '800', fontSize: '0.8rem'}}>16-DIGIT CARD NUMBER</label>
+          <label style={{fontWeight: '800', fontSize: '0.8rem', display: 'block'}}>16-DIGIT CARD NUMBER</label>
           <input 
             type="text" 
             maxLength="16"

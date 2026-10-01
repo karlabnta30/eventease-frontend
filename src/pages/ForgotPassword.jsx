@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../api';
 import { Mail, Lock, KeyRound, ArrowRight, CheckCircle2 } from 'lucide-react';
@@ -14,6 +14,13 @@ const ForgotPassword = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const handleRequestCode = async (e) => {
     e.preventDefault();
@@ -65,10 +72,10 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div style={styles.container}>
-      <div style={styles.formCard}>
+    <div style={{ ...styles.container, padding: isMobile ? '20px' : '0' }}>
+      <div style={{ ...styles.formCard, padding: isMobile ? '30px 20px' : '40px', width: isMobile ? '100%' : '440px', maxWidth: '440px' }}>
         <div style={styles.brandHeader}>
-          <h1 style={styles.title}>Reset Password</h1>
+          <h1 style={{ ...styles.title, fontSize: isMobile ? '1.5rem' : '1.75rem' }}>Reset Password</h1>
           <p style={styles.subtitle}>
             {step === 1 ? 'Enter your registered email to receive a verification code.' : 'Enter the code sent to your email and set a new password.'}
           </p>
@@ -160,20 +167,20 @@ const ForgotPassword = () => {
 };
 
 const styles = {
-  container: { display: 'flex', minHeight: '100vh', width: '100vw', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f8fafc', fontFamily: "'Inter', sans-serif" },
-  formCard: { backgroundColor: '#fff', padding: '40px', borderRadius: '24px', width: '100%', maxWidth: '440px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' },
+  container: { display: 'flex', minHeight: '100vh', width: '100vw', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f8fafc', fontFamily: "'Inter', sans-serif", boxSizing: 'border-box' },
+  formCard: { backgroundColor: '#fff', borderRadius: '24px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0', boxSizing: 'border-box' },
   brandHeader: { marginBottom: '25px', textAlign: 'center' },
-  title: { fontSize: '1.75rem', fontWeight: '900', color: '#0f172a', margin: '0 0 8px 0' },
+  title: { fontWeight: '900', color: '#0f172a', margin: '0 0 8px 0' },
   subtitle: { color: '#64748b', fontSize: '0.9rem', lineHeight: '1.4' },
-  errorBox: { backgroundColor: '#fee2e2', color: '#991b1b', padding: '12px', borderRadius: '12px', fontSize: '0.85rem', fontWeight: '600', marginBottom: '20px' },
-  successBox: { backgroundColor: '#d1fae5', color: '#065f46', padding: '12px', borderRadius: '12px', fontSize: '0.85rem', fontWeight: '600', marginBottom: '20px' },
+  errorBox: { backgroundColor: '#fee2e2', color: '#991b1b', padding: '12px', borderRadius: '12px', fontSize: '0.85rem', fontWeight: '600', marginBottom: '20px', wordBreak: 'break-word' },
+  successBox: { backgroundColor: '#d1fae5', color: '#065f46', padding: '12px', borderRadius: '12px', fontSize: '0.85rem', fontWeight: '600', marginBottom: '20px', wordBreak: 'break-word' },
   form: { display: 'flex', flexDirection: 'column', gap: '18px' },
   inputGroup: { display: 'flex', flexDirection: 'column', gap: '6px' },
   label: { fontSize: '11px', fontWeight: '800', color: '#475569', textTransform: 'uppercase' },
   inputContainer: { position: 'relative', display: 'flex', alignItems: 'center' },
   inputIcon: { position: 'absolute', left: '16px' },
   inputField: { width: '100%', padding: '14px 16px 14px 48px', borderRadius: '12px', border: '1px solid #cbd5e1', backgroundColor: '#f8fafc', fontSize: '0.95rem', outline: 'none', boxSizing: 'border-box' },
-  submitBtn: { backgroundColor: '#0f172a', color: '#fff', border: 'none', padding: '16px', borderRadius: '12px', fontWeight: 'bold', fontSize: '0.95rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginTop: '10px' },
+  submitBtn: { backgroundColor: '#0f172a', color: '#fff', border: 'none', padding: '16px', borderRadius: '12px', fontWeight: 'bold', fontSize: '0.95rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginTop: '10px', boxSizing: 'border-box' },
   footerText: { textAlign: 'center', marginTop: '25px' },
   backLink: { color: '#7c3aed', fontWeight: 'bold', fontSize: '0.9rem', textDecoration: 'none' }
 };

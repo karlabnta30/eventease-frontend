@@ -8,6 +8,8 @@ const EditEvents = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  
   const [formData, setFormData] = useState({
     event_name: '',
     category: '',
@@ -19,6 +21,12 @@ const EditEvents = () => {
     guest_count: ''
   });
 
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const fetchEvent = useCallback(async () => {
     try {
       const res = await api.get(`/bookings/${id}`);
@@ -28,14 +36,9 @@ const EditEvents = () => {
         event_name: data.event_name || '',
         category: data.category || '',
         location: data.location || '',
-        
-        // Ensure we only get YYYY-MM-DD for the date input
         event_date: data.event_date ? data.event_date.split(' ')[0] : '', 
-        
-        // Explicitly map start_time and end_time, stripping seconds
         start_time: data.start_time ? data.start_time.substring(0, 5) : '',
         end_time: data.end_time ? data.end_time.substring(0, 5) : '',
-        
         budget: data.budget || '',
         guest_count: data.guest_count || ''
       });
@@ -82,17 +85,6 @@ const EditEvents = () => {
     }
   };
 
-  const styles = {
-    container: { padding: '60px 5%', backgroundColor: '#fcfcfd', minHeight: '100vh', fontFamily: "'Inter', sans-serif" },
-    card: { backgroundColor: '#ffffff', padding: '50px', borderRadius: '32px', border: '1px solid #f0f0f5', maxWidth: '850px', margin: '0 auto', boxShadow: '0 20px 50px rgba(0,0,0,0.03)' },
-    inputGroup: { marginBottom: '10px' },
-    label: { display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.7rem', fontWeight: '800', color: '#b0b0b0', textTransform: 'uppercase', marginBottom: '10px', letterSpacing: '1px' },
-    input: { width: '100%', padding: '16px 20px', borderRadius: '16px', border: '1px solid #f0f0f5', backgroundColor: '#f9f9fb', fontSize: '1rem', fontWeight: '500', outline: 'none', color: '#1a1a1a', transition: 'all 0.2s ease', boxSizing: 'border-box' },
-    btnContainer: { display: 'flex', gap: '20px', marginTop: '40px' },
-    submitBtn: { flex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', padding: '18px', background: '#1a1a1a', color: 'white', border: 'none', borderRadius: '18px', fontWeight: '700', fontSize: '1rem', cursor: 'pointer', boxShadow: '0 10px 20px rgba(0,0,0,0.1)', transition: 'transform 0.1s ease' },
-    deleteBtn: { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', padding: '18px', background: '#fff', color: '#ff4d4d', border: '1px solid #ffccd1', borderRadius: '18px', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s ease' }
-  };
-
   if (loading) return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: '#6b6382', fontWeight: '700' }}>
       Fetching details...
@@ -100,18 +92,18 @@ const EditEvents = () => {
   );
 
   return (
-    <div style={styles.container}>
+    <div style={{ ...styles.container, padding: isMobile ? '30px 16px' : '60px 5%' }}>
       <button 
         onClick={() => navigate(-1)} 
-        style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '30px', color: '#6b6382', fontWeight: '800', fontSize: '0.9rem' }}
+        style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '30px', color: '#6b6382', fontWeight: '800', fontSize: '0.9rem', padding: 0 }}
       >
         <ArrowLeft size={18} /> BACK TO DETAILS
       </button>
       
-      <div style={styles.card}>
+      <div style={{ ...styles.card, padding: isMobile ? '24px 20px' : '50px' }}>
         <header style={{ marginBottom: '35px' }}>
-            <h1 style={{ fontWeight: '900', fontSize: '2.2rem', margin: 0, color: '#1a1a1a', letterSpacing: '-1px' }}>Manage Event</h1>
-            <p style={{ color: '#888', marginTop: '5px', fontSize: '0.95rem' }}>Refine the details for <b>{formData.event_name}</b></p>
+            <h1 style={{ fontWeight: '900', fontSize: isMobile ? '1.75rem' : '2.2rem', margin: 0, color: '#1a1a1a', letterSpacing: '-1px', wordBreak: 'break-word' }}>Manage Event</h1>
+            <p style={{ color: '#888', marginTop: '5px', fontSize: '0.95rem', wordBreak: 'break-word' }}>Refine the details for <b>{formData.event_name}</b></p>
         </header>
 
         <form onSubmit={handleSubmit}>
@@ -126,7 +118,7 @@ const EditEvents = () => {
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '25px', marginTop: '15px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '25px', marginTop: '15px' }}>
             <div style={styles.inputGroup}>
               <span style={styles.label}><MapPin size={14}/> Location</span>
               <input name="location" style={styles.input} value={formData.location} onChange={handleChange} required />
@@ -155,10 +147,10 @@ const EditEvents = () => {
             </div>
           </div>
 
-          <div style={styles.btnContainer}>
+          <div style={{ ...styles.btnContainer, flexDirection: isMobile ? 'column' : 'row' }}>
             <button 
               type="submit" 
-              style={styles.submitBtn}
+              style={{ ...styles.submitBtn, width: isMobile ? '100%' : 'unset' }}
               onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.98)'}
               onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
             >
@@ -167,7 +159,7 @@ const EditEvents = () => {
             <button 
               type="button" 
               onClick={handleDelete} 
-              style={styles.deleteBtn}
+              style={{ ...styles.deleteBtn, width: isMobile ? '100%' : 'unset' }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = '#fff5f5';
                 e.currentTarget.style.borderColor = '#ff4d4d';
@@ -184,6 +176,17 @@ const EditEvents = () => {
       </div>
     </div>
   );
+};
+
+const styles = {
+  container: { backgroundColor: '#fcfcfd', minHeight: '100vh', fontFamily: "'Inter', sans-serif", boxSizing: 'border-box' },
+  card: { backgroundColor: '#ffffff', borderRadius: '32px', border: '1px solid #f0f0f5', maxWidth: '850px', margin: '0 auto', boxShadow: '0 20px 50px rgba(0,0,0,0.03)', boxSizing: 'border-box' },
+  inputGroup: { marginBottom: '10px' },
+  label: { display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.7rem', fontWeight: '800', color: '#b0b0b0', textTransform: 'uppercase', marginBottom: '10px', letterSpacing: '1px' },
+  input: { width: '100%', padding: '16px 20px', borderRadius: '16px', border: '1px solid #f0f0f5', backgroundColor: '#f9f9fb', fontSize: '1rem', fontWeight: '500', outline: 'none', color: '#1a1a1a', transition: 'all 0.2s ease', boxSizing: 'border-box' },
+  btnContainer: { display: 'flex', gap: '20px', marginTop: '40px' },
+  submitBtn: { flex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', padding: '18px', background: '#1a1a1a', color: 'white', border: 'none', borderRadius: '18px', fontWeight: '700', fontSize: '1rem', cursor: 'pointer', boxShadow: '0 10px 20px rgba(0,0,0,0.1)', transition: 'transform 0.1s ease', boxSizing: 'border-box' },
+  deleteBtn: { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', padding: '18px', background: '#fff', color: '#ff4d4d', border: '1px solid #ffccd1', borderRadius: '18px', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s ease', boxSizing: 'border-box' }
 };
 
 export default EditEvents;

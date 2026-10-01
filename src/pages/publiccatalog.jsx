@@ -35,8 +35,29 @@ const PublicCatalog = () => {
 
   return (
     <div style={{ backgroundColor: '#ffffff', minHeight: '100vh', color: '#0f172a', fontFamily: "'Inter', sans-serif" }}>
+      {/* Responsive Style Injector for Mobile Media Queries */}
+      <style>{`
+        @media (max-width: 768px) {
+          .catalog-nav {
+            padding: 15px 20px !important;
+            flex-direction: column;
+            gap: 15px;
+          }
+          .catalog-container {
+            padding: 0 20px !important;
+            margin: 20px auto !important;
+          }
+          .catalog-title {
+            font-size: 2rem !important;
+          }
+          .catalog-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
+
       {/* Top Navbar */}
-      <nav style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 60px', borderBottom: '1px solid #f1f5f9' }}>
+      <nav className="catalog-nav" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 60px', borderBottom: '1px solid #f1f5f9' }}>
         <h2 style={{ margin: 0, fontWeight: '900', fontSize: '1.4rem', letterSpacing: '-0.5px', cursor: 'pointer' }} onClick={() => navigate('/')}>
           EVENTEASE
         </h2>
@@ -57,9 +78,9 @@ const PublicCatalog = () => {
       </nav>
 
       {/* Main Content */}
-      <div style={{ maxWidth: '1300px', margin: '40px auto', padding: '0 40px' }}>
+      <div className="catalog-container" style={{ maxWidth: '1300px', margin: '40px auto', padding: '0 40px' }}>
         <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-          <h1 style={{ fontSize: '2.5rem', fontWeight: '900', letterSpacing: '-1px', marginBottom: '10px' }}>Public Service Catalog</h1>
+          <h1 className="catalog-title" style={{ fontSize: '2.5rem', fontWeight: '900', letterSpacing: '-1px', marginBottom: '10px' }}>Public Service Catalog</h1>
           <p style={{ color: '#64748b', fontSize: '1rem' }}>Browse available professional packages, services, and event bundles curated by our verified vendors.</p>
         </div>
 
@@ -79,7 +100,7 @@ const PublicCatalog = () => {
         ) : filteredServices.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '60px', color: '#64748b', fontWeight: '600' }}>No services found matching your search.</div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '24px' }}>
+          <div className="catalog-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '24px' }}>
             {filteredServices.map(service => (
               <div key={service.id || service.bundle_id} style={{ position: 'relative' }}>
                 <ServiceCard service={service} />

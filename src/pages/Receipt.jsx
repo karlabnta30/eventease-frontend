@@ -17,7 +17,7 @@ const Receipt = () => {
 
     return (
         <div style={styles.page}>
-            {/* --- PRINT PROTECTION LOGIC --- */}
+            {/* --- RESPONSIVE & PRINT PROTECTION LOGIC --- */}
             <style>
                 {`
                     @media print {
@@ -38,14 +38,48 @@ const Receipt = () => {
                             padding: 50px !important;
                         }
                     }
+
+                    @media (max-width: 640px) {
+                        .receipt-card-responsive {
+                            border-radius: 20px !important;
+                        }
+                        .receipt-header-responsive {
+                            padding: 25px 20px 15px 20px !important;
+                            flex-direction: column;
+                            gap: 15px;
+                            align-items: flex-start !important;
+                        }
+                        .success-section-responsive {
+                            padding: 10px 20px 25px 20px !important;
+                        }
+                        .amount-responsive {
+                            font-size: 2.8rem !important;
+                        }
+                        .details-container-responsive {
+                            padding: 0 20px 25px 20px !important;
+                        }
+                        .footer-info-responsive {
+                            padding: 15px 20px !important;
+                            text-align: center;
+                        }
+                        .action-area-responsive {
+                            flex-direction: column !important;
+                            width: 100% !important;
+                            gap: 12px !important;
+                        }
+                        .action-btn-responsive {
+                            width: 100% !important;
+                            justify-content: center !important;
+                        }
+                    }
                 `}
             </style>
 
-            <div id="receipt-content" style={styles.receiptCard}>
+            <div id="receipt-content" className="receipt-card-responsive" style={styles.receiptCard}>
                 {/* Top Decorative Bar */}
                 <div style={styles.topBar}></div>
 
-                <div style={styles.header}>
+                <div className="receipt-header-responsive" style={styles.header}>
                     <div style={styles.logoGroup}>
                         <div style={styles.logoIcon}>EE</div>
                         <div style={styles.logoText}>EventEase</div>
@@ -56,15 +90,15 @@ const Receipt = () => {
                     </div>
                 </div>
 
-                <div style={styles.successSection}>
+                <div className="success-section-responsive" style={styles.successSection}>
                     <div style={styles.successIconWrapper}>
                         <CheckCircle size={80} color="#22c55e" strokeWidth={2.5} />
                     </div>
-                    <h1 style={styles.amount}>₱{Number(amount).toLocaleString()}</h1>
+                    <h1 className="amount-responsive" style={styles.amount}>₱{Number(amount).toLocaleString()}</h1>
                     <p style={styles.subtext}>Transaction completed on {date}</p>
                 </div>
 
-                <div style={styles.detailsContainer}>
+                <div className="details-container-responsive" style={styles.detailsContainer}>
                     <h3 style={styles.detailsTitle}>Payment Summary</h3>
                     <div style={styles.detailsTable}>
                         <div style={styles.row}>
@@ -86,17 +120,17 @@ const Receipt = () => {
                     </div>
                 </div>
 
-                <div style={styles.footerInfo}>
+                <div className="footer-info-responsive" style={styles.footerInfo}>
                     <ShieldCheck size={16} />
                     <span>This is an official electronic receipt secured by SSL Encryption.</span>
                 </div>
             </div>
 
-            <div style={styles.actionArea} className="no-print">
-                <button onClick={() => window.print()} style={styles.printBtn}>
+            <div className="action-area-responsive no-print" style={styles.actionArea}>
+                <button onClick={() => window.print()} className="action-btn-responsive" style={styles.printBtn}>
                     <Printer size={20} /> Print Receipt
                 </button>
-                <button onClick={() => navigate('/live-events')} style={styles.doneBtn}>
+                <button onClick={() => navigate('/live-events')} className="action-btn-responsive" style={styles.doneBtn}>
                     Return to Live Events <ArrowRight size={20} />
                 </button>
             </div>
@@ -119,7 +153,7 @@ const styles = {
     receiptCard: { 
         background: '#fff', 
         width: '100%', 
-        maxWidth: '550px', // Increased size
+        maxWidth: '550px', 
         borderRadius: '32px', 
         boxShadow: '0 25px 50px -12px rgba(0,0,0,0.15)', 
         position: 'relative',

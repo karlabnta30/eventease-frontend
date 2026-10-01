@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import api from '../api';
 import { Package, MapPin, CheckCircle, ArrowLeft, CheckCircle2, AlertTriangle, Sparkles } from 'lucide-react';
@@ -13,13 +13,19 @@ const BundleDetails = () => {
   const [eventDate, setEventDate] = useState('');
   const [eventName, setEventName] = useState(service?.bundle_name || '');
   const [location, setLocation] = useState('');
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
-  // Custom modal state replacing browser default alerts
   const [modalConfig, setModalConfig] = useState({ isOpen: false, type: 'success', title: '', message: '' });
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   if (!service) {
     return (
-      <div style={{ padding: '60px', textAlign: 'center' }}>
+      <div style={{ padding: '60px 20px', textAlign: 'center' }}>
         <p className="text-gray-500 font-bold mb-4">No bundle information found.</p>
         <button onClick={() => navigate('/main-dashboard')} style={{ background: '#000', color: '#fff', padding: '10px 20px', borderRadius: '10px', border: 'none', cursor: 'pointer' }}>
           Back to Dashboard
@@ -28,7 +34,6 @@ const BundleDetails = () => {
     );
   }
 
-  // Handle price and inclusions dynamically for both standard and custom architected bundles
   const displayPrice = Number(service.price || service.total_price || 0);
   const packageInclusions = service.services || service.items || [];
 
@@ -87,9 +92,8 @@ const BundleDetails = () => {
   };
 
   return (
-    <div style={{ padding: '40px 10%', backgroundColor: '#fdfbfb', minHeight: '100vh', fontFamily: "'Inter', sans-serif", position: 'relative' }}>
+    <div style={{ padding: isMobile ? '20px 16px' : '40px 10%', backgroundColor: '#fdfbfb', minHeight: '100vh', fontFamily: "'Inter', sans-serif", position: 'relative', boxSizing: 'border-box' }}>
       
-      {/* Custom Styled Notification / Alert Modal */}
       {modalConfig.isOpen && (
         <div style={styles.modalOverlay}>
           <div style={styles.modalCard}>
@@ -119,14 +123,13 @@ const BundleDetails = () => {
         </div>
       )}
 
-      <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: 'bold', marginBottom: '20px', color: '#64748b' }}>
+      <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: 'bold', marginBottom: '20px', color: '#64748b', padding: 0 }}>
         <ArrowLeft size={18} /> Back to Dashboard
       </button>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '40px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1.2fr 1fr', gap: '25px' }}>
         
-        {/* Left Side: Detailed Bundle Information */}
-        <div style={{ background: '#fff', padding: '30px', borderRadius: '24px', border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
+        <div style={{ background: '#fff', padding: isMobile ? '24px 20px' : '30px', borderRadius: '24px', border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.02)', boxSizing: 'border-box' }}>
           <div style={{ 
             display: 'flex', alignItems: 'center', gap: '8px', 
             background: isCustomArchitect ? '#2563eb' : '#059669', 
@@ -136,23 +139,23 @@ const BundleDetails = () => {
             {isCustomArchitect ? 'Bundle Architect Master Blueprint' : 'Vendor Bundle Package'}
           </div>
           
-          <h1 style={{ fontSize: '2rem', fontWeight: '900', color: '#0f172a', margin: '0 0 10px 0' }}>
+          <h1 style={{ fontSize: isMobile ? '1.6rem' : '2rem', fontWeight: '900', color: '#0f172a', margin: '0 0 10px 0', wordBreak: 'break-word' }}>
             {service.bundle_name || service.name}
           </h1>
-          <p style={{ color: '#64748b', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '20px' }}>
-            <MapPin size={16} /> {service.location || 'Available Nationwide'} • Offered by <strong style={{ color: '#0f172a' }}>{vendorBusinessName}</strong>
+          <p style={{ color: '#64748b', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '20px', flexWrap: 'wrap' }}>
+            <MapPin size={16} style={{ flexShrink: 0 }} /> {service.location || 'Available Nationwide'} • Offered by <strong style={{ color: '#0f172a' }}>{vendorBusinessName}</strong>
           </p>
 
-          <p style={{ color: '#334155', lineHeight: '1.6', fontSize: '1rem', marginBottom: '30px' }}>
+          <p style={{ color: '#334155', lineHeight: '1.6', fontSize: '0.95rem', marginBottom: '30px', wordBreak: 'break-word' }}>
             {service.description || (isCustomArchitect ? "Your custom-engineered multi-service event package curated live through the Bundle Architect studio." : "Comprehensive event package curated to provide top-tier professional services for your special occasion.")}
           </p>
 
           <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '16px', border: '1px solid #cbd5e1' }}>
-            <h3 style={{ fontSize: '1.1rem', fontWeight: '800', color: '#0f172a', marginBottom: '12px' }}>Package Inclusions ({packageInclusions.length} Services):</h3>
+            <h3 style={{ fontSize: '1.05rem', fontWeight: '800', color: '#0f172a', marginBottom: '12px' }}>Package Inclusions ({packageInclusions.length} Services):</h3>
             {packageInclusions.length > 0 ? (
               <ul style={{ margin: 0, paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {packageInclusions.map((s, idx) => (
-                  <li key={idx} style={{ color: '#334155', fontWeight: '600', fontSize: '0.95rem' }}>
+                  <li key={idx} style={{ color: '#334155', fontWeight: '600', fontSize: '0.9rem', wordBreak: 'break-word' }}>
                     {s.service_name || s.name || s.title} <span style={{ color: '#059669', fontWeight: 'bold' }}>- ₱{Number(s.price || 0).toLocaleString()}</span>
                   </li>
                 ))}
@@ -163,18 +166,17 @@ const BundleDetails = () => {
           </div>
         </div>
 
-        {/* Right Side: Booking Confirmation & Final Review Form */}
-        <div style={{ background: '#fff', padding: '30px', borderRadius: '24px', border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.02)', height: 'fit-content' }}>
-          <h3 style={{ fontSize: '1.3rem', fontWeight: '900', color: '#0f172a', marginBottom: '20px' }}>Review & Book</h3>
+        <div style={{ background: '#fff', padding: isMobile ? '24px 20px' : '30px', borderRadius: '24px', border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.02)', height: 'fit-content', boxSizing: 'border-box' }}>
+          <h3 style={{ fontSize: '1.2rem', fontWeight: '900', color: '#0f172a', marginBottom: '20px' }}>Review & Book</h3>
           
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px', paddingBottom: '15px', borderBottom: '1px solid #f1f5f9' }}>
-            <span style={{ color: '#64748b', fontWeight: '600' }}>Total Package Price:</span>
-            <span style={{ fontSize: '1.8rem', fontWeight: '900', color: '#059669' }}>₱{displayPrice.toLocaleString()}</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px', paddingBottom: '15px', borderBottom: '1px solid #f1f5f9', flexWrap: 'wrap', gap: '8px' }}>
+            <span style={{ color: '#64748b', fontWeight: '600', fontSize: '0.9rem' }}>Total Package Price:</span>
+            <span style={{ fontSize: isMobile ? '1.5rem' : '1.8rem', fontWeight: '900', color: '#059669' }}>₱{displayPrice.toLocaleString()}</span>
           </div>
 
           <form onSubmit={handleConfirmBooking} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase' }}>Event Name</label>
+              <label style={{ fontSize: '11px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase' }}>Event Name</label>
               <input 
                 type="text" 
                 required 
@@ -186,7 +188,7 @@ const BundleDetails = () => {
             </div>
 
             <div>
-              <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase' }}>Event Date</label>
+              <label style={{ fontSize: '11px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase' }}>Event Date</label>
               <input 
                 type="date" 
                 required 
@@ -198,7 +200,7 @@ const BundleDetails = () => {
 
             {!hasVenueService && (
               <div>
-                <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase' }}>Event Venue / Location</label>
+                <label style={{ fontSize: '11px', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase' }}>Event Venue / Location</label>
                 <input 
                   type="text" 
                   required={!hasVenueService} 
@@ -214,9 +216,9 @@ const BundleDetails = () => {
               type="submit" 
               disabled={loading}
               style={{ 
-                background: '#000', color: '#fff', padding: '16px', borderRadius: '14px', 
+                background: '#000', color: '#fff', padding: '15px', borderRadius: '14px', 
                 border: 'none', fontWeight: 'bold', cursor: 'pointer', marginTop: '10px',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '0.95rem', width: '100%', boxSizing: 'border-box'
               }}
             >
               <CheckCircle size={18} /> {loading ? 'Submitting Request...' : 'Confirm & Request Booking'}
@@ -232,8 +234,8 @@ const BundleDetails = () => {
 const inputStyle = { width: '100%', padding: '12px', marginTop: '6px', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.95rem', boxSizing: 'border-box' };
 
 const styles = {
-  modalOverlay: { position: 'fixed', inset: 0, backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, backdropFilter: 'blur(4px)' },
-  modalCard: { backgroundColor: '#fff', padding: '32px', borderRadius: '24px', width: '100%', maxWidth: '400px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' },
+  modalOverlay: { position: 'fixed', inset: 0, backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, backdropFilter: 'blur(4px)', padding: '16px', boxSizing: 'border-box' },
+  modalCard: { backgroundColor: '#fff', padding: '30px 20px', borderRadius: '24px', width: '100%', maxWidth: '400px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', boxSizing: 'border-box' },
   modalSuccessBtn: { width: '100%', backgroundColor: '#059669', color: '#fff', border: 'none', padding: '12px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.95rem' },
   modalErrorBtn: { width: '100%', backgroundColor: '#ef4444', color: '#fff', border: 'none', padding: '12px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.95rem' }
 };
