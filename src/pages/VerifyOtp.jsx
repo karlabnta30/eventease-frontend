@@ -12,23 +12,24 @@ const SuccessModal = ({ isOpen, onClose }) => {
       position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
       backgroundColor: 'rgba(0, 0, 0, 0.8)', display: 'flex',
       alignItems: 'center', justifyContent: 'center', zIndex: 2000,
-      backdropFilter: 'blur(8px)'
+      backdropFilter: 'blur(8px)', padding: '20px', boxSizing: 'border-box'
     }}>
       <div style={{
-        background: '#fff', padding: '50px', borderRadius: '32px',
-        textAlign: 'center', maxWidth: '450px', width: '90%',
-        boxShadow: '0 25px 50px rgba(0,0,0,0.3)', border: '1px solid #eee'
+        background: '#fff', padding: '30px 20px', borderRadius: '32px',
+        textAlign: 'center', maxWidth: '450px', width: '100%',
+        boxShadow: '0 25px 50px rgba(0,0,0,0.3)', border: '1px solid #eee',
+        boxSizing: 'border-box'
       }}>
-        <div style={{ fontSize: '70px', marginBottom: '20px' }}>✨</div>
+        <div style={{ fontSize: '60px', marginBottom: '15px' }}>✨</div>
         <h2 style={{ 
-          color: '#000', fontSize: '2.2rem', fontWeight: '900', 
-          letterSpacing: '-1.5px', marginBottom: '15px', fontFamily: "'Inter', sans-serif"
+          color: '#000', fontSize: '1.8rem', fontWeight: '900', 
+          letterSpacing: '-1.5px', marginBottom: '12px', fontFamily: "'Inter', sans-serif"
         }}>
           Account Verified!
         </h2>
         <p style={{ 
-          color: '#444', lineHeight: '1.6', marginBottom: '35px', 
-          fontSize: '1.1rem', fontWeight: '500', fontFamily: "'Inter', sans-serif"
+          color: '#444', lineHeight: '1.6', marginBottom: '25px', 
+          fontSize: '1rem', fontWeight: '500', fontFamily: "'Inter', sans-serif"
         }}>
           Your email has been successfully verified. You can now sign in to your EventEase account.
         </p>
@@ -36,8 +37,8 @@ const SuccessModal = ({ isOpen, onClose }) => {
           onClick={onClose}
           style={{
             background: '#000', color: '#fff', border: 'none',
-            padding: '18px 0', borderRadius: '14px', fontWeight: '800',
-            cursor: 'pointer', width: '100%', fontSize: '1.1rem',
+            padding: '16px 0', borderRadius: '14px', fontWeight: '800',
+            cursor: 'pointer', width: '100%', fontSize: '1rem',
             transition: 'transform 0.2s', fontFamily: "'Inter', sans-serif"
           }}
           onMouseOver={(e) => e.target.style.transform = 'scale(1.02)'}
@@ -118,19 +119,19 @@ const VerifyOtp = () => {
   };
 
   return (
-    <div style={{ backgroundColor: '#ffffff', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Inter', sans-serif", padding: '20px' }}>
+    <div style={{ backgroundColor: '#ffffff', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Inter', sans-serif", padding: '15px', boxSizing: 'border-box' }}>
       
       <SuccessModal 
         isOpen={isModalOpen} 
         onClose={() => navigate('/login')} 
       />
 
-      <div style={{ background: 'white', padding: '40px', borderRadius: '28px', border: '1px solid #f0f0f0', boxShadow: '0 20px 40px rgba(0,0,0,0.05)', maxWidth: '400px', width: '100%', textAlign: 'center' }}>
+      <div style={{ background: 'white', padding: '30px 20px', borderRadius: '28px', border: '1px solid #f0f0f0', boxShadow: '0 20px 40px rgba(0,0,0,0.05)', maxWidth: '400px', width: '100%', textAlign: 'center', boxSizing: 'border-box' }}>
         <div style={{ background: '#f8fafc', width: '60px', height: '60px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
           <ShieldCheck size={28} color="#2563eb" />
         </div>
-        <h2 style={{ fontSize: '1.8rem', fontWeight: '900', letterSpacing: '-1px', marginBottom: '10px', color: '#0f172a' }}>Check Your Email</h2>
-        <p style={{ fontSize: '0.85rem', color: '#64748b', lineHeight: '1.5', marginBottom: '25px' }}>
+        <h2 style={{ fontSize: '1.6rem', fontWeight: '900', letterSpacing: '-1px', marginBottom: '10px', color: '#0f172a' }}>Check Your Email</h2>
+        <p style={{ fontSize: '0.85rem', color: '#64748b', lineHeight: '1.5', marginBottom: '25px', wordBreak: 'break-word' }}>
           We’ve sent a 6-digit verification code to <strong style={{ color: '#0f172a' }}>{email || 'your email'}</strong>. Enter it below to activate your account.
         </p>
 
@@ -141,19 +142,18 @@ const VerifyOtp = () => {
             placeholder="123456" 
             value={otp} 
             onChange={(e) => setOtp(e.target.value)} 
-            style={{ width: '100%', padding: '16px', border: '2px solid #e2e8f0', borderRadius: '14px', fontSize: '1.5rem', fontWeight: '800', textAlign: 'center', letterSpacing: '8px', outline: 'none', marginBottom: '20px', boxSizing: 'border-box' }}
+            style={{ width: '100%', padding: '14px', border: '2px solid #e2e8f0', borderRadius: '14px', fontSize: '1.3rem', fontWeight: '800', textAlign: 'center', letterSpacing: '6px', outline: 'none', marginBottom: '20px', boxSizing: 'border-box' }}
           />
 
           <button 
             type="submit" 
             disabled={loading}
-            style={{ width: '100%', padding: '16px', borderRadius: '14px', border: 'none', background: '#000', color: 'white', fontWeight: '900', fontSize: '1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '15px' }}
+            style={{ width: '100%', padding: '15px', borderRadius: '14px', border: 'none', background: '#000', color: 'white', fontWeight: '900', fontSize: '0.95rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '15px', boxSizing: 'border-box' }}
           >
             {loading ? 'VERIFYING...' : 'VERIFY CODE'} <ArrowRight size={18} />
           </button>
         </form>
 
-        {/* Resend Code Option */}
         <div style={{ marginTop: '15px', borderTop: '1px solid #f1f5f9', paddingTop: '20px' }}>
           <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '0 0 8px 0' }}>Didn't receive the code?</p>
           <button 
