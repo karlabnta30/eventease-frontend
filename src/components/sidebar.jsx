@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   Home, CalendarDays, PlusCircle, ChevronLeft, ChevronRight, 
@@ -7,10 +7,20 @@ import {
 
 const Sidebar = ({ children }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const navigate = useNavigate();
   const location = useLocation();
   const userRole = localStorage.getItem('userRole');
   const userName = localStorage.getItem('userName') || 'User';
+
+  // Monitor screen size for mobile responsiveness
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const handleLogout = () => {
     localStorage.clear();
@@ -24,16 +34,8 @@ const Sidebar = ({ children }) => {
         icon: <Home size={18} />, 
         path: userRole === 'admin' ? '/admin-dashboard' : (userRole === 'vendor' ? '/vendor-dashboard' : '/main-dashboard') 
       },
-      { 
-        name: 'Messages', 
-        icon: <MessageSquare size={18} />, 
-        path: '/messages' 
-      },
-      { 
-        name: 'Notifications', 
-        icon: <Bell size={18} />, 
-        path: '/notifications' 
-      },
+      { name: 'Messages', icon: <MessageSquare size={18} />, path: '/messages' },
+      { name: 'Notifications', icon: <Bell size={18} />, path: '/notifications' },
     ];
 
     if (userRole !== 'vendor') {
@@ -60,31 +62,39 @@ const Sidebar = ({ children }) => {
   const styles = {
     layout: { 
       display: 'flex', 
-      height: '100vh', 
+      flexDirection: isMobile ? 'column' : 'row', // Magiging patayo kapag mobile
+      height: isMobile ? 'auto' : '100vh', 
       width: '100vw', 
-      overflow: 'hidden' 
+      overflowX: 'hidden' 
     },
     sidebar: {
-      width: isCollapsed ? '70px' : '240px',
+      width: isMobile ? '100%' : (isCollapsed ? '70px' : '240px'),
       backgroundColor: '#ffffff',
-      borderRight: '1px solid #eee',
+      borderRight: isMobile ? 'none' : '1px solid #eee',
+      borderBottom: isMobile ? '1px solid #eee' : 'none',
       padding: '15px 10px',
       display: 'flex',
-      flexDirection: 'column',
+      flexDirection: isMobile ? 'row' : 'column', // Maging pahiga o patayo depende sa screen
       justifyContent: 'space-between',
+      alignItems: isMobile ? 'center' : 'stretch',
       transition: 'width 0.2s ease-in-out',
       flexShrink: 0
     },
     menuContainer: {
+      display: 'flex',
+      flexDirection: isMobile ? 'row' : 'column',
+      overflowX: isMobile ? 'auto' : 'hidden',
       overflowY: 'auto',
-      overflowX: 'hidden',
       flex: 1,
-      paddingRight: '4px'
+      gap: isMobile ? '10px' : '0',
+      alignItems: isMobile ? 'center' : 'stretch',
+      paddingRight: '4px',
+      width: '100%'
     },
     profileSection: {
-      display: 'flex',
+      display: isMobile ? 'none' : 'flex', // Pwedeng itago ang profile o pasimplihin sa mobile para hindi masikip
       alignItems: 'center',
-      justifyContent: isCollapsed ? 'center' : 'flex-start',
+      justify5Content: isCollapsed ? 'center' : 'flex-start',
       gap: '10px',
       padding: '10px',
       marginBottom: '15px',
@@ -115,13 +125,13 @@ const Sidebar = ({ children }) => {
       color: 'white', 
       cursor: 'pointer', 
       border: 'none',
-      marginBottom: '15px', 
+      marginBottom: isMobile ? '0' : '15px', 
       fontWeight: '700', 
-      width: '100%', 
       fontSize: '12px',
-      justifyContent: isCollapsed ? 'center' : 'flex-start',
+      justifyContent: 'center',
     },
     bottomSection: {
+      display: isMobile ? 'none' : 'block', // Itago muna ang collapse/signout sa bottom kapag mobile para hindi magulo, o ilagay sa menu
       borderTop: '1px solid #eee',
       paddingTop: '10px',
       marginTop: '10px'
@@ -130,24 +140,24 @@ const Sidebar = ({ children }) => {
       flex: 1, 
       backgroundColor: '#fcfcfd', 
       overflowY: 'auto', 
-      height: '100vh',
-      padding: '20px'
+      minHeight: '100vh',
+      padding: '20px',
+      width: '100%',
+      boxSizing: 'border-box'
     },
     navItem: (isActive) => ({
       display: 'flex', 
       alignItems: 'center', 
-      justifyContent: isCollapsed ? 'center' : 'flex-start',
-      gap: isCollapsed ? '0' : '10px', 
-      padding: '12px',
+      justifyContent: isCollapsed && !isMobile ? 'center' : 'flex-start',
+      gap: '10px', 
+      padding: '10px 12px',
       borderRadius: '8px',
       cursor: 'pointer', 
-      marginBottom: '4px', 
       backgroundColor: isActive ? '#f4f1ea' : 'transparent',
       color: isActive ? '#1a1a1a' : '#555', 
       fontWeight: isActive ? '700' : '400', 
       fontSize: '13px',
       whiteSpace: 'nowrap',
-      transition: 'all 0.2s',
     })
   };
 
@@ -174,7 +184,7 @@ const Sidebar = ({ children }) => {
               onClick={() => navigate(userRole === 'vendor' ? '/add-service' : '/create-event')}
             >
               <PlusCircle size={18} />
-              {!isCollapsed && <span>{userRole === 'vendor' ? 'ADD SERVICE' : 'CREATE EVENT'}</span>}
+              {!isCollapsed && !isMobile && <span>{userRole === 'vendor' ? 'ADD SERVICE' : 'CREATE EVENT'}</span>}
             </button>
           )}
 
@@ -188,7 +198,7 @@ const Sidebar = ({ children }) => {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '24px' }}>
                 {item.icon}
               </div>
-              {!isCollapsed && <span style={{ marginLeft: '10px' }}>{item.name}</span>}
+              {(!isCollapsed || isMobile) && <span style={{ display: isMobile ? 'none' : 'inline' }}>{item.name}</span>}
             </div>
           ))}
         </div>
