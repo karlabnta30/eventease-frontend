@@ -117,19 +117,27 @@ const Messages = () => {
     formData.append('receiver_id', activeContact.id);
 
     setUploading(true);
+    const uploadingToast = toast.loading("Uploading attachment...");
+
     try {
       let fileUrl = '';
 
-      if (activeBooking?.id) {
-        const res = await api.post(`/bookings/${activeBooking.id}/attach-document`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
-        fileUrl = res.data.file_url || res.data.url;
-      } else {
+      // Direktang gamitin ang /messages/upload para maiwasan ang 500 error sa attach-document kung walang active booking or service binding
+      try {
         const res = await api.post('/messages/upload', formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
         fileUrl = res.data.file_url || res.data.url;
+      } catch (generalUploadErr) {
+        // Fallback sa booking attach kung sakaling may active booking ID
+        if (activeBooking?.id) {
+          const res = await api.post(`/bookings/${activeBooking.id}/attach-document`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+          });
+          fileUrl = res.data.file_url || res.data.url;
+        } else {
+          throw generalUploadErr;
+        }
       }
 
       if (!fileUrl) {
@@ -145,10 +153,10 @@ const Messages = () => {
         setMessages((prev) => [...prev, msgRes.data.message]);
       }
 
-      toast.success("File attached successfully!");
+      toast.success("File attached successfully!", { id: uploadingToast });
     } catch (err) {
       console.error("Upload error:", err);
-      toast.error(err.response?.data?.error || err.message || "Failed to upload and attach file. Please ensure the backend supports the upload route.");
+      toast.error(err.response?.data?.error || err.message || "Failed to upload file.", { id: uploadingToast });
     } finally {
       setUploading(false);
       e.target.value = null;
@@ -354,11 +362,11 @@ const Messages = () => {
                   type="text" 
                   value={newMessage} 
                   onChange={(e) => setNewMessage(e.target.value)}
-                  placeholder={uploading ? "Uploading file..." : "Type your message..."}
+                  placeholder="Type your message..."
                   disabled={uploading}
                   style={{ flex: 1, padding: '12px 16px', borderRadius: '12px', border: '1px solid #e2e8f0', outline: 'none', fontSize: '0.9rem', background: '#f8fafc', minWidth: 0 }}
                 />
-                <button type="submit" style={{ background: '#000', color: '#fff', border: 'none', padding: '12px 16px', borderRadius: '12px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                <button type="submit" disabled={uploading} style={{ background: '#000', color: '#fff', border: 'none', padding: '12px 16px', borderRadius: '12px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
                   <Send size={18} />
                 </button>
               </form>
