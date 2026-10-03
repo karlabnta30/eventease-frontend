@@ -484,11 +484,16 @@ const CreateEvent = () => {
                   type="number" 
                   min="1" 
                   max="150" 
+                  maxLength={3}
                   placeholder="0" 
                   style={styles.input} 
                   value={eventData.pax} 
                   onKeyDown={(e) => ['-', 'e', '+', '.'].includes(e.key) && e.preventDefault()}
-                  onChange={(e) => handleChange('pax', e.target.value)} 
+                  onChange={(e) => {
+                    if (e.target.value.length <= 3) {
+                      handleChange('pax', e.target.value);
+                    }
+                  }} 
                 />
             </div>
             <div style={styles.card}>
@@ -499,11 +504,16 @@ const CreateEvent = () => {
                 <input 
                   type="number" 
                   min="0" 
+                  maxLength={7}
                   placeholder="0.00" 
                   style={styles.input} 
                   value={eventData.budget} 
                   onKeyDown={(e) => ['-', 'e', '+'].includes(e.key) && e.preventDefault()}
-                  onChange={(e) => handleChange('budget', e.target.value)} 
+                  onChange={(e) => {
+                    if (e.target.value.length <= 7) {
+                      handleChange('budget', e.target.value);
+                    }
+                  }} 
                 />
             </div>
 
