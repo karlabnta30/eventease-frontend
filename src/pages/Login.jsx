@@ -43,7 +43,9 @@ const Login = () => {
     try {
       const response = await api.post('/login', { email, password });
 
-      if (response.data.token && response.data.user) {
+      if (response.data.requires_verification) {
+        navigate('/verify-otp', { state: { email, debug_otp: response.data.debug_otp } });
+      } else if (response.data.token && response.data.user) {
         localStorage.setItem('token', response.data.token);
         localStorage.setItem('userRole', response.data.user.role); 
         localStorage.setItem('userName', response.data.user.name);
@@ -55,14 +57,18 @@ const Login = () => {
         } else {
           navigate('/main-dashboard', { replace: true });
         }
-      } else if (response.data.requires_verification) {
-        navigate('/verify-otp', { state: { email } });
       } else {
         setError('Login response did not return a valid session token.');
       }
     } catch (err) {
       console.error("Login Error:", err.response?.data || err.message);
-      setError(err.response?.data?.message || err.response?.data?.error || "Login failed. Check your credentials.");
+      
+      // Handle server-side 403 or specific unverified state if triggered via catch block
+      if (err.response?.data?.requires_verification) {
+        navigate('/verify-otp', { state: { email, debug_otp: err.response.data.debug_otp } });
+      } else {
+        setError(err.response?.data?.message || err.response?.data?.error || "Login failed. Check your credentials.");
+      }
     } finally {
       setLoading(false);
     }
