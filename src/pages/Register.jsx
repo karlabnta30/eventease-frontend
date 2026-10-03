@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../api';
-import { ChevronLeft, X, User, Mail, Phone, MapPin, Lock } from 'lucide-react';
+import { ChevronLeft, X, User, Mail, Phone, MapPin, Lock, Eye, EyeOff } from 'lucide-react';
 
 const partyImages = [
   "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?auto=format&fit=crop&w=1600&q=80", 
@@ -19,6 +19,10 @@ const Register = () => {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
+  
+  // New States para sa Password Toggle at Strength/Validation
+  const [showPassword, setShowPassword] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState({ text: '', color: '' });
   
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
@@ -40,9 +44,43 @@ const Register = () => {
     return () => clearInterval(timer);
   }, []);
 
+  // Password evaluation logic (8-20 chars, numbers, symbols)
+  const handlePasswordChange = (e) => {
+    const val = e.target.value;
+    setPassword(val);
+
+    if (!val) {
+      setPasswordStrength({ text: '', color: '' });
+      return;
+    }
+
+    const lengthValid = val.length >= 8 && val.length <= 20;
+    const hasNumber = /\d/.test(val);
+    const hasSymbol = /[!@#$%^&*(),.?":{}|<>]/.test(val);
+
+    if (lengthValid && hasNumber && hasSymbol) {
+      setPasswordStrength({ text: 'Strong Password 💪', color: '#10b981' });
+    } else {
+      setPasswordStrength({ 
+        text: 'Weak: Must be 8-20 chars, include numbers & symbols ⚠️', 
+        color: '#ef4444' 
+      });
+    }
+  };
+
   const handleRegister = async (e) => {
     e.preventDefault(); 
     if (!acceptedTerms) return;
+
+    // Strict validation bago mag-submit
+    const lengthValid = password.length >= 8 && password.length <= 20;
+    const hasNumber = /\d/.test(password);
+    const hasSymbol = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+    if (!lengthValid || !hasNumber || !hasSymbol) {
+      alert('Password must be 8-20 characters long and contain numbers and symbols.');
+      return;
+    }
 
     setLoading(true);
     try {
@@ -245,7 +283,7 @@ const Register = () => {
               </div>
 
               <div style={styles.inputGroup}>
-                <label style={styles.label}>Contact Number <span style={{ color: '#94a3b8', fontWeight: '400' }}>(Optional)</span></label>
+                <label style={styles.label}>Contact Number <span style={{ color: '#ef4444' }}>*</span></label>
                 <div style={styles.inputContainer}>
                   <Phone size={18} color="#94a3b8" style={styles.inputIcon} />
                   <input 
@@ -254,6 +292,7 @@ const Register = () => {
                     value={contactNumber}
                     onChange={(e) => setContactNumber(e.target.value)}
                     placeholder="Contact Number"
+                    required
                   />
                 </div>
               </div>
@@ -278,15 +317,28 @@ const Register = () => {
                 <div style={styles.inputContainer}>
                   <Lock size={18} color="#94a3b8" style={styles.inputIcon} />
                   <input 
-                    style={styles.inputField}
-                    type="password" 
+                    style={styles.inputFieldPassword}
+                    type={showPassword ? "text" : "password"} 
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Password"
+                    onChange={handlePasswordChange}
+                    placeholder="Password (8-20 chars, symbols, numbers)"
+                    maxLength={20}
                     required
                     autoComplete="new-password"
                   />
+                  <button 
+                    type="button" 
+                    onClick={() => setShowPassword(!showPassword)} 
+                    style={styles.eyeBtn}
+                  >
+                    {showPassword ? <EyeOff size={18} color="#94a3b8" /> : <Eye size={18} color="#94a3b8" />}
+                  </button>
                 </div>
+                {password && (
+                  <span style={{ fontSize: '0.7rem', fontWeight: '700', color: passwordStrength.color, marginTop: '2px' }}>
+                    {passwordStrength.text}
+                  </span>
+                )}
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '2px 0' }}>
@@ -509,7 +561,8 @@ const styles = {
     position: 'absolute',
     left: '16px',
     top: '50%',
-    transform: 'translateY(-50%)'
+    transform: 'translateY(-50%)',
+    zIndex: 2
   },
   inputField: {
     width: '100%',
@@ -522,6 +575,29 @@ const styles = {
     outline: 'none',
     boxSizing: 'border-box',
     fontWeight: '500'
+  },
+  inputFieldPassword: {
+    width: '100%',
+    padding: '10px 40px 10px 44px',
+    borderRadius: '12px',
+    border: '1px solid #e2e8f0',
+    backgroundColor: '#f8fafc',
+    fontSize: '0.85rem',
+    color: '#0f172a',
+    outline: 'none',
+    boxSizing: 'border-box',
+    fontWeight: '500'
+  },
+  eyeBtn: {
+    position: 'absolute',
+    right: '14px',
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    padding: 0,
+    zIndex: 2
   },
   submitBtn: {
     marginTop: '6px',

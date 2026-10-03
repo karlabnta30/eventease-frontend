@@ -21,8 +21,8 @@ const MainDashboard = () => {
   const [bundleName, setBundleName] = useState('My Custom Event Blueprint');
   const [isSavingBundle, setIsSavingBundle] = useState(false);
 
-  // --- MGA BAGONG STATES PARA SA AI BUDGET OPTIMIZER & ADVANCED FEATURES ---
-  const [targetBudget, setTargetBudget] = useState(50000); // Default user target budget
+  // --- MGA STATES PARA SA AI BUDGET OPTIMIZER & ADVANCED FEATURES ---
+  const [targetBudget, setTargetBudget] = useState(50000); 
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [optimizationSuggestion, setOptimizationSuggestion] = useState(null);
 
@@ -63,7 +63,6 @@ const MainDashboard = () => {
             });
           });
         } else {
-          // Sinisigurong nasasalo kung ang /vendors o /services ay listahan ng vendors o tuwirang listahan ng services
           rawData.forEach(item => {
             if (item.price && (item.title || item.name)) {
               allServices.push({
@@ -176,7 +175,6 @@ const MainDashboard = () => {
     return architectItems.reduce((sum, item) => sum + Number(item.price || 0), 0);
   }, [architectItems]);
 
-  // --- AI BUDGET OPTIMIZER & TRADE-OFF LOGIC ---
   const handleRunAiOptimization = () => {
     setIsOptimizing(true);
     setTimeout(() => {
@@ -199,7 +197,7 @@ const MainDashboard = () => {
     setIsSavingBundle(true);
     try {
       const customBundlePayload = {
-        id: 'custom_' + Date.now(),
+        id: Date.now(),
         bundle_name: bundleName,
         total_price: architectTotalCost,
         target_budget: targetBudget,
@@ -278,7 +276,6 @@ const MainDashboard = () => {
 
   return (
     <div className="main-dashboard-container" style={{ backgroundColor: '#ffffff', minHeight: '100vh', fontFamily: "'Inter', sans-serif" }}>
-      {/* Inayos ang top padding/margin dito para direktang sumabay sa linya ng sidebar */}
       <div className="dashboard-wrapper" style={{ paddingTop: '20px' }}>
 
         <div className="dashboard-header-container" style={{ marginTop: '0', paddingTop: '0' }}>
@@ -320,7 +317,6 @@ const MainDashboard = () => {
           
           <aside className="dashboard-sidebar">
             
-            {/* BUNDLE ARCHITECT & AI BUDGET OPTIMIZER COMBINED PANEL */}
             <div style={{ ...cardStyle, border: '2px solid #000', background: '#ffffff' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
                 <h4 style={{ margin: 0, fontWeight: '900', display: 'flex', alignItems: 'center', gap: '8px', color: '#000', fontSize: '0.9rem', textTransform: 'uppercase' }}>
@@ -347,8 +343,9 @@ const MainDashboard = () => {
                 <input 
                   type="number" 
                   style={{ ...inputStyle, fontWeight: '800', color: '#047857' }} 
-                  value={targetBudget} 
-                  onChange={(e) => setTargetBudget(Number(e.target.value))} 
+                  value={targetBudget === 0 ? '' : targetBudget} 
+                  onChange={(e) => setTargetBudget(e.target.value === '' ? '' : Number(e.target.value))} 
+                  placeholder="Enter budget cap"
                 />
               </div>
 
@@ -405,7 +402,6 @@ const MainDashboard = () => {
               )}
             </div>
 
-            {/* SCHEDULED EVENTS PANEL */}
             <div style={{ ...cardStyle, background: '#ffffff', border: '1px solid #eaeaea', marginTop: '16px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', borderBottom: '2px solid #f8fafc', paddingBottom: '12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -458,7 +454,6 @@ const MainDashboard = () => {
               />
             </div>
 
-            {/* Dynamic Category Tabs */}
             <div className="dashboard-tabs-container" style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '10px', marginBottom: '20px' }}>
               {availableCategories.map((category) => (
                 <button 
@@ -494,8 +489,12 @@ const MainDashboard = () => {
                           budgetStatus="set_budget"
                           onToggle={handleToggleStatus} 
                           onBook={(serviceData) => {
-                            const rawId = String(serviceData.id).startsWith('bundle_') ? String(serviceData.id).replace('bundle_', '') : serviceData.id;
-                            navigate(`/bundle-details/${rawId}`, { state: { service: serviceData } });
+                            const isBundle = String(serviceData.id).startsWith('bundle_');
+                            const rawId = isBundle ? String(serviceData.id).replace('bundle_', '') : serviceData.id;
+                            
+                            navigate(isBundle ? `/bundle-details/${rawId}` : `/service-details/${rawId}`, { 
+                              state: { service: serviceData, type: isBundle ? 'bundle' : 'service' } 
+                            });
                           }} 
                         />
                       </div>
