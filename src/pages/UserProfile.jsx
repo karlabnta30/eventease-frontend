@@ -65,8 +65,10 @@ const UserProfile = () => {
 
   const handlePermitUpload = async (e) => {
     e.preventDefault();
+    
+    // MAHIGPIT NA RESTRICTION: Pigilan kung walang napiling file
     if (!permitFile) {
-      toast.error("Please select a file first.");
+      toast.error("Please select a ID file before uploading.");
       return;
     }
 
@@ -198,7 +200,7 @@ const UserProfile = () => {
 
         {userData.role === 'vendor' && (
           <div style={styles.card}>
-            <h3 style={{ fontWeight: '900', fontSize: '1.2rem', marginBottom: '10px' }}>Business Permit & Verification</h3>
+            <h3 style={{ fontWeight: '900', fontSize: '1.2rem', marginBottom: '10px' }}>Identification & Verification</h3>
             
             {userData.verification_status === 'verified' ? (
               <div style={{ 
@@ -217,24 +219,25 @@ const UserProfile = () => {
                 <div>
                   <h4 style={{ margin: 0, fontWeight: '800', fontSize: '0.95rem' }}>Permit Fully Verified</h4>
                   <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: '#15803d' }}>
-                    Your business permit has been reviewed and approved by the admin. You have full access to publish and manage your services.
+                    Your ID has been reviewed and approved by the admin. You have full access to publish and manage your services.
                   </p>
                 </div>
               </div>
             ) : (
               <>
                 <p style={{ color: '#64748b', fontSize: '0.85rem', marginBottom: '20px' }}>
-                  Upload your official business permit or document to get verified by the admin and display the trust badge on your services.
+                  Upload your official ID or document to get verified by the admin and display the trust badge on your services.
                 </p>
 
                 <form onSubmit={handlePermitUpload} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                   <div style={{ background: '#f8fafc', padding: '15px', borderRadius: '16px', border: '2px dashed #cbd5e1', boxSizing: 'border-box' }}>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '800', fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: '8px', color: '#0f172a' }}>
-                      <FileText size={14} /> Select Permit File (PDF, JPG, PNG)
+                      <FileText size={14} /> Select Permit File (PDF, JPG, PNG) <span style={{ color: '#ef4444' }}>*</span>
                     </label>
                     <input 
                       type="file" 
                       accept=".pdf,.jpg,.jpeg,.png"
+                      required 
                       onChange={(e) => setPermitFile(e.target.files[0])}
                       style={{ width: '100%', fontSize: '0.85rem', cursor: 'pointer' }} 
                     />
@@ -257,7 +260,7 @@ const UserProfile = () => {
                               <div style={{ marginBottom: '10px' }}>
                                 <img 
                                   src={permitUrl} 
-                                  alt="Business Permit Preview" 
+                                  alt="ID Preview" 
                                   onClick={() => setPreviewImage(permitUrl)}
                                   style={{ maxWidth: '100%', width: '180px', maxHeight: '140px', borderRadius: '10px', border: '1px solid #cbd5e1', objectFit: 'cover', display: 'block', cursor: 'pointer' }} 
                                   title="Click to preview"

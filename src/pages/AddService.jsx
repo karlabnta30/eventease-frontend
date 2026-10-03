@@ -126,7 +126,7 @@ const AddService = () => {
               lineHeight: '1.5'
             }}>
               <AlertCircle size={20} style={{ flexShrink: 0, marginTop: '2px', color: '#d97706' }} />
-              <span><strong>Verification Required:</strong> You must have a verified business permit to publish services. Bundle creation is also locked until verification is approved.</span>
+              <span><strong>Verification Required:</strong> You must upload an ID to publish services. Bundle creation is also locked until verification is approved.</span>
             </div>
           )}
 
@@ -267,7 +267,7 @@ const AddService = () => {
               </div>
               <h3 style={{ fontSize: '1.15rem', fontWeight: '900', color: '#0f172a', margin: '0 0 8px 0' }}>Bundle Creator Locked</h3>
               <p style={{ fontSize: '0.85rem', color: '#64748b', lineHeight: '1.5', margin: 0 }}>
-                You must achieve <strong>Verified Status</strong> by uploading a valid business permit to unlock service bundle creation and packaging.
+                You must achieve <strong>Verified Status</strong> by uploading a valid identification document to unlock service bundle creation and packaging.
               </p>
             </div>
           )}
