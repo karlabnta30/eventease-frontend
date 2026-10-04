@@ -196,21 +196,43 @@ const MainDashboard = () => {
     }
     setIsSavingBundle(true);
     try {
+      const primaryServiceId = architectItems.length > 0 ? architectItems[0].id : null;
+      const cleanServiceId = primaryServiceId && String(primaryServiceId).startsWith('bundle_') 
+        ? null 
+        : Number(primaryServiceId);
+
       const customBundlePayload = {
-        id: Date.now(),
-        bundle_name: bundleName,
-        total_price: architectTotalCost,
-        target_budget: targetBudget,
-        items: architectItems,
-        created_at: new Date().toISOString()
+        event_name: bundleName,
+        location: 'Custom Architect Location',
+        category: 'Custom Bundle Package',
+        event_date: new Date().toISOString().slice(0, 10),
+        budget: architectTotalCost,
+        guest_count: 1,
+        service_id: cleanServiceId,
+        contract_agreed: true
       };
       
-      notifyNewBooking(`Custom Bundle "${bundleName}" architected & optimized successfully!`);
-      // Binago ang pagpasa upang maiwasan ang routing error kung walang partikular na 'custom' param sa router
-      navigate(`/bundle-details/custom-bundle`, { state: { service: customBundlePayload, isCustomArchitect: true } });
+      const res = await api.post('/bookings', customBundlePayload);
+      
+      if (res.status === 201 || res.status === 200) {
+        notifyNewBooking(`Custom Bundle "${bundleName}" deployed and added to Live Events successfully!`);
+        
+        const createdBookingId = res.data.data?.id || res.data.id;
+        if (createdBookingId && architectItems.length > 0) {
+          const serviceIds = architectItems
+            .map(item => String(item.id).startsWith('bundle_') ? null : Number(item.id))
+            .filter(Boolean);
+            
+          if (serviceIds.length > 0) {
+            await api.post(`/bookings/${createdBookingId}/services`, { services: serviceIds }).catch(() => {});
+          }
+        }
+
+        navigate('/live-events');
+      }
     } catch (err) {
       console.error("Failed to deploy bundle:", err);
-      alert("Error saving custom bundle architecture.");
+      alert("Error saving custom bundle architecture to database.");
     } finally {
       setIsSavingBundle(false);
     }
