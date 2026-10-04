@@ -206,7 +206,8 @@ const MainDashboard = () => {
       };
       
       notifyNewBooking(`Custom Bundle "${bundleName}" architected & optimized successfully!`);
-      navigate(`/bundle-details/custom`, { state: { service: customBundlePayload, isCustomArchitect: true } });
+      // Binago ang pagpasa upang maiwasan ang routing error kung walang partikular na 'custom' param sa router
+      navigate(`/bundle-details/custom-bundle`, { state: { service: customBundlePayload, isCustomArchitect: true } });
     } catch (err) {
       console.error("Failed to deploy bundle:", err);
       alert("Error saving custom bundle architecture.");

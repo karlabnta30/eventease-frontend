@@ -229,7 +229,6 @@ const CreateEvent = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Fetch vendor terms if a service ID is pre-selected or attached
   useEffect(() => {
     if (prefilledServiceId) {
       const fetchServiceTerms = async () => {
@@ -350,7 +349,6 @@ const CreateEvent = () => {
     btnPrimary: { flex: 2, padding: '16px', borderRadius: '14px', border: 'none', background: '#0f172a', color: 'white', cursor: 'pointer', fontWeight: '900', fontSize: '0.95rem', boxShadow: '0 4px 14px rgba(15, 23, 42, 0.3)', transition: 'all 0.2s' },
     btnSecondary: { flex: 1, padding: '16px', borderRadius: '14px', border: '1px solid #cbd5e1', background: '#f1f5f9', cursor: 'pointer', fontWeight: '800', color: '#475569', fontSize: '0.9rem' },
     errorBox: {
-        gridColumn: 'span 2',
         backgroundColor: '#fef2f2',
         border: '1px solid #fee2e2',
         color: '#991b1b',
@@ -364,8 +362,7 @@ const CreateEvent = () => {
         marginBottom: '20px'
     },
     hintBox: { 
-      gridColumn: 'span 2', 
-      marginTop: '-10px', 
+      marginTop: '0px', 
       marginBottom: '20px', 
       padding: '16px', 
       backgroundColor: '#ffffff', 
@@ -516,39 +513,39 @@ const CreateEvent = () => {
                   }} 
                 />
             </div>
+          </div>
 
-            {formError && (
-              <div style={styles.errorBox}>
-                <AlertTriangle size={18} color="#991b1b" style={{ flexShrink: 0 }} />
-                <span>{formError}</span>
-              </div>
-            )}
+          {formError && (
+            <div style={styles.errorBox}>
+              <AlertTriangle size={18} color="#991b1b" style={{ flexShrink: 0 }} />
+              <span>{formError}</span>
+            </div>
+          )}
 
-            <div style={styles.hintBox}>
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-                <Info size={18} color="#3b82f6" style={{ marginTop: '2px', flexShrink: 0 }} />
-                <div>
-                  <div style={{ fontWeight: '800', color: '#0f172a', fontSize: '0.85rem' }}>
-                    Baseline Rate: ₱{currentRate.toLocaleString()}/pax
-                    {eventData.category ? ` (${eventData.category})` : ''}
-                  </div>
-                  <div style={{ color: '#64748b', fontSize: '0.75rem', marginTop: '2px', fontWeight: '600' }}>
-                    Est. Total for {eventData.pax || 0} pax: <strong style={{ color: '#059669' }}>₱{recommendedBudget.toLocaleString()}</strong>
-                  </div>
+          <div style={styles.hintBox}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+              <Info size={18} color="#3b82f6" style={{ marginTop: '2px', flexShrink: 0 }} />
+              <div>
+                <div style={{ fontWeight: '800', color: '#0f172a', fontSize: '0.85rem' }}>
+                  Baseline Rate: ₱{currentRate.toLocaleString()}/pax
+                  {eventData.category ? ` (${eventData.category})` : ''}
+                </div>
+                <div style={{ color: '#64748b', fontSize: '0.75rem', marginTop: '2px', fontWeight: '600' }}>
+                  Est. Total for {eventData.pax || 0} pax: <strong style={{ color: '#059669' }}>₱{recommendedBudget.toLocaleString()}</strong>
                 </div>
               </div>
-
-              {recommendedBudget > 0 && (
-                <button 
-                  type="button" 
-                  onClick={handleApplyRecommended} 
-                  style={styles.applyBtn}
-                  title="Auto-fill the budget with recommended amount"
-                >
-                  <Sparkles size={12} /> Apply ₱{recommendedBudget.toLocaleString()}
-                </button>
-              )}
             </div>
+
+            {recommendedBudget > 0 && (
+              <button 
+                type="button" 
+                onClick={handleApplyRecommended} 
+                style={styles.applyBtn}
+                title="Auto-fill the budget with recommended amount"
+              >
+                <Sparkles size={12} /> Apply ₱{recommendedBudget.toLocaleString()}
+              </button>
+            )}
           </div>
 
           <BudgetOptimizerWidget 
