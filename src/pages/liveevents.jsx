@@ -109,7 +109,6 @@ const LiveEvents = () => {
       try {
         const bookingsUrl = userRole === 'admin' ? '/admin/bookings' : '/bookings';
         
-        // Pagsabayin ang pag-fetch ng user at bookings para mas mabilis (Promise.all)
         const [userRes, bookingsRes] = await Promise.all([
           api.get('/user').catch(() => ({ data: null })),
           api.get(bookingsUrl).catch(() => ({ data: [] }))
@@ -118,7 +117,9 @@ const LiveEvents = () => {
         if (userRes.data) setUser(userRes.data);
 
         const rawBookings = bookingsRes.data.data || (Array.isArray(bookingsRes.data) ? bookingsRes.data : []);
-        const assignedBookings = rawBookings.filter(item => item.vendor_id || item.vendor || item.service_id);
+        
+        // INAYOS NA FILTER: Ipakita ang lahat ng bookings na pagmamay-ari ng user o may event_name para hindi mawala ang mga ito
+        const assignedBookings = rawBookings.filter(item => item.event_name || item.vendor_id || item.vendor || item.service_id);
         setBookings(assignedBookings);
       } catch (err) { 
         console.error(err); 
