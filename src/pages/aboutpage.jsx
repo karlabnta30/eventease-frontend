@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, Database, Layout, Users, Sparkles, ArrowRight } from 'lucide-react';
+import { ShieldCheck, Database, Layout, ArrowRight } from 'lucide-react';
 
 const AboutPage = () => {
   const navigate = useNavigate();
@@ -102,7 +102,6 @@ const AboutPage = () => {
 
   return (
     <div style={styles.container}>
-      
       {/* SECTION 1: HERO BANNER */}
       <section style={styles.heroSection}>
         <div style={styles.heroTextSide}>
@@ -110,7 +109,7 @@ const AboutPage = () => {
             <span style={{ background: '#3b82f6', color: '#fff', fontSize: '0.75rem', fontWeight: '900', padding: '5px 12px', borderRadius: '999px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               Capstone Research Project
             </span>
-            <span style={{ color: '#94a3b8', fontSize: '0.85rem' }}>• College of Computing</span>
+            <span style={{ color: '#94a3b8', fontSize: '0.85rem' }}>College of Computing</span>
           </div>
           <h1 style={{ fontSize: isMobile ? '2.1rem' : '2.8rem', margin: '0 0 15px 0', color: '#fff', fontWeight: '900', letterSpacing: '-1px', wordBreak: 'break-word' }}>
             EventEase: A Localized Booking & Bundle Solution
@@ -119,10 +118,10 @@ const AboutPage = () => {
             Developed as an advanced capstone study, EventEase streamlines comprehensive event planning, real-time budgeting, and vendor coordination within Metro Manila.
           </p>
           <button 
-            onClick={() => navigate('/main-dashboard')}
+            onClick={() => navigate('/')}
             style={{ background: '#3b82f6', color: '#fff', border: 'none', padding: '14px 28px', borderRadius: '14px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 14px rgba(59, 130, 246, 0.4)', width: isMobile ? '100%' : 'auto', justifyContent: 'center' }}
           >
-            Explore Dashboard <ArrowRight size={18} />
+            Back to Home <ArrowRight size={18} />
           </button>
         </div>
         <div style={styles.heroImageSide}></div>
@@ -195,7 +194,6 @@ const AboutPage = () => {
           ))}
         </div>
       </section>
-
     </div>
   );
 };

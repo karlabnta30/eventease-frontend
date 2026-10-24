@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { User, LogOut, ChevronDown } from 'lucide-react';
+import { User, LogOut, ChevronDown, Info, HelpCircle } from 'lucide-react';
 
 function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
-  const isIndexPage = location.pathname === '/';
 
   const [userName, setUserName] = useState(null);
   const [userRole, setUserRole] = useState(null);
@@ -81,6 +80,22 @@ function Navbar() {
       letterSpacing: '-1px', 
       textTransform: 'uppercase',
       color: '#000000'
+    },
+    navLinksGroup: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: isMobile ? '12px' : '24px',
+    },
+    navLinkItem: {
+      color: '#334155',
+      fontSize: '0.9rem',
+      fontWeight: '700',
+      textDecoration: 'none',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '6px',
+      cursor: 'pointer',
+      transition: 'color 0.2s ease',
     },
     createBtn: {
       backgroundColor: '#000000', 
@@ -162,7 +177,19 @@ function Navbar() {
         <h2 style={dynamicStyles.logo}>EventEase</h2>
       </Link>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '12px' : '20px' }}>
+        {/* PUBLIC NAVBAR LINKS (About & Help) */}
+        {!isMobile && (
+          <div style={dynamicStyles.navLinksGroup}>
+            <Link to="/about" style={dynamicStyles.navLinkItem}>
+              <Info size={16} /> About
+            </Link>
+            <Link to="/help" style={dynamicStyles.navLinkItem}>
+              <HelpCircle size={16} /> Help
+            </Link>
+          </div>
+        )}
+
         {hasToken ? (
           <div style={dynamicStyles.profileContainer}>
             <button 
