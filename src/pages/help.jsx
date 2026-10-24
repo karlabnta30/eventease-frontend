@@ -4,7 +4,7 @@ import { ChevronDown, ChevronUp, ArrowLeft, Search, HelpCircle, ShieldCheck, Hea
 
 const HelpPage = () => {
   const navigate = useNavigate();
-  const [openIndex, setOpenIndex] = useState(0); // Naka-open ang una by default para modern look
+  const [openIndex, setOpenIndex] = useState(0); 
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 900);
 
@@ -21,61 +21,60 @@ const HelpPage = () => {
   const helpItems = [
     {
       category: "Payments",
-      icon: <CreditCard size={18} color="#10b981" />,
+      icon: <CreditCard size={18} color="#2563eb" />,
       question: "How do payments work?",
       answer: "Payments are securely processed through integrated gateways like PayMongo. You can pay for bookings or custom vendor bundles safely with instant ledger updates and automated transaction receipts."
     },
     {
       category: "Bookings",
-      icon: <HelpCircle size={18} color="#10b981" />,
+      icon: <HelpCircle size={18} color="#2563eb" />,
       question: "Cancellations & Rescheduling",
       answer: "Cancellations and rescheduling depend on the specific vendor terms and agreement periods. You can review or initiate status updates directly via your event itinerary dashboard."
     },
     {
       category: "Security",
-      icon: <ShieldCheck size={18} color="#10b981" />,
+      icon: <ShieldCheck size={18} color="#2563eb" />,
       question: "Trust & Safety Infrastructure",
       answer: "EventEase ensures platform security utilizing robust Aiven cloud database encryption, token-authenticated sessions, and secure email OTP verification loops."
     },
     {
       category: "Vendors",
-      icon: <Headphones size={18} color="#10b981" />,
+      icon: <Headphones size={18} color="#2563eb" />,
       question: "Your Listings & Portfolio",
       answer: "Vendors have complete control over creating, updating, and toggling the availability status of their service packages right from their dedicated management portal."
     },
     {
       category: "Logistics",
-      icon: <HelpCircle size={18} color="#10b981" />,
+      icon: <HelpCircle size={18} color="#2563eb" />,
       question: "Rental & Equipment Help",
       answer: "Need assistance with venue rentals or audio-visual equipment packages? Reach out to our technical support team or message vendors directly through the built-in communication workspace."
     },
     {
       category: "Account",
-      icon: <ShieldCheck size={18} color="#10b981" />,
+      icon: <ShieldCheck size={18} color="#2563eb" />,
       question: "Managing Your Account & Roles",
       answer: "Manage your credentials, update profile configurations, and monitor active booking timelines seamlessly through your account settings across Client, Vendor, or Admin roles."
     },
     {
       category: "Payouts",
-      icon: <CreditCard size={18} color="#10b981" />,
+      icon: <CreditCard size={18} color="#2563eb" />,
       question: "How Vendors Get Paid",
       answer: "Registered vendors receive their payout settlements securely through standard administrative channels upon completing confirmed event service milestones."
     },
     {
       category: "Legal",
-      icon: <ShieldCheck size={18} color="#10b981" />,
+      icon: <ShieldCheck size={18} color="#2563eb" />,
       question: "User Agreement & Guidelines",
       answer: "By utilizing EventEase, users agree to abide by our community standards, fair booking policies, and platform operational guidelines."
     },
     {
       category: "Privacy",
-      icon: <ShieldCheck size={18} color="#10b981" />,
+      icon: <ShieldCheck size={18} color="#2563eb" />,
       question: "Privacy Policy & Data Protection",
       answer: "We protect your data privacy with strict confidentiality measures. Review our complete data handling practices to understand how we secure your personal information."
     }
   ];
 
-  // Filter items batay sa search bar input
   const filteredHelpItems = helpItems.filter(item => 
     item.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
     item.answer.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -84,16 +83,16 @@ const HelpPage = () => {
 
   const styles = {
     wrapper: {
-      backgroundColor: '#09090b',
-      color: '#ffffff',
+      backgroundColor: '#f8fafc',
+      color: '#0f172a',
       minHeight: '100vh',
       fontFamily: "'Inter', sans-serif",
       paddingBottom: '80px',
     },
     heroSection: {
-      background: 'linear-gradient(135deg, #09090b 0%, #111827 50%, #064e3b 100%)',
+      background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #2563eb 100%)',
       padding: isMobile ? '40px 20px 50px' : '70px 60px 80px',
-      borderBottom: '1px solid #1f2937',
+      borderBottom: '1px solid #e2e8f0',
       position: 'relative',
       overflow: 'hidden',
     },
@@ -108,9 +107,9 @@ const HelpPage = () => {
       zIndex: 2,
     },
     backBtn: {
-      background: 'rgba(255, 255, 255, 0.05)',
-      border: '1px solid rgba(255, 255, 255, 0.1)',
-      color: '#cbd5e1',
+      background: 'rgba(255, 255, 255, 0.1)',
+      border: '1px solid rgba(255, 255, 255, 0.2)',
+      color: '#ffffff',
       padding: '8px 16px',
       borderRadius: '10px',
       cursor: 'pointer',
@@ -145,13 +144,13 @@ const HelpPage = () => {
     searchInput: {
       width: '100%',
       padding: '16px 20px 16px 50px',
-      backgroundColor: 'rgba(15, 23, 42, 0.8)',
-      border: '1px solid #334155',
+      backgroundColor: '#ffffff',
+      border: '1px solid #cbd5e1',
       borderRadius: '16px',
-      color: '#ffffff',
+      color: '#0f172a',
       fontSize: '1rem',
       outline: 'none',
-      boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)',
+      boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.08)',
       transition: 'border-color 0.2s ease',
     },
     searchIcon: {
@@ -159,14 +158,13 @@ const HelpPage = () => {
       left: '18px',
       top: '50%',
       transform: 'translateY(-50%)',
-      color: '#94a3b8',
+      color: '#64748b',
     },
     mainContainer: {
       maxWidth: '1200px',
       margin: '50px auto 0',
       padding: isMobile ? '0 16px' : '0 40px',
       display: 'grid',
-      gridTemplateCommunity: '1fr',
       gridTemplateColumns: isMobile ? '1fr' : '1.3fr 0.7fr',
       gap: '40px',
       alignItems: 'start',
@@ -177,12 +175,12 @@ const HelpPage = () => {
       gap: '14px',
     },
     card: (isOpen) => ({
-      border: isOpen ? '1px solid #10b981' : '1px solid #1f2937',
+      border: isOpen ? '1px solid #2563eb' : '1px solid #e2e8f0',
       borderRadius: '16px',
-      backgroundColor: '#111827',
+      backgroundColor: '#ffffff',
       overflow: 'hidden',
       transition: 'all 0.25s ease',
-      boxShadow: isOpen ? '0 10px 30px -10px rgba(16, 185, 129, 0.15)' : 'none',
+      boxShadow: isOpen ? '0 10px 30px -10px rgba(37, 99, 235, 0.15)' : '0 4px 12px rgba(0, 0, 0, 0.03)',
     }),
     cardHeader: {
       padding: '20px 24px',
@@ -200,11 +198,11 @@ const HelpPage = () => {
     questionText: {
       fontWeight: '700',
       fontSize: '1.05rem',
-      color: '#ffffff',
+      color: '#0f172a',
     },
     badge: {
-      backgroundColor: '#064e3b',
-      color: '#34d399',
+      backgroundColor: '#dbeafe',
+      color: '#1d4ed8',
       fontSize: '0.7rem',
       fontWeight: '800',
       padding: '4px 10px',
@@ -214,30 +212,30 @@ const HelpPage = () => {
     },
     cardBody: {
       padding: '0 24px 22px 24px',
-      color: '#94a3b8',
+      color: '#475569',
       fontSize: '0.95rem',
       lineHeight: '1.7',
-      borderTop: '1px solid #1f2937',
+      borderTop: '1px solid #f1f5f9',
       paddingTop: '16px',
     },
     sidebarImagesCard: {
-      backgroundColor: '#111827',
-      border: '1px solid #1f2937',
+      backgroundColor: '#ffffff',
+      border: '1px solid #e2e8f0',
       borderRadius: '24px',
       padding: '28px',
       position: 'sticky',
       top: '30px',
-      boxShadow: '0 20px 40px -15px rgba(0, 0, 0, 0.5)',
+      boxShadow: '0 20px 40px -15px rgba(0, 0, 0, 0.05)',
     },
     sidebarTitle: {
       fontSize: '1.25rem',
       fontWeight: '900',
-      color: '#ffffff',
+      color: '#0f172a',
       marginBottom: '8px',
     },
     sidebarText: {
       fontSize: '0.9rem',
-      color: '#94a3b8',
+      color: '#64748b',
       lineHeight: '1.5',
       marginBottom: '20px',
     },
@@ -252,12 +250,12 @@ const HelpPage = () => {
       height: '110px',
       objectFit: 'cover',
       borderRadius: '12px',
-      border: '1px solid #374151',
+      border: '1px solid #e2e8f0',
       transition: 'transform 0.2s ease',
     },
     supportBox: {
-      backgroundColor: '#064e3b',
-      border: '1px solid #059669',
+      backgroundColor: '#eff6ff',
+      border: '1px solid #bfdbfe',
       borderRadius: '16px',
       padding: '20px',
       textAlign: 'center',
@@ -265,17 +263,17 @@ const HelpPage = () => {
     supportTitle: {
       fontSize: '1rem',
       fontWeight: '800',
-      color: '#ffffff',
+      color: '#1e3a8a',
       marginBottom: '6px',
     },
     supportText: {
       fontSize: '0.85rem',
-      color: '#a7f3d0',
+      color: '#3b82f6',
       marginBottom: '14px',
     },
     contactBtn: {
-      backgroundColor: '#ffffff',
-      color: '#064e3b',
+      backgroundColor: '#2563eb',
+      color: '#ffffff',
       border: 'none',
       padding: '10px 20px',
       borderRadius: '10px',
@@ -330,7 +328,7 @@ const HelpPage = () => {
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                       {!isMobile && <span style={styles.badge}>{item.category}</span>}
-                      {isOpen ? <ChevronUp size={20} color="#10b981" /> : <ChevronDown size={20} color="#94a3b8" />}
+                      {isOpen ? <ChevronUp size={20} color="#2563eb" /> : <ChevronDown size={20} color="#64748b" />}
                     </div>
                   </div>
                   {isOpen && (
@@ -342,7 +340,7 @@ const HelpPage = () => {
               );
             })
           ) : (
-            <div style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>
+            <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>
               <p>No matching questions found. Try searching for another keyword.</p>
             </div>
           )}
