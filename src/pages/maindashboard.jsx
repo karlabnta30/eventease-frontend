@@ -176,34 +176,61 @@ const MainDashboard = () => {
     return architectItems.reduce((sum, item) => sum + Number(item.price || 0), 0);
   }, [architectItems]);
 
-  // --- INTEGRATED ADVANCED AI BUDGET OPTIMIZER API CALL ---
+  // --- INTEGRATED ADVANCED SMART AI ALLOCATION & BUDGET MAXIMIZER ---
   const handleRunAiOptimization = async () => {
     setIsOptimizing(true);
     try {
+      // Subukan munang tawagin ang Backend API
       const response = await api.post('/ai/optimize-budget', {
         category: eventCategory,
         guest_count: Number(guestCount),
         total_budget: Number(targetBudget)
       });
+      
       setAiOptimizationResult(response.data);
+
+      // Kung nagbalik ang backend ng optimized items, direktang ilubos at idagdag sa Bundle Architect canvas!
+      if (response.data.optimized_items && response.data.optimized_items.length > 0) {
+        setArchitectItems(response.data.optimized_items);
+      }
     } catch (error) {
-      console.error("AI Optimization failed:", error);
-      // Fallback local calculation kung may network issue sa API endpoint
-      const baseline = guestCount * (eventCategory === 'Wedding' ? 800 : 400);
+      console.warn("API AI endpoint fallback to frontend smart matcher:", error);
+      
+      // Smart Greedy Frontend Matcher para sa paglubos ng budget gamit ang aktwal na loaded services
+      let accumulatedCost = 0;
+      let selectedBundle = [];
+      
+      // Pagbukud-bukurin ang mga available services mula pinakamataas hanggang pinakamababa para maubos/malubos ang budget
+      const sortedCatalog = [...services].sort((a, b) => Number(b.price || 0) - Number(a.price || 0));
+
+      for (let s of sortedCatalog) {
+        const itemPrice = Number(s.price || 0);
+        if (accumulatedCost + itemPrice <= Number(targetBudget)) {
+          selectedBundle.push({
+            id: s.id,
+            name: s.name || s.title || 'Event Service',
+            price: itemPrice,
+            category: s.category || 'General',
+            business_name: s.business_name || 'Verified Vendor'
+          });
+          accumulatedCost += itemPrice;
+        }
+      }
+
+      const remainingBuffer = Number(targetBudget) - accumulatedCost;
+
+      setArchitectItems(selectedBundle);
       setAiOptimizationResult({
-        status: targetBudget < baseline ? 'Infeasible' : 'Optimal',
-        message: targetBudget < baseline 
-          ? `Warning: Budget is below recommended baseline of ₱${baseline.toLocaleString()}.` 
-          : `Optimal! Budget is well-balanced for ${guestCount} guests.`,
-        recommended_minimum: baseline,
-        breakdown: [
-          { item: 'Catering & Food', recommended_amount: targetBudget * 0.40, percentage: '40%' },
-          { item: 'Venue Rental', recommended_amount: targetBudget * 0.25, percentage: '25%' },
-          { item: 'Decoration', recommended_amount: targetBudget * 0.15, percentage: '15%' },
-          { item: 'Photography', recommended_amount: targetBudget * 0.10, percentage: '10%' },
-          { item: 'Entertainment', recommended_amount: targetBudget * 0.10, percentage: '10%' },
-        ]
+        status: selectedBundle.length > 0 ? 'Optimal Allocation Generated' : 'Infeasible',
+        message: selectedBundle.length > 0 
+          ? `Na-maximize ang iyong ₱${Number(targetBudget).toLocaleString()} budget! Nakapili ang AI ng ${selectedBundle.length} aktwal na serbisyo na nagkakahalaga ng ₱${accumulatedCost.toLocaleString()} (May natirang ₱${remainingBuffer.toLocaleString()} contingency buffer).`
+          : `Masyadong mababa ang budget para sa mga kasalukuyang serbisyo sa catalog.`,
+        target_budget: targetBudget,
+        actual_spent: accumulatedCost,
+        remaining_buffer: remainingBuffer,
+        optimized_items: selectedBundle
       });
+
     } finally {
       setIsOptimizing(false);
     }
@@ -360,14 +387,14 @@ const MainDashboard = () => {
           
           <aside className="dashboard-sidebar">
             
-            {/* --- AI BUDGET OPTIMIZER & SMART WIDGET (NASA ITAAS PARA SA STRAIGHT-TO-THE-POINT) --- */}
+            {/* --- AI BUDGET OPTIMIZER & SMART ALLOCATION WIDGET --- */}
             <div style={{ ...cardStyle, border: '2px solid #2563eb', background: '#ffffff', marginBottom: '16px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
                 <h4 style={{ margin: 0, fontWeight: '900', display: 'flex', alignItems: 'center', gap: '8px', color: '#2563eb', fontSize: '0.9rem', textTransform: 'uppercase' }}>
-                  <PieChart size={18} /> AI Budget Optimizer
+                  <PieChart size={18} /> AI Budget Maximizer
                 </h4>
                 <span style={{ background: '#2563eb', color: '#fff', fontSize: '0.70rem', fontWeight: '900', padding: '3px 8px', borderRadius: '999px' }}>
-                  AI Active
+                  Smart Fit
                 </span>
               </div>
 
@@ -416,7 +443,7 @@ const MainDashboard = () => {
                 style={{ width: '100%', background: '#2563eb', color: '#fff', border: 'none', padding: '12px', borderRadius: '12px', fontWeight: '900', cursor: 'pointer', marginTop: '14px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
               >
                 {isOptimizing ? <Loader2 className="animate-spin" size={16} /> : <Sliders size={16} />}
-                Run AI Intelligent Allocation
+                Run AI Budget Maximizer
               </button>
 
               {aiOptimizationResult && (
@@ -424,19 +451,7 @@ const MainDashboard = () => {
                   <div style={{ fontWeight: '900', color: aiOptimizationResult.status === 'Infeasible' ? '#ef4444' : '#047857', marginBottom: '6px' }}>
                     Status: {aiOptimizationResult.status}
                   </div>
-                  <p style={{ margin: '0 0 8px 0', fontWeight: '600' }}>{aiOptimizationResult.message}</p>
-                  
-                  {aiOptimizationResult.breakdown && (
-                    <div style={{ borderTop: '1px dashed #cbd5e1', paddingTop: '8px' }}>
-                      <div style={{ fontWeight: '800', marginBottom: '4px', textTransform: 'uppercase', fontSize: '0.7rem' }}>Recommended Breakdown:</div>
-                      {aiOptimizationResult.breakdown.map((b, index) => (
-                        <div key={index} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
-                          <span>{b.item} ({b.percentage}):</span>
-                          <span style={{ fontWeight: '800', color: '#000' }}>₱{Number(b.recommended_amount).toLocaleString()}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  <p style={{ margin: '0 0 8px 0', fontWeight: '600', lineHeight: '1.4' }}>{aiOptimizationResult.message}</p>
                 </div>
               )}
             </div>
@@ -461,7 +476,7 @@ const MainDashboard = () => {
                 placeholder="e.g. Dream Wedding Package" 
               />
 
-              <div style={{ marginTop: '14px', maxHeight: '150px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', paddingRight: '4px' }}>
+              <div style={{ marginTop: '14px', maxHeight: '180px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', paddingRight: '4px' }}>
                 {architectItems.length > 0 ? architectItems.map(item => (
                   <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc', padding: '10px 14px', borderRadius: '12px', border: '1px solid #eaeaea' }}>
                     <div>
@@ -475,7 +490,7 @@ const MainDashboard = () => {
                 )) : (
                   <div style={{ background: '#fafafa', border: '2px dashed #eaeaea', padding: '16px', borderRadius: '14px', textAlign: 'center' }}>
                     <p style={{ fontSize: '0.8rem', color: '#64748b', fontStyle: 'italic', margin: 0 }}>
-                      Blueprint is empty. Add services from the catalog below.
+                      Blueprint is empty. Run AI Maximizer or add services from catalog below.
                     </p>
                   </div>
                 )}
