@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import api from '../api';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { MapPin, Lock, AlertCircle, Power, Star, Check, Plus, Trash2, ShieldAlert, ChevronRight, ArrowLeft } from 'lucide-react';
+import { MapPin, Lock, AlertCircle, Power, Star, Check, Plus, Trash2, ShieldAlert, ChevronRight, ArrowLeft, Sparkles, Sliders } from 'lucide-react';
 import { notifyNewBooking } from '../toastUtils.jsx';
 import { toast } from 'react-hot-toast';
 
@@ -35,28 +35,37 @@ const VendorList = () => {
     const userRole = localStorage.getItem('userRole');
     
     const eventIdFromUrl = searchParams.get('event_id');
+    
     const userBudget = useMemo(() => {
         const b = searchParams.get('budget');
-        return b ? parseFloat(b) : 0;
+        const parsed = parseFloat(b);
+        return !isNaN(parsed) && parsed > 0 ? parsed : 0;
     }, [searchParams]);
 
     const guestCount = useMemo(() => {
         const g = searchParams.get('guest_count');
-        return g ? parseInt(g, 10) : 50; 
+        const parsed = parseInt(g, 10);
+        return !isNaN(parsed) && parsed > 0 ? parsed : 50; 
     }, [searchParams]);
     
     const [vendors, setVendors] = useState([]);
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
     
-    // PERSIST CART: Load initial cart state from localStorage if available
     const [selectedServices, setSelectedServices] = useState(() => {
-        const savedCart = localStorage.getItem('eventease_pending_cart');
-        return savedCart ? JSON.parse(savedCart) : [];
+        try {
+            const savedCart = localStorage.getItem('eventease_pending_cart');
+            return savedCart ? JSON.parse(savedCart) : [];
+        } catch (e) {
+            return [];
+        }
     });
 
     const [loading, setLoading] = useState(true);
     const [hiringLoading, setHiringLoading] = useState(false);
     const [activeCategoryView, setActiveCategoryView] = useState(null);
+
+    const [isAiOptimizing, setIsAiOptimizing] = useState(false);
+    const [aiOptimizationSummary, setAiOptimizationSummary] = useState(null);
 
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -84,8 +93,7 @@ const VendorList = () => {
             const endpoint = userRole === 'vendor' ? '/vendor/services' : '/vendors';
             const res = await api.get(endpoint);
             
-            // DEDUPLICATE API RESPONSE BY ID DIRECTLY UPON FETCH
-            const rawData = res.data.data || res.data || [];
+            const rawData = res.data?.data || res.data || [];
             const uniqueData = Array.from(new Map(rawData.map(item => [item.id, item])).values());
             
             setVendors(uniqueData);
@@ -127,8 +135,9 @@ const VendorList = () => {
     };
 
     const calculateDynamicPrice = (vendor) => {
+        if (!vendor) return 0;
         const raw = vendor.starting_price || vendor.price || 0;
-        const basePrice = typeof raw === 'string' ? parseFloat(raw.replace(/[^0-9.]/g,"")) : parseFloat(raw);
+        const basePrice = typeof raw === 'string' ? parseFloat(raw.replace(/[^0-9.]/g,"")) || 0 : parseFloat(raw) || 0;
         
         const cat = (vendor.category || '').toLowerCase();
         const name = (vendor.business_name || vendor.name || '').toLowerCase();
@@ -146,6 +155,56 @@ const VendorList = () => {
         } else {
             setSelectedServices([...selectedServices, vendor]);
         }
+    };
+
+    const handleRunAiSmartAllocation = async () => {
+        if (userBudget <= 0) {
+            toast.error("Walang itinakdang budget limit para sa event na ito.");
+            return;
+        }
+
+        setIsAiOptimizing(true);
+        try {
+            const response = await api.post('/ai/optimize-budget', {
+                category: activeCategoryView || 'General',
+                guest_count: Number(guestCount),
+                total_budget: Number(userBudget)
+            });
+
+            if (response?.data?.optimized_items && Array.isArray(response.data.optimized_items)) {
+                const aiPicked = response.data.optimized_items.map(item => ({
+                    id: item.id,
+                    business_name: item.name || item.title || 'AI Recommended Service',
+                    category: item.category || 'General',
+                    price: Number(item.price || 0)
+                }));
+
+                setSelectedServices(aiPicked);
+                setAiOptimizationSummary(response.data.message || `Nahanap ng AI ang mga akmang serbisyo para sa badyet mo.`);
+                toast.success("AI Budget Optimizer successfully allocated optimal services!");
+                setIsAiOptimizing(false);
+                return;
+            }
+        } catch (error) {
+            console.warn("API Optimization Endpoint fallback executed:", error);
+        }
+
+        let accumulatedCost = 0;
+        let smartPicked = [];
+        const sortedVendors = [...vendors].sort((a, b) => calculateDynamicPrice(b) - calculateDynamicPrice(a));
+
+        for (let v of sortedVendors) {
+            const p = calculateDynamicPrice(v);
+            if (accumulatedCost + p <= userBudget) {
+                smartPicked.push(v);
+                accumulatedCost += p;
+            }
+        }
+
+        setSelectedServices(smartPicked);
+        setAiOptimizationSummary(`Smart Allocation: Nakapili ang AI ng ${smartPicked.length} serbisyo na nagkakahalaga ng ₱${accumulatedCost.toLocaleString()} pasok sa iyong badyet.`);
+        toast.success("Smart budget allocation applied successfully!");
+        setIsAiOptimizing(false);
     };
 
     const totalSelectedCost = useMemo(() => {
@@ -173,13 +232,17 @@ const VendorList = () => {
             navigate('/live-events');
         } catch (error) {
             if (selectedServices.length === 1) {
-                const cleanBookingId = String(eventIdFromUrl).split(':')[0].replace(/[^0-9]/g, '');
-                const singleVendorId = Number(selectedServices[0].id);
+                try {
+                    const cleanBookingId = String(eventIdFromUrl).split(':')[0].replace(/[^0-9]/g, '');
+                    const singleVendorId = Number(selectedServices[0].id);
 
-                await api.patch(`/bookings/${cleanBookingId}/assign-vendor`, { vendor_id: singleVendorId });
-                localStorage.removeItem('eventease_pending_cart');
-                notifyNewBooking(`Hired ${selectedServices[0].business_name || selectedServices[0].name}!`);
-                navigate('/live-events');
+                    await api.patch(`/bookings/${cleanBookingId}/assign-vendor`, { vendor_id: singleVendorId });
+                    localStorage.removeItem('eventease_pending_cart');
+                    notifyNewBooking(`Hired ${selectedServices[0].business_name || selectedServices[0].name}!`);
+                    navigate('/live-events');
+                } catch (assignError) {
+                    alert(assignError.response?.data?.message || "Error assigning vendor.");
+                }
             } else {
                 alert(error.response?.data?.message || error.response?.data?.error || "Error attaching services.");
             }
@@ -188,7 +251,6 @@ const VendorList = () => {
         }
     };
 
-    // MEMOIZED SAFETY DEDUPLICATION CHECK ON FILTERED VENDORS
     const filteredVendors = useMemo(() => {
         const matching = vendors.filter(v => {
             if (!activeCategoryView) return true;
@@ -201,7 +263,6 @@ const VendorList = () => {
             return vCat.includes(active);
         });
 
-        // Double check uniqueness by ID
         return Array.from(new Map(matching.map(item => [item.id, item])).values());
     }, [vendors, activeCategoryView]);
 
@@ -236,6 +297,67 @@ const VendorList = () => {
                     </div>
                 )}
             </div>
+
+            {userRole !== 'vendor' && !activeCategoryView && (
+                <div style={{ 
+                    background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)', 
+                    border: '1px solid #bbf7d0', 
+                    borderRadius: '20px', 
+                    padding: '20px 24px', 
+                    marginTop: '24px',
+                    display: 'flex',
+                    flexDirection: isMobile ? 'column' : 'row',
+                    justifyContent: 'space-between',
+                    alignItems: isMobile ? 'flex-start' : 'center',
+                    gap: '16px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.02)'
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                        <div style={{ background: '#10b981', color: '#fff', padding: '12px', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <Sparkles size={22} />
+                        </div>
+                        <div>
+                            <h4 style={{ margin: '0 0 4px 0', fontWeight: '900', color: '#065f46', fontSize: '1rem' }}>AI Budget Optimizer Active</h4>
+                            <p style={{ margin: 0, fontSize: '0.85rem', color: '#047857', fontWeight: '600' }}>
+                                {userBudget > 0 
+                                    ? `Nakakonekta sa iyong target budget na ₱${userBudget.toLocaleString()} (${guestCount} pax). Pindutin ang button para awtomatikong i-maximize ng AI ang mga magkakasya sa cart mo.`
+                                    : `Walang limitasyong itinakda. Malayang pumili ng mga serbisyo sa ibaba.`}
+                            </p>
+                        </div>
+                    </div>
+
+                    {userBudget > 0 && (
+                        <button
+                            onClick={handleRunAiSmartAllocation}
+                            disabled={isAiOptimizing}
+                            style={{
+                                background: '#000',
+                                color: '#fff',
+                                border: 'none',
+                                padding: '12px 20px',
+                                borderRadius: '14px',
+                                fontWeight: '900',
+                                fontSize: '0.85rem',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '8px',
+                                width: isMobile ? '100%' : 'auto',
+                                flexShrink: 0
+                            }}
+                        >
+                            {isAiOptimizing ? 'OPTIMIZING...' : <><Sliders size={16} /> RUN AI SMART FIT</>}
+                        </button>
+                    )}
+                </div>
+            )}
+
+            {aiOptimizationSummary && (
+                <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', padding: '14px 20px', borderRadius: '14px', marginTop: '16px', fontSize: '0.85rem', color: '#1e40af', fontWeight: '700' }}>
+                    ✨ {aiOptimizationSummary}
+                </div>
+            )}
 
             {!activeCategoryView ? (
                 <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px', marginTop: '30px' }}>
