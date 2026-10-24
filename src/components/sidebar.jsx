@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   Home, CalendarDays, PlusCircle, ChevronLeft, ChevronRight, 
-  LogOut, MessageSquare, Info, Mail, List, Bell 
+  LogOut, MessageSquare, Mail, List, Bell 
 } from 'lucide-react';
 
 const Sidebar = ({ children }) => {
@@ -49,9 +49,9 @@ const Sidebar = ({ children }) => {
       return [...baseItems, { name: 'My Services', icon: <List size={18} />, path: '/vendor-services' }];
     }
 
+    // Tinanggal na ang 'About' dito, kundi nalang ang 'Contact' kung kailangan
     return [
       ...baseItems,
-      { name: 'About', icon: <Info size={18} />, path: '/about' },
       { name: 'Contact', icon: <Mail size={18} />, path: '/contact' }
     ];
   };
