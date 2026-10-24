@@ -4,7 +4,7 @@ import api from '../api';
 import './dashboard.css'; 
 import ServiceCard from '../components/ServiceCard';
 import { notifyNewBooking } from '../toastUtils.jsx'; 
-import { AlertTriangle, Loader2, CheckCircle, ShoppingBag, Trash2, Plus, ArrowRight, Calendar, Layers, Tag, Package, Sliders, ShieldAlert, DollarSign } from 'lucide-react';
+import { AlertTriangle, Loader2, CheckCircle, ShoppingBag, Trash2, Plus, ArrowRight, Calendar, Tag, Sliders, DollarSign, PieChart } from 'lucide-react';
 
 const MainDashboard = () => {
   const navigate = useNavigate();
@@ -12,7 +12,6 @@ const MainDashboard = () => {
   
   const [services, setServices] = useState([]); 
   const [myBookings, setMyBookings] = useState([]); 
-  const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   
   const [activeCategory, setActiveCategory] = useState('All');
@@ -23,8 +22,10 @@ const MainDashboard = () => {
 
   // --- MGA STATES PARA SA AI BUDGET OPTIMIZER & ADVANCED FEATURES ---
   const [targetBudget, setTargetBudget] = useState(50000); 
+  const [guestCount, setGuestCount] = useState(50);
+  const [eventCategory, setEventCategory] = useState('Wedding');
   const [isOptimizing, setIsOptimizing] = useState(false);
-  const [optimizationSuggestion, setOptimizationSuggestion] = useState(null);
+  const [aiOptimizationResult, setAiOptimizationResult] = useState(null);
 
   const [bookingToCancel, setBookingToCancel] = useState(null);
 
@@ -175,18 +176,37 @@ const MainDashboard = () => {
     return architectItems.reduce((sum, item) => sum + Number(item.price || 0), 0);
   }, [architectItems]);
 
-  const handleRunAiOptimization = () => {
+  // --- INTEGRATED ADVANCED AI BUDGET OPTIMIZER API CALL ---
+  const handleRunAiOptimization = async () => {
     setIsOptimizing(true);
-    setTimeout(() => {
-      if (architectTotalCost > targetBudget) {
-        const excess = architectTotalCost - targetBudget;
-        setOptimizationSuggestion(`⚠️ Budget Alert: Your blueprint exceeds your target budget by ₱${excess.toLocaleString()}. Consider swapping high-cost items or using alternative vendors.`);
-      } else {
-        const savings = targetBudget - architectTotalCost;
-        setOptimizationSuggestion(`✅ Optimized! You have an estimated ₱${savings.toLocaleString()} remaining buffer/contingency fund based on your ₱${targetBudget.toLocaleString()} target budget.`);
-      }
+    try {
+      const response = await api.post('/ai/optimize-budget', {
+        category: eventCategory,
+        guest_count: Number(guestCount),
+        total_budget: Number(targetBudget)
+      });
+      setAiOptimizationResult(response.data);
+    } catch (error) {
+      console.error("AI Optimization failed:", error);
+      // Fallback local calculation kung may network issue sa API endpoint
+      const baseline = guestCount * (eventCategory === 'Wedding' ? 800 : 400);
+      setAiOptimizationResult({
+        status: targetBudget < baseline ? 'Infeasible' : 'Optimal',
+        message: targetBudget < baseline 
+          ? `Warning: Budget is below recommended baseline of ₱${baseline.toLocaleString()}.` 
+          : `Optimal! Budget is well-balanced for ${guestCount} guests.`,
+        recommended_minimum: baseline,
+        breakdown: [
+          { item: 'Catering & Food', recommended_amount: targetBudget * 0.40, percentage: '40%' },
+          { item: 'Venue Rental', recommended_amount: targetBudget * 0.25, percentage: '25%' },
+          { item: 'Decoration', recommended_amount: targetBudget * 0.15, percentage: '15%' },
+          { item: 'Photography', recommended_amount: targetBudget * 0.10, percentage: '10%' },
+          { item: 'Entertainment', recommended_amount: targetBudget * 0.10, percentage: '10%' },
+        ]
+      });
+    } finally {
       setIsOptimizing(false);
-    }, 800);
+    }
   };
 
   const handleDeployCustomBundle = async () => {
@@ -207,7 +227,7 @@ const MainDashboard = () => {
         category: 'Custom Bundle Package',
         event_date: new Date().toISOString().slice(0, 10),
         budget: architectTotalCost,
-        guest_count: 1,
+        guest_count: Number(guestCount),
         service_id: cleanServiceId,
         contract_agreed: true
       };
@@ -340,10 +360,92 @@ const MainDashboard = () => {
           
           <aside className="dashboard-sidebar">
             
+            {/* --- AI BUDGET OPTIMIZER & SMART WIDGET (NASA ITAAS PARA SA STRAIGHT-TO-THE-POINT) --- */}
+            <div style={{ ...cardStyle, border: '2px solid #2563eb', background: '#ffffff', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                <h4 style={{ margin: 0, fontWeight: '900', display: 'flex', alignItems: 'center', gap: '8px', color: '#2563eb', fontSize: '0.9rem', textTransform: 'uppercase' }}>
+                  <PieChart size={18} /> AI Budget Optimizer
+                </h4>
+                <span style={{ background: '#2563eb', color: '#fff', fontSize: '0.70rem', fontWeight: '900', padding: '3px 8px', borderRadius: '999px' }}>
+                  AI Active
+                </span>
+              </div>
+
+              <div style={{ marginBottom: '10px' }}>
+                <label className="text-xs font-black text-slate-500 uppercase tracking-wider">Event Category</label>
+                <select 
+                  style={{ ...inputStyle, fontWeight: '800', color: '#0f172a' }}
+                  value={eventCategory}
+                  onChange={(e) => setEventCategory(e.target.value)}
+                >
+                  <option value="Wedding">Wedding</option>
+                  <option value="Birthday">Birthday</option>
+                  <option value="Corporate">Corporate</option>
+                  <option value="Workshop">Workshop</option>
+                  <option value="Debut">Debut</option>
+                </select>
+              </div>
+
+              <div style={{ marginBottom: '10px' }}>
+                <label className="text-xs font-black text-slate-500 uppercase tracking-wider">Guest Count (Pax)</label>
+                <input 
+                  type="number" 
+                  style={{ ...inputStyle, fontWeight: '800', color: '#0f172a' }} 
+                  value={guestCount} 
+                  onChange={(e) => setGuestCount(Number(e.target.value))} 
+                  min="1"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-black text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                  <DollarSign size={14} /> Target Budget Cap (₱)
+                </label>
+                <input 
+                  type="number" 
+                  style={{ ...inputStyle, fontWeight: '800', color: '#047857' }} 
+                  value={targetBudget === 0 ? '' : targetBudget} 
+                  onChange={(e) => setTargetBudget(e.target.value === '' ? '' : Number(e.target.value))} 
+                  placeholder="Enter budget cap"
+                />
+              </div>
+
+              <button 
+                onClick={handleRunAiOptimization}
+                disabled={isOptimizing}
+                style={{ width: '100%', background: '#2563eb', color: '#fff', border: 'none', padding: '12px', borderRadius: '12px', fontWeight: '900', cursor: 'pointer', marginTop: '14px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+              >
+                {isOptimizing ? <Loader2 className="animate-spin" size={16} /> : <Sliders size={16} />}
+                Run AI Intelligent Allocation
+              </button>
+
+              {aiOptimizationResult && (
+                <div style={{ marginTop: '14px', background: '#f8fafc', border: '1px solid #cbd5e1', padding: '12px', borderRadius: '12px', fontSize: '0.75rem', color: '#334155' }}>
+                  <div style={{ fontWeight: '900', color: aiOptimizationResult.status === 'Infeasible' ? '#ef4444' : '#047857', marginBottom: '6px' }}>
+                    Status: {aiOptimizationResult.status}
+                  </div>
+                  <p style={{ margin: '0 0 8px 0', fontWeight: '600' }}>{aiOptimizationResult.message}</p>
+                  
+                  {aiOptimizationResult.breakdown && (
+                    <div style={{ borderTop: '1px dashed #cbd5e1', paddingTop: '8px' }}>
+                      <div style={{ fontWeight: '800', marginBottom: '4px', textTransform: 'uppercase', fontSize: '0.7rem' }}>Recommended Breakdown:</div>
+                      {aiOptimizationResult.breakdown.map((b, index) => (
+                        <div key={index} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
+                          <span>{b.item} ({b.percentage}):</span>
+                          <span style={{ fontWeight: '800', color: '#000' }}>₱{Number(b.recommended_amount).toLocaleString()}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* --- BUNDLE ARCHITECT CANVAS --- */}
             <div style={{ ...cardStyle, border: '2px solid #000', background: '#ffffff' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
                 <h4 style={{ margin: 0, fontWeight: '900', display: 'flex', alignItems: 'center', gap: '8px', color: '#000', fontSize: '0.9rem', textTransform: 'uppercase' }}>
-                  <ShoppingBag size={18} /> Bundle & AI Optimizer
+                  <ShoppingBag size={18} /> Bundle Architect
                 </h4>
                 <span style={{ background: '#000', color: '#fff', fontSize: '0.75rem', fontWeight: '900', padding: '3px 10px', borderRadius: '999px' }}>
                   {architectItems.length} Items
@@ -359,19 +461,6 @@ const MainDashboard = () => {
                 placeholder="e.g. Dream Wedding Package" 
               />
 
-              <div style={{ marginTop: '12px' }}>
-                <label className="text-xs font-black text-slate-500 uppercase tracking-wider flex items-center gap-1">
-                  <DollarSign size={14} /> Target Budget Cap (₱)
-                </label>
-                <input 
-                  type="number" 
-                  style={{ ...inputStyle, fontWeight: '800', color: '#047857' }} 
-                  value={targetBudget === 0 ? '' : targetBudget} 
-                  onChange={(e) => setTargetBudget(e.target.value === '' ? '' : Number(e.target.value))} 
-                  placeholder="Enter budget cap"
-                />
-              </div>
-
               <div style={{ marginTop: '14px', maxHeight: '150px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', paddingRight: '4px' }}>
                 {architectItems.length > 0 ? architectItems.map(item => (
                   <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc', padding: '10px 14px', borderRadius: '12px', border: '1px solid #eaeaea' }}>
@@ -386,7 +475,7 @@ const MainDashboard = () => {
                 )) : (
                   <div style={{ background: '#fafafa', border: '2px dashed #eaeaea', padding: '16px', borderRadius: '14px', textAlign: 'center' }}>
                     <p style={{ fontSize: '0.8rem', color: '#64748b', fontStyle: 'italic', margin: 0 }}>
-                      Blueprint is empty. Add services below to run AI optimization.
+                      Blueprint is empty. Add services from the catalog below.
                     </p>
                   </div>
                 )}
@@ -398,21 +487,6 @@ const MainDashboard = () => {
                     <span>Total Blueprint Cost:</span>
                     <span style={{ color: '#047857' }}>₱{architectTotalCost.toLocaleString()}</span>
                   </div>
-
-                  <button 
-                    onClick={handleRunAiOptimization}
-                    disabled={isOptimizing}
-                    style={{ width: '100%', background: '#2563eb', color: '#fff', border: 'none', padding: '10px', borderRadius: '12px', fontWeight: '900', cursor: 'pointer', marginBottom: '10px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
-                  >
-                    {isOptimizing ? <Loader2 className="animate-spin" size={16} /> : <Sliders size={16} />}
-                    Run AI Budget Optimizer
-                  </button>
-
-                  {optimizationSuggestion && (
-                    <div style={{ background: '#f8fafc', border: '1px solid #cbd5e1', padding: '10px', borderRadius: '10px', fontSize: '0.75rem', color: '#334155', fontWeight: '700', marginBottom: '12px' }}>
-                      {optimizationSuggestion}
-                    </div>
-                  )}
 
                   <button 
                     onClick={handleDeployCustomBundle}
