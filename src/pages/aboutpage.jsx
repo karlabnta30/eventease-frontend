@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, Database, Layout, ArrowRight, Sparkles, Users, Award } from 'lucide-react';
+import { ShieldCheck, Database, Layout, ArrowRight } from 'lucide-react';
 
 const AboutPage = () => {
   const navigate = useNavigate();
@@ -40,150 +40,88 @@ const AboutPage = () => {
   ];
 
   const styles = {
-    container: { 
-      backgroundColor: '#09090b', 
-      minHeight: '100vh', 
-      fontFamily: "'Inter', sans-serif", 
-      color: '#f8fafc',
-      overflowX: 'hidden'
-    },
+    container: { backgroundColor: '#f8fafc', minHeight: '100vh', fontFamily: "'Inter', sans-serif", color: '#0f172a' },
     heroSection: { 
-      background: 'linear-gradient(135deg, #09090b 0%, #111827 50%, #064e3b 100%)', 
-      padding: isMobile ? '50px 20px 60px' : '80px 8%', 
+      background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', 
+      padding: isMobile ? '40px 20px' : '70px 8%', 
       color: '#fff',
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
       flexWrap: 'wrap',
-      gap: '40px',
-      borderBottom: '1px solid #1f2937',
-      position: 'relative'
+      gap: '30px',
+      boxShadow: '0 10px 30px rgba(0,0,0,0.1)'
     },
-    heroTextSide: { flex: '1.2', minWidth: '100%', zIndex: 2 },
+    heroTextSide: { flex: '1.2', minWidth: '100%' },
     heroImageSide: { 
       flex: '0.9', 
       minWidth: '100%', 
-      height: isMobile ? '240px' : '360px', 
+      height: isMobile ? '220px' : '340px', 
       borderRadius: '24px', 
       backgroundImage: 'url("https://images.unsplash.com/photo-1511578314322-379afb476865?q=80&w=2069&auto=format&fit=crop")', 
       backgroundSize: 'cover', 
       backgroundPosition: 'center', 
-      boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7)',
-      border: '1px solid rgba(255, 255, 255, 0.1)'
+      boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3)',
+      border: '4px solid rgba(255,255,255,0.1)'
     },
-    sectionPadding: { padding: isMobile ? '50px 20px' : '90px 8%' },
-    grid3: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', marginTop: '40px' },
+    sectionPadding: { padding: isMobile ? '40px 20px' : '90px 8%' },
+    grid3: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '20px', marginTop: '30px' },
     phiCard: { 
-      padding: '30px', 
-      backgroundColor: '#111827', 
+      padding: '25px', 
+      backgroundColor: '#ffffff', 
       borderRadius: '24px', 
       textAlign: 'left', 
-      border: '1px solid #1f2937', 
-      boxShadow: '0 10px 30px -10px rgba(0,0,0,0.5)',
-      transition: 'all 0.3s ease',
+      border: '1px solid #e2e8f0', 
+      boxShadow: '0 10px 25px -5px rgba(0,0,0,0.03)',
+      transition: 'transform 0.2s ease',
     },
-    teamGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '24px', marginTop: '40px' },
+    teamGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px', marginTop: '35px' },
     teamCard: { 
-      backgroundColor: '#111827', 
-      borderRadius: '24px', 
+      backgroundColor: '#fff', 
+      borderRadius: '22px', 
       overflow: 'hidden', 
-      border: '1px solid #1f2937', 
-      boxShadow: '0 15px 35px -10px rgba(0,0,0,0.4)',
+      border: '1px solid #e2e8f0', 
+      boxShadow: '0 10px 25px -5px rgba(0,0,0,0.03)',
       display: 'flex',
-      flexDirection: 'column',
-      transition: 'transform 0.3s ease'
+      flexDirection: 'column'
     },
     memberAvatar: { 
-      height: '130px', 
-      background: 'linear-gradient(135deg, #064e3b 0%, #059669 100%)', 
+      height: '120px', 
+      background: 'linear-gradient(135deg, #1e293b 0%, #3b82f6 100%)', 
       width: '100%', 
       display: 'flex', 
       alignItems: 'center', 
       justifyContent: 'center', 
-      color: '#ffffff', 
+      color: 'white', 
       fontSize: '2.2rem', 
       fontWeight: '900',
-      letterSpacing: '2px',
-      borderBottom: '1px solid #1f2937'
+      letterSpacing: '1px'
     },
-    memberInfo: { padding: '24px', backgroundColor: '#111827', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' } 
+    memberInfo: { padding: '20px', backgroundColor: '#ffffff', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' } 
   };
 
   return (
     <div style={styles.container}>
-      
       {/* SECTION 1: HERO BANNER */}
       <section style={styles.heroSection}>
         <div style={styles.heroTextSide}>
-          <button 
-            onClick={() => navigate('/')}
-            style={{ 
-              background: 'rgba(255, 255, 255, 0.05)', 
-              border: '1px solid rgba(255, 255, 255, 0.1)', 
-              color: '#cbd5e1', 
-              padding: '8px 16px', 
-              borderRadius: '10px', 
-              cursor: 'pointer', 
-              display: 'inline-flex', 
-              alignItems: 'center', 
-              gap: '8px', 
-              fontSize: '0.85rem', 
-              fontWeight: '600', 
-              marginBottom: '20px',
-              backdropFilter: 'blur(8px)'
-            }}
-          >
-            <ArrowLeft size={16} /> Back to Home
-          </button>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px', flexWrap: 'wrap' }}>
-            <span style={{ background: '#064e3b', color: '#34d399', fontSize: '0.75rem', fontWeight: '900', padding: '6px 14px', borderRadius: '999px', textTransform: 'uppercase', letterSpacing: '1px', border: '1px solid #059669' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', flexWrap: 'wrap' }}>
+            <span style={{ background: '#3b82f6', color: '#fff', fontSize: '0.75rem', fontWeight: '900', padding: '5px 12px', borderRadius: '999px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               Capstone Research Project
             </span>
-            <span style={{ color: '#94a3b8', fontSize: '0.85rem', fontWeight: '600' }}>College of Computing & IT</span>
+            <span style={{ color: '#94a3b8', fontSize: '0.85rem' }}>College of Computing</span>
           </div>
-          
-          <h1 style={{ fontSize: isMobile ? '2.2rem' : '3.4rem', margin: '0 0 16px 0', color: '#ffffff', fontWeight: '900', letterSpacing: '-1.5px', wordBreak: 'break-word', lineHeight: '1.1' }}>
+          <h1 style={{ fontSize: isMobile ? '2.1rem' : '2.8rem', margin: '0 0 15px 0', color: '#fff', fontWeight: '900', letterSpacing: '-1px', wordBreak: 'break-word' }}>
             EventEase: A Localized Booking & Bundle Solution
           </h1>
-          
-          <p style={{ fontSize: isMobile ? '0.95rem' : '1.05rem', color: '#94a3b8', lineHeight: '1.7', margin: '0 0 30px 0', maxWidth: '650px' }}>
+          <p style={{ fontSize: '1rem', color: '#94a3b8', lineHeight: '1.7', margin: '0 0 25px 0' }}>
             Developed as an advanced capstone study, EventEase streamlines comprehensive event planning, real-time budgeting, and vendor coordination within Metro Manila.
           </p>
-          
           <button 
-            onClick={() => {
-              const token = localStorage.getItem('token');
-              if (token) {
-                const role = localStorage.getItem('userRole');
-                if (role === 'admin') navigate('/admin-dashboard');
-                else if (role === 'vendor') navigate('/vendor-dashboard');
-                else navigate('/main-dashboard');
-              } else {
-                navigate('/login');
-              }
-            }}
-            style={{ 
-              background: '#10b981', 
-              color: '#ffffff', 
-              border: 'none', 
-              padding: '14px 30px', 
-              borderRadius: '14px', 
-              fontWeight: '900', 
-              fontSize: '0.9rem',
-              cursor: 'pointer', 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '10px', 
-              boxShadow: '0 10px 25px -5px rgba(16, 185, 129, 0.4)', 
-              width: isMobile ? '100%' : 'auto', 
-              justifyContent: 'center',
-              transition: 'transform 0.2s ease'
-            }}
-            onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
-            onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+            onClick={() => navigate('/')}
+            style={{ background: '#3b82f6', color: '#fff', border: 'none', padding: '14px 28px', borderRadius: '14px', fontWeight: '900', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 14px rgba(59, 130, 246, 0.4)', width: isMobile ? '100%' : 'auto', justifyContent: 'center' }}
           >
-            Explore Dashboard <ArrowRight size={18} />
+            Back to Home <ArrowRight size={18} />
           </button>
         </div>
         <div style={styles.heroImageSide}></div>
@@ -191,39 +129,38 @@ const AboutPage = () => {
 
       {/* SECTION 2: RESEARCH FRAMEWORK / OBJECTIVES */}
       <section style={styles.sectionPadding}>
-        <div style={{ textAlign: 'center', maxWidth: '750px', margin: '0 auto' }}>
-          <span style={{ color: '#34d399', fontWeight: '800', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '1.5px' }}>Architectural Pillars</span>
-          <h2 style={{ fontSize: isMobile ? '1.8rem' : '2.5rem', fontWeight: '900', color: '#ffffff', letterSpacing: '-1px', margin: '8px 0 12px 0' }}>Research Framework</h2>
-          <p style={{ color: '#94a3b8', fontSize: '1rem', lineHeight: '1.6' }}>Core technological and architectural pillars driving the EventEase platform.</p>
+        <div style={{ textAlign: 'center', maxWidth: '700px', margin: '0 auto' }}>
+          <h2 style={{ fontSize: isMobile ? '1.8rem' : '2.2rem', fontWeight: '900', color: '#0f172a', letterSpacing: '-0.5px', margin: '0 0 10px 0' }}>Research Framework</h2>
+          <p style={{ color: '#64748b', fontSize: '0.95rem' }}>Core technological and architectural pillars driving the EventEase platform.</p>
         </div>
 
         <div style={styles.grid3}>
           <div style={styles.phiCard}>
-            <div style={{ background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.2)', padding: '14px', borderRadius: '16px', width: 'fit-content', marginBottom: '20px' }}>
-              <Layout size={26} color="#60a5fa" />
+            <div style={{ background: '#dbeafe', padding: '12px', borderRadius: '14px', width: 'fit-content', marginBottom: '16px' }}>
+              <Layout size={24} color="#2563eb" />
             </div>
-            <h3 style={{ margin: '0 0 10px 0', fontSize: '1.2rem', fontWeight: '950', color: '#ffffff' }}>UX Optimization</h3>
-            <p style={{ color: '#94a3b8', fontSize: '0.9rem', lineHeight: '1.7', margin: 0 }}>
+            <h3 style={{ margin: '0 0 8px 0', fontSize: '1.1rem', fontWeight: '900', color: '#0f172a' }}>UX Optimization</h3>
+            <p style={{ color: '#64748b', fontSize: '0.88rem', lineHeight: '1.6', margin: 0 }}>
               Analyzing user conversion efficiency through a responsive React dashboard, interactive Bundle Architect, and streamlined checkout workflows.
             </p>
           </div>
 
           <div style={styles.phiCard}>
-            <div style={{ background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.2)', padding: '14px', borderRadius: '16px', width: 'fit-content', marginBottom: '20px' }}>
-              <ShieldCheck size={26} color="#34d399" />
+            <div style={{ background: '#d1fae5', padding: '12px', borderRadius: '14px', width: 'fit-content', marginBottom: '16px' }}>
+              <ShieldCheck size={24} color="#059669" />
             </div>
-            <h3 style={{ margin: '0 0 10px 0', fontSize: '1.2rem', fontWeight: '950', color: '#ffffff' }}>Data Integrity</h3>
-            <p style={{ color: '#94a3b8', fontSize: '0.9rem', lineHeight: '1.7', margin: 0 }}>
+            <h3 style={{ margin: '0 0 8px 0', fontSize: '1.1rem', fontWeight: '900', color: '#0f172a' }}>Data Integrity</h3>
+            <p style={{ color: '#64748b', fontSize: '0.88rem', lineHeight: '1.6', margin: 0 }}>
               Verifying high-fidelity vendor data, role-based JWT authentication, and secure transactional validations across NCR regions.
             </p>
           </div>
 
           <div style={styles.phiCard}>
-            <div style={{ background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.2)', padding: '14px', borderRadius: '16px', width: 'fit-content', marginBottom: '20px' }}>
-              <Database size={26} color="#fbbf24" />
+            <div style={{ background: '#fef3c7', padding: '12px', borderRadius: '14px', width: 'fit-content', marginBottom: '16px' }}>
+              <Database size={24} color="#d97706" />
             </div>
-            <h3 style={{ margin: '0 0 10px 0', fontSize: '1.2rem', fontWeight: '950', color: '#ffffff' }}>Scalability</h3>
-            <p style={{ color: '#94a3b8', fontSize: '0.9rem', lineHeight: '1.7', margin: 0 }}>
+            <h3 style={{ margin: '0 0 8px 0', fontSize: '1.1rem', fontWeight: '900', color: '#0f172a' }}>Scalability</h3>
+            <p style={{ color: '#64748b', fontSize: '0.88rem', lineHeight: '1.6', margin: 0 }}>
               Testing robust backend performance under simultaneous multi-vendor booking requests and automated AI budget allocations.
             </p>
           </div>
@@ -231,35 +168,32 @@ const AboutPage = () => {
       </section>
 
       {/* SECTION 3: MEET THE RESEARCHERS */}
-      <section style={{ ...styles.sectionPadding, backgroundColor: '#0e131f', borderTop: '1px solid #1f2937', borderBottom: '1px solid #1f2937' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'flex-end', flexWrap: 'wrap', gap: '20px', maxWidth: '1200px', margin: '0 auto' }}>
+      <section style={{ ...styles.sectionPadding, backgroundColor: '#f1f5f9', borderTop: '1px solid #e2e8f0', borderBottom: '1px solid #e2e8f0' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'flex-end', flexWrap: 'wrap', gap: '15px' }}>
           <div>
-            <span style={{ color: '#34d399', fontWeight: '900', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '1.5px' }}>Project Team</span>
-            <h2 style={{ fontSize: isMobile ? '2rem' : '2.8rem', fontWeight: '900', color: '#ffffff', margin: '6px 0 0 0', letterSpacing: '-1px' }}>Meet the Researchers</h2>
+            <span style={{ color: '#2563eb', fontWeight: '900', textTransform: 'uppercase', fontSize: '0.8rem', letterSpacing: '1px' }}>Project Team</span>
+            <h2 style={{ fontSize: isMobile ? '1.9rem' : '2.5rem', fontWeight: '900', color: '#0f172a', margin: '5px 0 0 0', letterSpacing: '-1px' }}>Meet the Researchers</h2>
           </div>
-          <p style={{ color: '#94a3b8', fontSize: '0.95rem', maxWidth: '480px', margin: 0, lineHeight: '1.6' }}>
+          <p style={{ color: '#64748b', fontSize: '0.9rem', maxWidth: '450px', margin: 0 }}>
             Dedicated IT undergraduate students collaborating to bridge the gap between event planners and local service providers.
           </p>
         </div>
 
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <div style={styles.teamGrid}>
-            {teamMembers.map((member, i) => (
-              <div key={i} style={styles.teamCard}>
-                <div style={styles.memberAvatar}>{member.initials}</div>
-                <div style={styles.memberInfo}>
-                  <div>
-                    <h3 style={{ margin: '0 0 6px 0', fontSize: '1.15rem', fontWeight: '900', color: '#ffffff' }}>{member.name}</h3>
-                    <p style={{ color: '#34d399', fontWeight: '800', fontSize: '0.75rem', margin: '0 0 14px 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{member.role}</p>
-                    <p style={{ fontSize: '0.88rem', color: '#94a3b8', lineHeight: '1.6', margin: 0 }}>{member.bio}</p>
-                  </div>
+        <div style={styles.teamGrid}>
+          {teamMembers.map((member, i) => (
+            <div key={i} style={styles.teamCard}>
+              <div style={styles.memberAvatar}>{member.initials}</div>
+              <div style={styles.memberInfo}>
+                <div>
+                  <h3 style={{ margin: '0 0 4px 0', fontSize: '1.1rem', fontWeight: '900', color: '#0f172a' }}>{member.name}</h3>
+                  <p style={{ color: '#3b82f6', fontWeight: '800', fontSize: '0.78rem', margin: '0 0 10px 0', textTransform: 'uppercase' }}>{member.role}</p>
+                  <p style={{ fontSize: '0.85rem', color: '#64748b', lineHeight: '1.5', margin: 0 }}>{member.bio}</p>
                 </div>
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
       </section>
-
     </div>
   );
 };
