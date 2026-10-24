@@ -19,7 +19,7 @@ import ContactPage from './pages/contactpage';
 import AdminDashboard from './pages/AdminDashboard'; 
 import AdminFeedback from './pages/AdminFeedback'; 
 import AboutPage from "./pages/aboutpage";
-import HelpPage from "./pages/HelpPage"; // I-import ang bagong Help page
+import HelpPage from "./pages/HelpPage"; 
 import UserProfile from './pages/UserProfile'; 
 import EditEvents from './pages/EditEvents'; 
 import VendorProfile from './pages/VendorProfile'; 
@@ -35,7 +35,7 @@ import VendorDashboard from './pages/VendorDashboard';
 import VendorList from './pages/VendorList';
 import AddService from './pages/AddService'; 
 
-// --- PROTECTED ROUTE WRAPPER WITH REAL-TIME CROSS-TAB SYNC ---
+// --- PROTECTED ROUTE WRAPPER ---
 const ProtectedRoute = () => {
   const navigate = useNavigate();
   const token = localStorage.getItem('token');
@@ -79,13 +79,19 @@ const ProtectedRoute = () => {
   return <Outlet />;
 };
 
+// Layout component para sa mga pahinang may Sidebar
+const SidebarLayout = () => {
+  return (
+    <Sidebar>
+      <Outlet />
+    </Sidebar>
+  );
+};
+
 function App() {
   const location = useLocation();
   const authPaths = ['/login', '/register', '/verify-otp', '/forgot-password', '/catalog']; 
   const isAuthPage = authPaths.includes(location.pathname);
-  
-  // Ginawa nating standalone ang /about at /help para hindi na dumaan sa sidebar check
-  const isPublicStandalonePage = location.pathname === '/' || location.pathname === '/about' || location.pathname === '/help';
   
   const userRole = localStorage.getItem('userRole');
 
@@ -100,76 +106,73 @@ function App() {
       <Toaster position="top-right" reverseOrder={false} />
       {!isAuthPage && <Navbar />} 
 
-      {/* Kung HINDI auth page at HINDI public standalone page (Landing, About, Help), saka lang gagamitin ang Sidebar */}
-      {!isAuthPage && !isPublicStandalonePage ? (
-        <Sidebar>
-          <Routes>
-            <Route element={<ProtectedRoute />}>
-              <Route path="/home" element={<Navigate to={getDefaultDashboard()} replace />} />
+      <Routes>
+        {/* ================= PUBLIC STANDALONE ROUTES (Hindi kailangan ng login) ================= */}
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/help" element={<HelpPage />} />
+        <Route path="/catalog" element={<PublicCatalog />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/verify-otp" element={<VerifyOtp />} /> 
+        <Route path="/forgot-password" element={<ForgotPassword />} /> 
 
-              {/* SHARED ROUTES */}
-              <Route path="/live-events" element={<LiveEvents />} />
-              <Route path="/profile" element={<UserProfile />} /> 
-              <Route path="/booking-details/:id" element={<BookingDetails />} />
-              <Route path="/notifications" element={<NotificationPage />} />
-              <Route path="/messages" element={<Messages />} />
-              <Route path="/bundle-details/:id" element={<BundleDetails />} />
-              <Route path="/payment-success" element={<PaymentSuccess />} />
-              
-              {/* CLIENT ROUTES */}
-              <Route 
-                path="/main-dashboard" 
-                element={!userRole || userRole === 'client' ? <MainDashboard /> : <Navigate to={getDefaultDashboard()} replace />} 
-              />
-              <Route path="/vendors/:id" element={<VendorProfile />} /> 
-              <Route path="/create-event" element={<CreateEvent />} />
-              <Route path="/vendor-list" element={<VendorList />} />
-              <Route path="/edit-event/:id" element={<EditEvents />} />
-              <Route path="/contact" element={<ContactPage />} />
-              <Route path="/checkout" element={<Checkout />} />
-              <Route path="/receipt" element={<Receipt />} />
+        {/* ================= PROTECTED ROUTES (Nakalagay sa Sidebar Layout) ================= */}
+        <Route element={<ProtectedRoute />}>
+          <Route element={<SidebarLayout />}>
+            <Route path="/home" element={<Navigate to={getDefaultDashboard()} replace />} />
 
-              {/* VENDOR ROUTES */}
-              <Route 
-                path="/vendor-dashboard" 
-                element={userRole === 'vendor' ? <VendorDashboard /> : <Navigate to={getDefaultDashboard()} replace />} 
-              />
-              <Route 
-                path="/vendor-services" 
-                element={userRole === 'vendor' ? <VendorList /> : <Navigate to={getDefaultDashboard()} replace />} 
-              />
-              <Route 
-                path="/add-service" 
-                element={userRole === 'vendor' ? <AddService /> : <Navigate to={getDefaultDashboard()} replace />} 
-              />
+            {/* SHARED ROUTES */}
+            <Route path="/live-events" element={<LiveEvents />} />
+            <Route path="/profile" element={<UserProfile />} /> 
+            <Route path="/booking-details/:id" element={<BookingDetails />} />
+            <Route path="/notifications" element={<NotificationPage />} />
+            <Route path="/messages" element={<Messages />} />
+            <Route path="/bundle-details/:id" element={<BundleDetails />} />
+            <Route path="/payment-success" element={<PaymentSuccess />} />
+            
+            {/* CLIENT ROUTES */}
+            <Route 
+              path="/main-dashboard" 
+              element={!userRole || userRole === 'client' ? <MainDashboard /> : <Navigate to={getDefaultDashboard()} replace />} 
+            />
+            <Route path="/vendors/:id" element={<VendorProfile />} /> 
+            <Route path="/create-event" element={<CreateEvent />} />
+            <Route path="/vendor-list" element={<VendorList />} />
+            <Route path="/edit-event/:id" element={<EditEvents />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/checkout" element={<Checkout />} />
+            <Route path="/receipt" element={<Receipt />} />
 
-              {/* ADMIN ROUTES */}
-              <Route 
-                path="/admin-dashboard" 
-                element={userRole === 'admin' ? <AdminDashboard /> : <Navigate to={getDefaultDashboard()} replace />} 
-              />
-              <Route 
-                path="/admin-feedback" 
-                element={userRole === 'admin' ? <AdminFeedback /> : <Navigate to={getDefaultDashboard()} replace />} 
-              />
+            {/* VENDOR ROUTES */}
+            <Route 
+              path="/vendor-dashboard" 
+              element={userRole === 'vendor' ? <VendorDashboard /> : <Navigate to={getDefaultDashboard()} replace />} 
+            />
+            <Route 
+              path="/vendor-services" 
+              element={userRole === 'vendor' ? <VendorList /> : <Navigate to={getDefaultDashboard()} replace />} 
+            />
+            <Route 
+              path="/add-service" 
+              element={userRole === 'vendor' ? <AddService /> : <Navigate to={getDefaultDashboard()} replace />} 
+            />
 
-              <Route path="*" element={<Navigate to={getDefaultDashboard()} replace />} />
-            </Route>
-          </Routes>
-        </Sidebar>
-      ) : (
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/help" element={<HelpPage />} />
-          <Route path="/catalog" element={<PublicCatalog />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/verify-otp" element={<VerifyOtp />} /> 
-          <Route path="/forgot-password" element={<ForgotPassword />} /> 
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      )}
+            {/* ADMIN ROUTES */}
+            <Route 
+              path="/admin-dashboard" 
+              element={userRole === 'admin' ? <AdminDashboard /> : <Navigate to={getDefaultDashboard()} replace />} 
+            />
+            <Route 
+              path="/admin-feedback" 
+              element={userRole === 'admin' ? <AdminFeedback /> : <Navigate to={getDefaultDashboard()} replace />} 
+            />
+          </Route>
+        </Route>
+
+        {/* Catch-all route */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </>
   );
 }
