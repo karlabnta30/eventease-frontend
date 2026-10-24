@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronDown, ChevronUp, Search, HelpCircle, Info, LogIn } from 'lucide-react';
 
 const LandingPage = () => {
   const navigate = useNavigate();
   const [activeModal, setActiveModal] = useState(null); // 'privacy' | 'terms' | 'security' | null
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-  const [openFaqIndex, setOpenFaqIndex] = useState(null);
 
   // Dynamic screen listener para sa mobile responsiveness
   useEffect(() => {
@@ -17,7 +15,7 @@ const LandingPage = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // SMART NAVIGATION: Sinusuri kung naka-login na ang user o admin
+  // SMART NAVIGATION: Sinusuri kung naka-login na ang user o admin para hindi na sila pabalikin sa login page
   const handleStartPlanning = () => {
     const token = localStorage.getItem('token');
     const userRole = localStorage.getItem('userRole');
@@ -27,49 +25,15 @@ const LandingPage = () => {
       return;
     }
 
+    // Kung naka-login na, dalhin sila agad sa kaukulang dashboard depende sa role
     if (userRole === 'admin') {
       navigate('/admin-dashboard');
     } else if (userRole === 'vendor') {
       navigate('/vendor-dashboard');
     } else {
-      navigate('/dashboard');
+      navigate('/dashboard'); // Main dashboard para sa regular client/user
     }
   };
-
-  const toggleFaq = (index) => {
-    setOpenFaqIndex(openFaqIndex === index ? null : index);
-  };
-
-  const faqData = [
-    {
-      question: 'How do payments work?',
-      answer: 'Payments are processed securely via PayMongo. You can book custom vendor bundles or individual services with transparent automated invoice receipts and ledger updates.'
-    },
-    {
-      question: 'Cancellations',
-      answer: 'Cancellations depend on the specific vendor terms and agreement schedule. You can manage or request booking changes directly within your event itinerary timeline.'
-    },
-    {
-      question: 'Trust & Safety',
-      answer: 'EventEase protects your data with robust Aiven cloud database encryption, token-authenticated sessions, and automated OTP email verification loops.'
-    },
-    {
-      question: 'Your Listings',
-      answer: 'Vendors can create, manage, and toggle status for their listed services directly from their dedicated Vendor Dashboard workspace.'
-    },
-    {
-      question: 'Rental Help',
-      answer: 'For venue or audio-visual equipment rental support, our technical assistance team is available via our live messaging portal.'
-    },
-    {
-      question: 'Your Account',
-      answer: 'You can update your profile credentials, check active event itineraries, and track transaction histories in real time.'
-    },
-    {
-      question: 'How to Get Paid',
-      answer: 'Vendors receive payout settlements directly through integrated banking channels upon completing confirmed event service milestones.'
-    }
-  ];
 
   const modalContent = {
     privacy: {
@@ -95,62 +59,16 @@ const LandingPage = () => {
       overflowX: 'hidden',
       position: 'relative',
     },
-    navbar: {
-      display: 'flex',
-      justify: 'space-between',
-      alignItems: 'center',
-      padding: isMobile ? '16px 20px' : '20px 60px',
-      backgroundColor: '#0f172a',
-      color: '#ffffff',
-      borderBottom: '1px solid #1e293b',
-      maxWidth: '100%',
-    },
-    navBrand: {
-      fontSize: '1.4rem',
-      fontWeight: '900',
-      letterSpacing: '-1px',
-      color: '#ffffff',
-      cursor: 'pointer',
-    },
-    navLinks: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: isMobile ? '12px' : '28px',
-    },
-    navLinkItem: {
-      color: '#cbd5e1',
-      fontSize: '0.88rem',
-      fontWeight: '700',
-      cursor: 'pointer',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '6px',
-      textDecoration: 'none',
-      transition: 'color 0.2s ease',
-    },
-    signInBtn: {
-      backgroundColor: '#2563eb',
-      color: '#ffffff',
-      border: 'none',
-      padding: '10px 20px',
-      borderRadius: '10px',
-      fontWeight: '800',
-      fontSize: '0.85rem',
-      cursor: 'pointer',
-      transition: 'all 0.2s ease',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '6px',
-    },
     heroSection: {
       display: 'flex',
       flexDirection: isMobile ? 'column' : 'row',
-      justify: 'space-between',
+      justifyContent: 'space-between',
       alignItems: 'center',
-      padding: isMobile ? '24px 20px' : '40px 60px',
+      padding: isMobile ? '24px 20px' : '24px 40px',
       gap: isMobile ? '30px' : '40px',
       maxWidth: '1440px',
       margin: '0 auto',
+      minHeight: 'auto',
     },
     heroContent: {
       flex: '1 1 100%',
@@ -260,60 +178,8 @@ const LandingPage = () => {
       border: '1px solid #e2e8f0',
       boxShadow: '0 15px 30px rgba(0,0,0,0.05)',
     },
-    faqSection: {
-      backgroundColor: '#000000',
-      color: '#ffffff',
-      padding: isMobile ? '40px 20px' : '60px 40px',
-      textAlign: 'center',
-    },
-    faqHeading: {
-      fontSize: isMobile ? '2rem' : '2.8rem',
-      fontWeight: '900',
-      marginBottom: '8px',
-      color: '#ffffff',
-      letterSpacing: '-1px',
-    },
-    faqSubheading: {
-      color: '#94a3b8',
-      fontSize: '0.88rem',
-      marginBottom: '36px',
-      fontWeight: '600',
-    },
-    faqContainer: {
-      maxWidth: '850px',
-      margin: '0 auto',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '12px',
-    },
-    faqCard: {
-      border: '1px solid #27272a',
-      borderRadius: '14px',
-      backgroundColor: '#09090b',
-      overflow: 'hidden',
-      textAlign: 'left',
-      transition: 'border-color 0.2s ease',
-    },
-    faqHeader: {
-      padding: '18px 24px',
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      cursor: 'pointer',
-      fontWeight: '800',
-      fontSize: '1rem',
-      color: '#ffffff',
-    },
-    faqAnswer: {
-      padding: '0 24px 18px 24px',
-      color: '#a1a1aa',
-      fontSize: '0.90rem',
-      lineHeight: '1.6',
-      borderTop: '1px solid #18181b',
-      paddingTop: '14px',
-    },
     featureSection: {
-      padding: isMobile ? '24px 20px' : '40px 60px',
+      padding: isMobile ? '24px 20px' : '40px 40px',
       maxWidth: '1300px',
       margin: '0 auto',
       display: 'grid',
@@ -327,7 +193,7 @@ const LandingPage = () => {
       padding: isMobile ? '24px' : '36px',
       display: 'flex',
       flexDirection: 'column',
-      justify: 'space-between',
+      justifyContent: 'space-between',
       boxShadow: '0 10px 30px -10px rgba(0,0,0,0.03)',
     },
     featureHeading: {
@@ -343,13 +209,66 @@ const LandingPage = () => {
       lineHeight: '1.65',
       marginBottom: '20px',
     },
+    industrySection: {
+      padding: isMobile ? '24px 20px' : '40px 40px',
+      textAlign: 'center',
+      maxWidth: '1200px',
+      margin: '0 auto',
+    },
+    industryGrid: {
+      display: 'grid',
+      gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(200px, 1fr))',
+      gap: '16px',
+      marginTop: '30px',
+    },
+    industryCard: {
+      backgroundColor: '#f8fafc',
+      border: '1px solid #e2e8f0',
+      padding: '20px',
+      borderRadius: '18px',
+      fontWeight: '800',
+      fontSize: '0.95rem',
+      textAlign: 'left',
+      display: 'flex',
+      alignItems: 'flex-end',
+      height: '130px',
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      position: 'relative',
+      overflow: 'hidden',
+    },
+    industryOverlay: {
+      position: 'absolute',
+      inset: 0,
+      background: 'linear-gradient(to top, rgba(15,23,42,0.85) 10%, rgba(15,23,42,0.2) 100%)',
+    },
+    testimonialSection: {
+      padding: isMobile ? '30px 20px' : '50px 40px',
+      backgroundColor: '#f8fafc',
+      borderTop: '1px solid #e2e8f0',
+      borderBottom: '1px solid #e2e8f0',
+    },
+    testimonialGrid: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+      gap: '24px',
+      maxWidth: '1300px',
+      margin: '30px auto 0',
+    },
+    testimonialCard: {
+      backgroundColor: '#ffffff',
+      border: '1px solid #e2e8f0',
+      borderRadius: '22px',
+      padding: isMobile ? '20px' : '30px',
+      boxShadow: '0 10px 30px rgba(0,0,0,0.02)',
+    },
     footer: {
-      padding: isMobile ? '24px 20px' : '30px 60px',
+      padding: isMobile ? '24px 20px' : '30px 40px',
       maxWidth: '1300px',
       margin: '0 auto',
       display: 'flex',
       flexDirection: isMobile ? 'column' : 'row',
-      justify: 'space-between',
+      justifyContent: 'space-between',
       alignItems: 'center',
       gap: isMobile ? '15px' : '0',
       color: '#64748b',
@@ -410,31 +329,6 @@ const LandingPage = () => {
 
   return (
     <div style={styles.pageWrapper}>
-      {/* HEADER NAVBAR WITH SEARCH, HELP, ABOUT, SIGN IN */}
-      <nav style={styles.navbar}>
-        <div style={styles.navBrand} onClick={() => navigate('/')}>
-          EventEase
-        </div>
-        <div style={styles.navLinks}>
-          {!isMobile && (
-            <>
-              <span style={styles.navLinkItem} onClick={handleStartPlanning}>
-                <Search size={15} /> Search
-              </span>
-              <a href="#help-section" style={styles.navLinkItem}>
-                <HelpCircle size={15} /> Help
-              </a>
-              <span style={styles.navLinkItem} onClick={() => setActiveModal('security')}>
-                <Info size={15} /> About
-              </span>
-            </>
-          )}
-          <button style={styles.signInBtn} onClick={() => navigate('/login')}>
-            <LogIn size={15} /> Sign In
-          </button>
-        </div>
-      </nav>
-
       {/* HERO SECTION */}
       <section style={styles.heroSection}>
         <div style={styles.heroContent}>
@@ -479,7 +373,7 @@ const LandingPage = () => {
           </div>
         </div>
 
-        {/* Photo Collage Grid */}
+        {/* Cinematic Photo Collage Grid */}
         <div style={styles.photoGrid}>
           <div style={styles.collageCol}>
             <img src="https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=400&q=80" alt="Event 1" style={styles.collageImg} />
@@ -496,31 +390,7 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* "HOW CAN WE HELP?" FAQ ACCORDION SECTION */}
-      <section id="help-section" style={styles.faqSection}>
-        <h2 style={styles.faqHeading}>How can we help?</h2>
-        <p style={styles.faqSubheading}>
-          Click the dropdowns below to learn about anything from our payment process to how cancellations work.
-        </p>
-
-        <div style={styles.faqContainer}>
-          {faqData.map((item, index) => (
-            <div key={index} style={styles.faqCard}>
-              <div style={styles.faqHeader} onClick={() => toggleFaq(index)}>
-                <span>{item.question}</span>
-                {openFaqIndex === index ? <ChevronUp size={18} color="#a1a1aa" /> : <ChevronDown size={18} color="#a1a1aa" />}
-              </div>
-              {openFaqIndex === index && (
-                <div style={styles.faqAnswer}>
-                  {item.answer}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* CORE BUNDLE ARCHITECT SECTION */}
+      {/* CORE ARCHITECT & SECURE PAYMENTS FEATURE SECTION */}
       <section style={styles.featureSection}>
         <div style={styles.featureCard}>
           <div>
@@ -549,17 +419,87 @@ const LandingPage = () => {
         </div>
       </section>
 
+      {/* TRUSTED INDUSTRIES SECTION */}
+      <section style={styles.industrySection}>
+        <h2 style={{ fontSize: isMobile ? '1.6rem' : '2rem', fontWeight: '900', letterSpacing: '-1px', color: '#0f172a' }}>Engineered for elite event categories</h2>
+        <div style={styles.industryGrid}>
+          <div style={{ ...styles.industryCard, backgroundImage: `url('https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=300&q=80')` }}>
+            <div style={styles.industryOverlay}></div>
+            <span style={{ position: 'relative', zIndex: 2, color: '#ffffff' }}>Corporate Galas</span>
+          </div>
+          <div style={{ ...styles.industryCard, backgroundImage: `url('https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=300&q=80')` }}>
+            <div style={styles.industryOverlay}></div>
+            <span style={{ position: 'relative', zIndex: 2, color: '#ffffff' }}>Academic Seminars</span>
+          </div>
+          <div style={{ ...styles.industryCard, backgroundImage: `url('https://images.unsplash.com/photo-1531206715517-5c0ba140b2b8?auto=format&fit=crop&w=300&q=80')` }}>
+            <div style={styles.industryOverlay}></div>
+            <span style={{ position: 'relative', zIndex: 2, color: '#ffffff' }}>Executive Councils</span>
+          </div>
+          <div style={{ ...styles.industryCard, backgroundImage: `url('https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=300&q=80')` }}>
+            <div style={styles.industryOverlay}></div>
+            <span style={{ position: 'relative', zIndex: 2, color: '#ffffff' }}>Live Concerts</span>
+          </div>
+          <div style={{ ...styles.industryCard, backgroundImage: `url('https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&w=300&q=80')` }}>
+            <div style={styles.industryOverlay}></div>
+            <span style={{ position: 'relative', zIndex: 2, color: '#ffffff' }}>Community Mixers</span>
+          </div>
+        </div>
+      </section>
+
+      {/* TESTIMONIALS SECTION */}
+      <section style={styles.testimonialSection}>
+        <div style={{ maxWidth: '1300px', margin: '0 auto', textAlign: 'center' }}>
+          <h2 style={{ fontSize: isMobile ? '1.6rem' : '2rem', fontWeight: '900', letterSpacing: '-1px', color: '#0f172a' }}>Trusted by elite event organizers</h2>
+          <p style={{ color: '#64748b', marginTop: '6px', fontSize: '0.90rem' }}>Maintaining top-tier reliability across authentication and booking workflows.</p>
+        </div>
+        <div style={styles.testimonialGrid}>
+          <div style={styles.testimonialCard}>
+            <div style={{ color: '#059669', marginBottom: '12px', fontSize: '0.85rem' }}>★★★★★</div>
+            <h4 style={{ fontWeight: '800', marginBottom: '8px', fontSize: '1rem', color: '#0f172a' }}>Flawless vendor coordination</h4>
+            <p style={{ color: '#64748b', fontSize: '0.85rem', lineHeight: '1.6' }}>"The Bundle Architect completely transformed how we pitch packages to clients with rock-solid Aiven database stability."</p>
+            <div style={{ marginTop: '20px', fontWeight: '700', fontSize: '0.80rem', color: '#334155' }}>Rory W. — Lead Event Director</div>
+          </div>
+          <div style={styles.testimonialCard}>
+            <div style={{ color: '#059669', marginBottom: '12px', fontSize: '0.85rem' }}>★★★★★</div>
+            <h4 style={{ fontWeight: '800', marginBottom: '8px', fontSize: '1rem', color: '#0f172a' }}>Secure billing & OTP resend</h4>
+            <p style={{ color: '#64748b', fontSize: '0.85rem', lineHeight: '1.6' }}>"Integrating PayMongo checkout alongside seamless OTP email verification flows resolved all user signup bottlenecks overnight."</p>
+            <div style={{ marginTop: '20px', fontWeight: '700', fontSize: '0.80rem', color: '#334155' }}>Nikki K. — Operations Manager</div>
+          </div>
+          <div style={styles.testimonialCard}>
+            <div style={{ color: '#059669', marginBottom: '12px', fontSize: '0.85rem' }}>★★★★★</div>
+            <h4 style={{ fontWeight: '800', marginBottom: '8px', fontSize: '1rem', color: '#0f172a' }}>Exceptional UI architecture</h4>
+            <p style={{ color: '#64748b', fontSize: '0.85rem', lineHeight: '1.6' }}>"From instant code deployments to live itinerary tracking, every workflow is polished to absolute perfection."</p>
+            <div style={{ marginTop: '20px', fontWeight: '700', fontSize: '0.80rem', color: '#334155' }}>Piyush G. — Technical Lead</div>
+          </div>
+        </div>
+      </section>
+
       {/* FOOTER */}
       <footer style={styles.footer}>
         <div>© 2026 EventEase Inc. All rights reserved.</div>
         <div style={{ display: 'flex', gap: '20px', color: '#64748b', fontWeight: '600', flexWrap: 'wrap', justifyContent: 'center' }}>
-          <span style={styles.footerLink} onClick={() => setActiveModal('privacy')}>
+          <span 
+            style={styles.footerLink} 
+            onClick={() => setActiveModal('privacy')}
+            onMouseOver={(e) => e.currentTarget.style.color = '#0f172a'}
+            onMouseOut={(e) => e.currentTarget.style.color = '#64748b'}
+          >
             Privacy Policy
           </span>
-          <span style={styles.footerLink} onClick={() => setActiveModal('terms')}>
+          <span 
+            style={styles.footerLink} 
+            onClick={() => setActiveModal('terms')}
+            onMouseOver={(e) => e.currentTarget.style.color = '#0f172a'}
+            onMouseOut={(e) => e.currentTarget.style.color = '#64748b'}
+          >
             Terms of Service
           </span>
-          <span style={styles.footerLink} onClick={() => setActiveModal('security')}>
+          <span 
+            style={styles.footerLink} 
+            onClick={() => setActiveModal('security')}
+            onMouseOver={(e) => e.currentTarget.style.color = '#0f172a'}
+            onMouseOut={(e) => e.currentTarget.style.color = '#64748b'}
+          >
             Security
           </span>
         </div>
