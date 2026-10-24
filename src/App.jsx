@@ -19,6 +19,7 @@ import ContactPage from './pages/contactpage';
 import AdminDashboard from './pages/AdminDashboard'; 
 import AdminFeedback from './pages/AdminFeedback'; 
 import AboutPage from "./pages/aboutpage";
+import HelpPage from "./pages/HelpPage"; // I-import ang bagong Help page
 import UserProfile from './pages/UserProfile'; 
 import EditEvents from './pages/EditEvents'; 
 import VendorProfile from './pages/VendorProfile'; 
@@ -82,7 +83,9 @@ function App() {
   const location = useLocation();
   const authPaths = ['/login', '/register', '/verify-otp', '/forgot-password', '/catalog']; 
   const isAuthPage = authPaths.includes(location.pathname);
-  const isLandingView = location.pathname === '/';
+  
+  // Ginawa nating standalone ang /about at /help para hindi na dumaan sa sidebar check
+  const isPublicStandalonePage = location.pathname === '/' || location.pathname === '/about' || location.pathname === '/help';
   
   const userRole = localStorage.getItem('userRole');
 
@@ -97,7 +100,8 @@ function App() {
       <Toaster position="top-right" reverseOrder={false} />
       {!isAuthPage && <Navbar />} 
 
-      {!isAuthPage && !isLandingView ? (
+      {/* Kung HINDI auth page at HINDI public standalone page (Landing, About, Help), saka lang gagamitin ang Sidebar */}
+      {!isAuthPage && !isPublicStandalonePage ? (
         <Sidebar>
           <Routes>
             <Route element={<ProtectedRoute />}>
@@ -122,7 +126,6 @@ function App() {
               <Route path="/vendor-list" element={<VendorList />} />
               <Route path="/edit-event/:id" element={<EditEvents />} />
               <Route path="/contact" element={<ContactPage />} />
-              <Route path="/about" element={<AboutPage />} /> 
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/receipt" element={<Receipt />} />
 
@@ -157,6 +160,8 @@ function App() {
       ) : (
         <Routes>
           <Route path="/" element={<LandingPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/help" element={<HelpPage />} />
           <Route path="/catalog" element={<PublicCatalog />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
