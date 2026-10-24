@@ -19,7 +19,7 @@ import ContactPage from './pages/contactpage';
 import AdminDashboard from './pages/AdminDashboard'; 
 import AdminFeedback from './pages/AdminFeedback'; 
 import AboutPage from "./pages/aboutpage";
-import HelpPage from "./pages/HelpPage"; 
+import HelpPage from "./pages/help"; // <--- ITAMA DITO: ginawang lowercase 'help' para tumugma sa help.jsx mo
 import UserProfile from './pages/UserProfile'; 
 import EditEvents from './pages/EditEvents'; 
 import VendorProfile from './pages/VendorProfile'; 
