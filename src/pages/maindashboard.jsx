@@ -4,7 +4,7 @@ import api from '../api';
 import './dashboard.css'; 
 import ServiceCard from '../components/ServiceCard';
 import { notifyNewBooking } from '../toastUtils.jsx'; 
-import { AlertTriangle, Loader2, CheckCircle, ShoppingBag, Trash2, Plus, ArrowRight, Calendar, Tag, Sliders, DollarSign, PieChart } from 'lucide-react';
+import { AlertTriangle, CheckCircle, ShoppingBag, Trash2, Plus, ArrowRight, Calendar, Tag, Building, Clock, CheckSquare } from 'lucide-react';
 
 const MainDashboard = () => {
   const navigate = useNavigate();
@@ -19,13 +19,6 @@ const MainDashboard = () => {
   const [architectItems, setArchitectItems] = useState([]);
   const [bundleName, setBundleName] = useState('My Custom Event Blueprint');
   const [isSavingBundle, setIsSavingBundle] = useState(false);
-
-  // --- MGA STATES PARA SA AI BUDGET OPTIMIZER & ADVANCED FEATURES ---
-  const [targetBudget, setTargetBudget] = useState(50000); 
-  const [guestCount, setGuestCount] = useState(50);
-  const [eventCategory, setEventCategory] = useState('Wedding');
-  const [isOptimizing, setIsOptimizing] = useState(false);
-  const [aiOptimizationResult, setAiOptimizationResult] = useState(null);
 
   const [bookingToCancel, setBookingToCancel] = useState(null);
 
@@ -176,66 +169,6 @@ const MainDashboard = () => {
     return architectItems.reduce((sum, item) => sum + Number(item.price || 0), 0);
   }, [architectItems]);
 
-  // --- INTEGRATED ADVANCED SMART AI ALLOCATION & BUDGET MAXIMIZER ---
-  const handleRunAiOptimization = async () => {
-    setIsOptimizing(true);
-    try {
-      // Subukan munang tawagin ang Backend API
-      const response = await api.post('/ai/optimize-budget', {
-        category: eventCategory,
-        guest_count: Number(guestCount),
-        total_budget: Number(targetBudget)
-      });
-      
-      setAiOptimizationResult(response.data);
-
-      // Kung nagbalik ang backend ng optimized items, direktang ilubos at idagdag sa Bundle Architect canvas!
-      if (response.data.optimized_items && response.data.optimized_items.length > 0) {
-        setArchitectItems(response.data.optimized_items);
-      }
-    } catch (error) {
-      console.warn("API AI endpoint fallback to frontend smart matcher:", error);
-      
-      // Smart Greedy Frontend Matcher para sa paglubos ng budget gamit ang aktwal na loaded services
-      let accumulatedCost = 0;
-      let selectedBundle = [];
-      
-      // Pagbukud-bukurin ang mga available services mula pinakamataas hanggang pinakamababa para maubos/malubos ang budget
-      const sortedCatalog = [...services].sort((a, b) => Number(b.price || 0) - Number(a.price || 0));
-
-      for (let s of sortedCatalog) {
-        const itemPrice = Number(s.price || 0);
-        if (accumulatedCost + itemPrice <= Number(targetBudget)) {
-          selectedBundle.push({
-            id: s.id,
-            name: s.name || s.title || 'Event Service',
-            price: itemPrice,
-            category: s.category || 'General',
-            business_name: s.business_name || 'Verified Vendor'
-          });
-          accumulatedCost += itemPrice;
-        }
-      }
-
-      const remainingBuffer = Number(targetBudget) - accumulatedCost;
-
-      setArchitectItems(selectedBundle);
-      setAiOptimizationResult({
-        status: selectedBundle.length > 0 ? 'Optimal Allocation Generated' : 'Infeasible',
-        message: selectedBundle.length > 0 
-          ? `Na-maximize ang iyong ₱${Number(targetBudget).toLocaleString()} budget! Nakapili ang AI ng ${selectedBundle.length} aktwal na serbisyo na nagkakahalaga ng ₱${accumulatedCost.toLocaleString()} (May natirang ₱${remainingBuffer.toLocaleString()} contingency buffer).`
-          : `Masyadong mababa ang budget para sa mga kasalukuyang serbisyo sa catalog.`,
-        target_budget: targetBudget,
-        actual_spent: accumulatedCost,
-        remaining_buffer: remainingBuffer,
-        optimized_items: selectedBundle
-      });
-
-    } finally {
-      setIsOptimizing(false);
-    }
-  };
-
   const handleDeployCustomBundle = async () => {
     if (architectItems.length === 0) {
       alert("Your Bundle Architect canvas is empty! Add services first.");
@@ -254,7 +187,7 @@ const MainDashboard = () => {
         category: 'Custom Bundle Package',
         event_date: new Date().toISOString().slice(0, 10),
         budget: architectTotalCost,
-        guest_count: Number(guestCount),
+        guest_count: 50,
         service_id: cleanServiceId,
         contract_agreed: true
       };
@@ -348,13 +281,77 @@ const MainDashboard = () => {
     <div className="main-dashboard-container" style={{ backgroundColor: '#ffffff', minHeight: '100vh', fontFamily: "'Inter', sans-serif" }}>
       <div className="dashboard-wrapper" style={{ paddingTop: '20px' }}>
 
+        {/* --- ESSENTIAL CLIENT DASHBOARD: WELCOME HEADER & QUICK STATS --- */}
+        {userRole !== 'vendor' && (
+          <div style={{ marginBottom: '24px' }}>
+            <div style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', borderRadius: '24px', padding: '28px 32px', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px', boxShadow: '0 15px 35px -5px rgba(15, 23, 42, 0.2)' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+                  <span style={{ background: '#2563eb', color: '#fff', fontSize: '0.7rem', fontWeight: '900', padding: '3px 10px', borderRadius: '999px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    Preparation Phase
+                  </span>
+                  <span style={{ color: '#94a3b8', fontSize: '0.85rem', fontWeight: '600' }}>📅 Event Dashboard</span>
+                </div>
+                <h1 style={{ fontSize: '1.8rem', fontWeight: '900', margin: '0 0 4px 0', letterSpacing: '-0.02em' }}>
+                  Welcome back, Valued Client! 👋
+                </h1>
+                <p style={{ color: '#cbd5e1', fontSize: '0.95rem', margin: 0 }}>
+                  Manage your event blueprint, check confirmed vendors, and track your milestone progress smoothly.
+                </p>
+              </div>
+              <div style={{ display: 'flex', gap: '16px', background: 'rgba(255, 255, 255, 0.08)', padding: '16px 20px', borderRadius: '16px', backdropFilter: 'blur(8px)', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: '1.25rem', fontWeight: '900', color: '#60a5fa' }}>45 Days</div>
+                  <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: '700', textTransform: 'uppercase' }}>Countdown</div>
+                </div>
+                <div style={{ width: '1px', background: 'rgba(255,255,255,0.15)' }} />
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: '1.25rem', fontWeight: '900', color: '#34d399' }}>{myBookings.length} Booked</div>
+                  <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: '700', textTransform: 'uppercase' }}>Active Vendors</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Stats Grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginTop: '16px' }}>
+              <div style={{ background: '#f8fafc', border: '1px solid #eaeaea', padding: '18px 20px', borderRadius: '18px', display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <div style={{ background: '#dbeafe', color: '#2563eb', padding: '12px', borderRadius: '14px', display: 'flex' }}>
+                  <Building size={22} />
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: '800', textTransform: 'uppercase' }}>Confirmed Vendors</div>
+                  <div style={{ fontSize: '1.2rem', fontWeight: '900', color: '#0f172a' }}>{myBookings.length} Suppliers</div>
+                </div>
+              </div>
+              <div style={{ background: '#f8fafc', border: '1px solid #eaeaea', padding: '18px 20px', borderRadius: '18px', display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <div style={{ background: '#dcfce7', color: '#16a34a', padding: '12px', borderRadius: '14px', display: 'flex' }}>
+                  <CheckSquare size={22} />
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: '800', textTransform: 'uppercase' }}>Blueprint Items</div>
+                  <div style={{ fontSize: '1.2rem', fontWeight: '900', color: '#0f172a' }}>{architectItems.length} Services</div>
+                </div>
+              </div>
+              <div style={{ background: '#f8fafc', border: '1px solid #eaeaea', padding: '18px 20px', borderRadius: '18px', display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <div style={{ background: '#fef3c7', color: '#d97706', padding: '12px', borderRadius: '14px', display: 'flex' }}>
+                  <Clock size={22} />
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: '800', textTransform: 'uppercase' }}>System Status</div>
+                  <div style={{ fontSize: '1.2rem', fontWeight: '900', color: '#0f172a' }}>100% Ready</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="dashboard-header-container" style={{ marginTop: '0', paddingTop: '0' }}>
           <div>
             <h1 className="dashboard-main-title">
-              {userRole === 'vendor' ? 'Manage Business & Services' : 'Design & Optimize Your Event'}
+              {userRole === 'vendor' ? 'Manage Business & Services' : 'Explore Catalogs & Build Blueprints'}
             </h1>
             <p className="dashboard-main-subtitle">
-              {userRole === 'vendor' ? 'Control your listed service status and business offerings.' : 'Explore catalogs, construct bundles, and execute AI budget optimizations.'}
+              {userRole === 'vendor' ? 'Control your listed service status and business offerings.' : 'Browse verified supplier services, construct custom bundles, and manage your schedule.'}
             </p>
           </div>
           
@@ -387,77 +384,8 @@ const MainDashboard = () => {
           
           <aside className="dashboard-sidebar">
             
-            {/* --- AI BUDGET OPTIMIZER & SMART ALLOCATION WIDGET --- */}
-            <div style={{ ...cardStyle, border: '2px solid #2563eb', background: '#ffffff', marginBottom: '16px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                <h4 style={{ margin: 0, fontWeight: '900', display: 'flex', alignItems: 'center', gap: '8px', color: '#2563eb', fontSize: '0.9rem', textTransform: 'uppercase' }}>
-                  <PieChart size={18} /> AI Budget Maximizer
-                </h4>
-                <span style={{ background: '#2563eb', color: '#fff', fontSize: '0.70rem', fontWeight: '900', padding: '3px 8px', borderRadius: '999px' }}>
-                  Smart Fit
-                </span>
-              </div>
-
-              <div style={{ marginBottom: '10px' }}>
-                <label className="text-xs font-black text-slate-500 uppercase tracking-wider">Event Category</label>
-                <select 
-                  style={{ ...inputStyle, fontWeight: '800', color: '#0f172a' }}
-                  value={eventCategory}
-                  onChange={(e) => setEventCategory(e.target.value)}
-                >
-                  <option value="Wedding">Wedding</option>
-                  <option value="Birthday">Birthday</option>
-                  <option value="Corporate">Corporate</option>
-                  <option value="Workshop">Workshop</option>
-                  <option value="Debut">Debut</option>
-                </select>
-              </div>
-
-              <div style={{ marginBottom: '10px' }}>
-                <label className="text-xs font-black text-slate-500 uppercase tracking-wider">Guest Count (Pax)</label>
-                <input 
-                  type="number" 
-                  style={{ ...inputStyle, fontWeight: '800', color: '#0f172a' }} 
-                  value={guestCount} 
-                  onChange={(e) => setGuestCount(Number(e.target.value))} 
-                  min="1"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-black text-slate-500 uppercase tracking-wider flex items-center gap-1">
-                  <DollarSign size={14} /> Target Budget Cap (₱)
-                </label>
-                <input 
-                  type="number" 
-                  style={{ ...inputStyle, fontWeight: '800', color: '#047857' }} 
-                  value={targetBudget === 0 ? '' : targetBudget} 
-                  onChange={(e) => setTargetBudget(e.target.value === '' ? '' : Number(e.target.value))} 
-                  placeholder="Enter budget cap"
-                />
-              </div>
-
-              <button 
-                onClick={handleRunAiOptimization}
-                disabled={isOptimizing}
-                style={{ width: '100%', background: '#2563eb', color: '#fff', border: 'none', padding: '12px', borderRadius: '12px', fontWeight: '900', cursor: 'pointer', marginTop: '14px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
-              >
-                {isOptimizing ? <Loader2 className="animate-spin" size={16} /> : <Sliders size={16} />}
-                Run AI Budget Maximizer
-              </button>
-
-              {aiOptimizationResult && (
-                <div style={{ marginTop: '14px', background: '#f8fafc', border: '1px solid #cbd5e1', padding: '12px', borderRadius: '12px', fontSize: '0.75rem', color: '#334155' }}>
-                  <div style={{ fontWeight: '900', color: aiOptimizationResult.status === 'Infeasible' ? '#ef4444' : '#047857', marginBottom: '6px' }}>
-                    Status: {aiOptimizationResult.status}
-                  </div>
-                  <p style={{ margin: '0 0 8px 0', fontWeight: '600', lineHeight: '1.4' }}>{aiOptimizationResult.message}</p>
-                </div>
-              )}
-            </div>
-
             {/* --- BUNDLE ARCHITECT CANVAS --- */}
-            <div style={{ ...cardStyle, border: '2px solid #000', background: '#ffffff' }}>
+            <div style={{ ...cardStyle, border: '2px solid #000', background: '#ffffff', marginBottom: '16px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
                 <h4 style={{ margin: 0, fontWeight: '900', display: 'flex', alignItems: 'center', gap: '8px', color: '#000', fontSize: '0.9rem', textTransform: 'uppercase' }}>
                   <ShoppingBag size={18} /> Bundle Architect
@@ -490,7 +418,7 @@ const MainDashboard = () => {
                 )) : (
                   <div style={{ background: '#fafafa', border: '2px dashed #eaeaea', padding: '16px', borderRadius: '14px', textAlign: 'center' }}>
                     <p style={{ fontSize: '0.8rem', color: '#64748b', fontStyle: 'italic', margin: 0 }}>
-                      Blueprint is empty. Run AI Maximizer or add services from catalog below.
+                      Blueprint is empty. Add services from the catalog below.
                     </p>
                   </div>
                 )}
@@ -514,7 +442,7 @@ const MainDashboard = () => {
               )}
             </div>
 
-            <div style={{ ...cardStyle, background: '#ffffff', border: '1px solid #eaeaea', marginTop: '16px' }}>
+            <div style={{ ...cardStyle, background: '#ffffff', border: '1px solid #eaeaea' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', borderBottom: '2px solid #f8fafc', paddingBottom: '12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <div style={{ background: '#f1f5f9', padding: '8px', borderRadius: '12px', display: 'flex' }}>
