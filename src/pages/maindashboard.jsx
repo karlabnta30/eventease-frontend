@@ -10,6 +10,9 @@ const MainDashboard = () => {
   const navigate = useNavigate();
   const userRole = localStorage.getItem('userRole');
   
+  // Kunin ang pangalan ng user mula sa localStorage (kung naka-save o kung may auth user state)
+  const clientName = localStorage.getItem('userName') || 'Valued Client';
+  
   const [services, setServices] = useState([]); 
   const [myBookings, setMyBookings] = useState([]); 
   const [searchTerm, setSearchTerm] = useState('');
@@ -260,103 +263,111 @@ const MainDashboard = () => {
   const cardStyle = { 
     backgroundColor: '#ffffff', 
     padding: '24px', 
-    borderRadius: '24px', 
-    border: '1px solid #eaeaea', 
-    boxShadow: '0 10px 30px -5px rgba(0,0,0,0.04)'
+    borderRadius: '20px', 
+    border: '1px solid #e2e8f0', 
+    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.01)'
   };
 
   const inputStyle = { 
     width: '100%', 
     padding: '12px 16px', 
     marginTop: '6px', 
-    borderRadius: '14px', 
-    border: '2px solid #f1f5f9', 
+    borderRadius: '12px', 
+    border: '1px solid #cbd5e1', 
     boxSizing: 'border-box', 
     fontSize: '0.9rem', 
     outline: 'none', 
-    backgroundColor: '#f8fafc'
+    backgroundColor: '#ffffff'
   };
 
   return (
-    <div className="main-dashboard-container" style={{ backgroundColor: '#ffffff', minHeight: '100vh', fontFamily: "'Inter', sans-serif" }}>
-      <div className="dashboard-wrapper" style={{ paddingTop: '20px' }}>
+    <div className="main-dashboard-container" style={{ backgroundColor: '#f8fafc', minHeight: '100vh', fontFamily: "'Inter', sans-serif" }}>
+      <div className="dashboard-wrapper" style={{ paddingTop: '24px', maxWidth: '1400px', margin: '0 auto', paddingLeft: '24px', paddingRight: '24px' }}>
 
-        {/* --- ESSENTIAL CLIENT DASHBOARD: WELCOME HEADER & QUICK STATS --- */}
+        {/* --- DYNAMIC CLIENT HEADER & CONDITIONAL EVENT STATUS --- */}
         {userRole !== 'vendor' && (
-          <div style={{ marginBottom: '24px' }}>
-            <div style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', borderRadius: '24px', padding: '28px 32px', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px', boxShadow: '0 15px 35px -5px rgba(15, 23, 42, 0.2)' }}>
+          <div style={{ marginBottom: '28px' }}>
+            <div style={{ background: '#ffffff', borderRadius: '20px', padding: '24px 28px', border: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-                  <span style={{ background: '#2563eb', color: '#fff', fontSize: '0.7rem', fontWeight: '900', padding: '3px 10px', borderRadius: '999px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                    Preparation Phase
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                  <span style={{ background: '#f1f5f9', color: '#334155', fontSize: '0.7rem', fontWeight: '800', padding: '4px 10px', borderRadius: '6px', textTransform: 'uppercase', letterSpacing: '0.05em', border: '1px solid #e2e8f0' }}>
+                    Client Portal
                   </span>
-                  <span style={{ color: '#94a3b8', fontSize: '0.85rem', fontWeight: '600' }}>📅 Event Dashboard</span>
+                  <span style={{ color: '#64748b', fontSize: '0.85rem', fontWeight: '500' }}>• Event Management</span>
                 </div>
-                <h1 style={{ fontSize: '1.8rem', fontWeight: '900', margin: '0 0 4px 0', letterSpacing: '-0.02em' }}>
-                  Welcome back, Valued Client! 👋
+                <h1 style={{ fontSize: '1.5rem', fontWeight: '800', margin: '0 0 4px 0', color: '#0f172a', letterSpacing: '-0.01em' }}>
+                  Welcome back, {clientName}! 👋
                 </h1>
-                <p style={{ color: '#cbd5e1', fontSize: '0.95rem', margin: 0 }}>
-                  Manage your event blueprint, check confirmed vendors, and track your milestone progress smoothly.
+                <p style={{ color: '#64748b', fontSize: '0.9rem', margin: 0, fontWeight: '400' }}>
+                  Here is the current overview of your upcoming event preparations and service bookings.
                 </p>
               </div>
-              <div style={{ display: 'flex', gap: '16px', background: 'rgba(255, 255, 255, 0.08)', padding: '16px 20px', borderRadius: '16px', backdropFilter: 'blur(8px)', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '1.25rem', fontWeight: '900', color: '#60a5fa' }}>45 Days</div>
-                  <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: '700', textTransform: 'uppercase' }}>Countdown</div>
+              <div style={{ display: 'flex', gap: '16px', background: '#f8fafc', padding: '14px 20px', borderRadius: '14px', border: '1px solid #e2e8f0' }}>
+                <div style={{ textAlign: 'left' }}>
+                  <div style={{ fontSize: '1.1rem', fontWeight: '800', color: '#0f172a' }}>
+                    {myBookings.length > 0 ? 'Active Phase' : 'No Events'}
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: '600' }}>
+                    {myBookings.length > 0 ? 'Status: Preparation' : 'Status: Ready to Plan'}
+                  </div>
                 </div>
-                <div style={{ width: '1px', background: 'rgba(255,255,255,0.15)' }} />
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '1.25rem', fontWeight: '900', color: '#34d399' }}>{myBookings.length} Booked</div>
-                  <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: '700', textTransform: 'uppercase' }}>Active Vendors</div>
+                <div style={{ width: '1px', background: '#cbd5e1' }} />
+                <div style={{ textAlign: 'left' }}>
+                  <div style={{ fontSize: '1.1rem', fontWeight: '800', color: myBookings.length > 0 ? '#0284c7' : '#94a3b8' }}>
+                    {myBookings.length > 0 ? `${myBookings.length} Booked` : 'No Events'}
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: '600' }}>Suppliers Confirmed</div>
                 </div>
               </div>
             </div>
 
-            {/* Quick Stats Grid */}
+            {/* Metrics Row */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginTop: '16px' }}>
-              <div style={{ background: '#f8fafc', border: '1px solid #eaeaea', padding: '18px 20px', borderRadius: '18px', display: 'flex', alignItems: 'center', gap: '14px' }}>
-                <div style={{ background: '#dbeafe', color: '#2563eb', padding: '12px', borderRadius: '14px', display: 'flex' }}>
-                  <Building size={22} />
+              <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', padding: '16px 20px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <div style={{ background: '#f0f9ff', color: '#0284c7', padding: '10px', borderRadius: '12px', display: 'flex' }}>
+                  <Building size={20} />
                 </div>
                 <div>
-                  <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: '800', textTransform: 'uppercase' }}>Confirmed Vendors</div>
-                  <div style={{ fontSize: '1.2rem', fontWeight: '900', color: '#0f172a' }}>{myBookings.length} Suppliers</div>
+                  <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: '700', textTransform: 'uppercase' }}>Booked Vendors</div>
+                  <div style={{ fontSize: '1.1rem', fontWeight: '800', color: '#0f172a' }}>
+                    {myBookings.length > 0 ? `${myBookings.length} Active` : 'No Events'}
+                  </div>
                 </div>
               </div>
-              <div style={{ background: '#f8fafc', border: '1px solid #eaeaea', padding: '18px 20px', borderRadius: '18px', display: 'flex', alignItems: 'center', gap: '14px' }}>
-                <div style={{ background: '#dcfce7', color: '#16a34a', padding: '12px', borderRadius: '14px', display: 'flex' }}>
-                  <CheckSquare size={22} />
+              <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', padding: '16px 20px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <div style={{ background: '#f0fdf4', color: '#16a34a', padding: '10px', borderRadius: '12px', display: 'flex' }}>
+                  <CheckSquare size={20} />
                 </div>
                 <div>
-                  <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: '800', textTransform: 'uppercase' }}>Blueprint Items</div>
-                  <div style={{ fontSize: '1.2rem', fontWeight: '900', color: '#0f172a' }}>{architectItems.length} Services</div>
+                  <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: '700', textTransform: 'uppercase' }}>Blueprint Items</div>
+                  <div style={{ fontSize: '1.1rem', fontWeight: '800', color: '#0f172a' }}>{architectItems.length} Services</div>
                 </div>
               </div>
-              <div style={{ background: '#f8fafc', border: '1px solid #eaeaea', padding: '18px 20px', borderRadius: '18px', display: 'flex', alignItems: 'center', gap: '14px' }}>
-                <div style={{ background: '#fef3c7', color: '#d97706', padding: '12px', borderRadius: '14px', display: 'flex' }}>
-                  <Clock size={22} />
+              <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', padding: '16px 20px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <div style={{ background: '#fffbeb', color: '#d97706', padding: '10px', borderRadius: '12px', display: 'flex' }}>
+                  <Clock size={20} />
                 </div>
                 <div>
-                  <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: '800', textTransform: 'uppercase' }}>System Status</div>
-                  <div style={{ fontSize: '1.2rem', fontWeight: '900', color: '#0f172a' }}>100% Ready</div>
+                  <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: '700', textTransform: 'uppercase' }}>System Connectivity</div>
+                  <div style={{ fontSize: '1.1rem', fontWeight: '800', color: '#0f172a' }}>Online & Synced</div>
                 </div>
               </div>
             </div>
           </div>
         )}
 
-        <div className="dashboard-header-container" style={{ marginTop: '0', paddingTop: '0' }}>
+        <div className="dashboard-header-container" style={{ marginTop: '0', paddingTop: '0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <div>
-            <h1 className="dashboard-main-title">
-              {userRole === 'vendor' ? 'Manage Business & Services' : 'Explore Catalogs & Build Blueprints'}
+            <h1 className="dashboard-main-title" style={{ fontSize: '1.25rem', fontWeight: '800', color: '#0f172a', margin: 0 }}>
+              {userRole === 'vendor' ? 'Manage Business & Services' : 'Service Catalog & Bundle Architect'}
             </h1>
-            <p className="dashboard-main-subtitle">
-              {userRole === 'vendor' ? 'Control your listed service status and business offerings.' : 'Browse verified supplier services, construct custom bundles, and manage your schedule.'}
+            <p className="dashboard-main-subtitle" style={{ fontSize: '0.85rem', color: '#64748b', margin: '4px 0 0 0' }}>
+              {userRole === 'vendor' ? 'Control your listed service status and business offerings.' : 'Browse verified supplier services and build your custom event package.'}
             </p>
           </div>
           
           {userRole !== 'admin' && (
-            <button onClick={() => navigate('/create-event')} className="new-event-btn">
+            <button onClick={() => navigate('/create-event')} className="new-event-btn" style={{ background: '#0f172a', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '10px', fontWeight: '700', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
               <Plus size={16} /> New Event Plan
             </button>
           )}
@@ -380,101 +391,102 @@ const MainDashboard = () => {
           </div>
         )}
 
-        <div className="dashboard-content-grid">
+        <div className="dashboard-content-grid" style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: '24px', alignItems: 'start' }}>
           
-          <aside className="dashboard-sidebar">
+          <aside className="dashboard-sidebar" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             
             {/* --- BUNDLE ARCHITECT CANVAS --- */}
-            <div style={{ ...cardStyle, border: '2px solid #000', background: '#ffffff', marginBottom: '16px' }}>
+            <div style={{ ...cardStyle, border: '1px solid #cbd5e1', background: '#ffffff' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                <h4 style={{ margin: 0, fontWeight: '900', display: 'flex', alignItems: 'center', gap: '8px', color: '#000', fontSize: '0.9rem', textTransform: 'uppercase' }}>
-                  <ShoppingBag size={18} /> Bundle Architect
+                <h4 style={{ margin: 0, fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px', color: '#0f172a', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+                  <ShoppingBag size={16} /> Bundle Architect
                 </h4>
-                <span style={{ background: '#000', color: '#fff', fontSize: '0.75rem', fontWeight: '900', padding: '3px 10px', borderRadius: '999px' }}>
+                <span style={{ background: '#0f172a', color: '#fff', fontSize: '0.7rem', fontWeight: '800', padding: '2px 8px', borderRadius: '999px' }}>
                   {architectItems.length} Items
                 </span>
               </div>
 
-              <label className="text-xs font-black text-slate-500 uppercase tracking-wider">Custom Blueprint Name</label>
+              <label style={{ fontSize: '0.75rem', fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>Custom Blueprint Name</label>
               <input 
                 type="text" 
-                style={{ ...inputStyle, fontWeight: '800', color: '#0f172a' }} 
+                style={{ ...inputStyle, fontWeight: '700', color: '#0f172a' }} 
                 value={bundleName} 
                 onChange={(e) => setBundleName(e.target.value)} 
                 placeholder="e.g. Dream Wedding Package" 
               />
 
-              <div style={{ marginTop: '14px', maxHeight: '180px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', paddingRight: '4px' }}>
+              <div style={{ marginTop: '12px', maxHeight: '180px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', paddingRight: '4px' }}>
                 {architectItems.length > 0 ? architectItems.map(item => (
-                  <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc', padding: '10px 14px', borderRadius: '12px', border: '1px solid #eaeaea' }}>
+                  <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc', padding: '10px 12px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
                     <div>
-                      <div style={{ fontWeight: '900', color: '#000', fontSize: '0.85rem' }}>{item.name || item.title}</div>
-                      <div style={{ color: '#047857', fontSize: '0.75rem', fontWeight: '800' }}>₱{Number(item.price || 0).toLocaleString()}</div>
+                      <div style={{ fontWeight: '700', color: '#0f172a', fontSize: '0.8rem' }}>{item.name || item.title}</div>
+                      <div style={{ color: '#16a34a', fontSize: '0.75rem', fontWeight: '700' }}>₱{Number(item.price || 0).toLocaleString()}</div>
                     </div>
-                    <button onClick={() => handleRemoveFromArchitect(item.id)} style={{ background: '#fee2e2', border: 'none', cursor: 'pointer', color: '#ef4444', padding: '6px', borderRadius: '8px', display: 'flex' }}>
-                      <Trash2 size={14} />
+                    <button onClick={() => handleRemoveFromArchitect(item.id)} style={{ background: '#fee2e2', border: 'none', cursor: 'pointer', color: '#ef4444', padding: '6px', borderRadius: '6px', display: 'flex' }}>
+                      <Trash2 size={13} />
                     </button>
                   </div>
                 )) : (
-                  <div style={{ background: '#fafafa', border: '2px dashed #eaeaea', padding: '16px', borderRadius: '14px', textAlign: 'center' }}>
-                    <p style={{ fontSize: '0.8rem', color: '#64748b', fontStyle: 'italic', margin: 0 }}>
-                      Blueprint is empty. Add services from the catalog below.
+                  <div style={{ background: '#f8fafc', border: '1px dashed #cbd5e1', padding: '16px', borderRadius: '12px', textAlign: 'center' }}>
+                    <p style={{ fontSize: '0.75rem', color: '#64748b', fontStyle: 'italic', margin: 0 }}>
+                      Blueprint is empty. Add services from the catalog.
                     </p>
                   </div>
                 )}
               </div>
 
               {architectItems.length > 0 && (
-                <div style={{ marginTop: '16px', borderTop: '2px dashed #eaeaea', paddingTop: '14px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '900', fontSize: '0.95rem', color: '#000', marginBottom: '8px' }}>
-                    <span>Total Blueprint Cost:</span>
-                    <span style={{ color: '#047857' }}>₱{architectTotalCost.toLocaleString()}</span>
+                <div style={{ marginTop: '14px', borderTop: '1px solid #e2e8f0', paddingTop: '12px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '800', fontSize: '0.9rem', color: '#0f172a', marginBottom: '10px' }}>
+                    <span>Total Cost:</span>
+                    <span style={{ color: '#16a34a' }}>₱{architectTotalCost.toLocaleString()}</span>
                   </div>
 
                   <button 
                     onClick={handleDeployCustomBundle}
                     disabled={isSavingBundle}
-                    style={{ width: '100%', background: '#000', color: '#fff', border: 'none', padding: '14px', borderRadius: '14px', fontWeight: '900', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}
+                    style={{ width: '100%', background: '#0f172a', color: '#fff', border: 'none', padding: '12px', borderRadius: '10px', fontWeight: '800', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}
                   >
-                    {isSavingBundle ? 'DEPLOYING...' : 'DEPLOY OPTIMIZED BUNDLE'} <ArrowRight size={16} />
+                    {isSavingBundle ? 'DEPLOYING...' : 'DEPLOY OPTIMIZED BUNDLE'} <ArrowRight size={15} />
                   </button>
                 </div>
               )}
             </div>
 
-            <div style={{ ...cardStyle, background: '#ffffff', border: '1px solid #eaeaea' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', borderBottom: '2px solid #f8fafc', paddingBottom: '12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <div style={{ background: '#f1f5f9', padding: '8px', borderRadius: '12px', display: 'flex' }}>
-                    <Calendar size={20} color="#000" />
+            {/* --- MY SCHEDULED EVENTS --- */}
+            <div style={{ ...cardStyle, background: '#ffffff', border: '1px solid #e2e8f0' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', borderBottom: '1px solid #f1f5f9', paddingBottom: '10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ background: '#f1f5f9', padding: '6px', borderRadius: '8px', display: 'flex' }}>
+                    <Calendar size={16} color="#0f172a" />
                   </div>
-                  <h3 style={{ margin: 0, fontWeight: '900', fontSize: '1.05rem', color: '#000' }}>My Scheduled Events</h3>
+                  <h3 style={{ margin: 0, fontWeight: '800', fontSize: '0.9rem', color: '#0f172a' }}>My Scheduled Events</h3>
                 </div>
-                <span style={{ background: '#f8fafc', color: '#334155', fontSize: '0.75rem', fontWeight: '800', padding: '4px 10px', borderRadius: '999px', border: '1px solid #eaeaea' }}>
+                <span style={{ background: '#f1f5f9', color: '#334155', fontSize: '0.7rem', fontWeight: '700', padding: '2px 8px', borderRadius: '999px', border: '1px solid #e2e8f0' }}>
                   {myBookings.length} Active
                 </span>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '250px', overflowY: 'auto', paddingRight: '2px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '220px', overflowY: 'auto', paddingRight: '2px' }}>
                 {myBookings.length > 0 ? myBookings.map((booking) => (
-                  <div key={booking.id} style={{ backgroundColor: '#fafafa', padding: '14px', borderRadius: '14px', border: '1px solid #eaeaea', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <div key={booking.id} style={{ backgroundColor: '#f8fafc', padding: '12px', borderRadius: '12px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <span style={{ fontWeight: '900', color: '#000', fontSize: '0.9rem' }}>{booking.event_name}</span>
-                      <span style={{ background: '#ecfdf5', color: '#047857', fontSize: '0.65rem', fontWeight: '800', padding: '2px 6px', borderRadius: '6px', border: '1px solid #a7f3d0' }}>Confirmed</span>
+                      <span style={{ fontWeight: '800', color: '#0f172a', fontSize: '0.85rem' }}>{booking.event_name}</span>
+                      <span style={{ background: '#dcfce7', color: '#16a34a', fontSize: '0.65rem', fontWeight: '700', padding: '2px 6px', borderRadius: '4px' }}>Confirmed</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.75rem', color: '#64748b' }}>
                       <span>📅 {booking.event_date}</span>
-                      <span style={{ color: '#047857', fontWeight: '900' }}>₱{parseFloat(booking.budget || 0).toLocaleString()}</span>
+                      <span style={{ color: '#16a34a', fontWeight: '800' }}>₱{parseFloat(booking.budget || 0).toLocaleString()}</span>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid #eaeaea', paddingTop: '6px' }}>
-                      <button onClick={() => setBookingToCancel(booking.id)} style={{ color: '#ef4444', background: '#fee2e2', border: 'none', cursor: 'pointer', fontSize: '0.7rem', fontWeight: '800', padding: '4px 10px', borderRadius: '6px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid #e2e8f0', paddingTop: '6px', marginTop: '2px' }}>
+                      <button onClick={() => setBookingToCancel(booking.id)} style={{ color: '#ef4444', background: '#fee2e2', border: 'none', cursor: 'pointer', fontSize: '0.7rem', fontWeight: '700', padding: '3px 8px', borderRadius: '6px' }}>
                         Cancel Booking
                       </button>
                     </div>
                   </div>
                 )) : (
-                  <div style={{ background: '#fafafa', padding: '20px', borderRadius: '14px', textAlign: 'center', border: '2px dashed #eaeaea' }}>
-                    <p style={{ fontSize: '0.8rem', color: '#64748b', margin: 0 }}>No events scheduled currently.</p>
+                  <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '12px', textAlign: 'center', border: '1px dashed #cbd5e1' }}>
+                    <p style={{ fontSize: '0.75rem', color: '#64748b', margin: 0, fontStyle: 'italic' }}>No events scheduled currently.</p>
                   </div>
                 )}
               </div>
@@ -484,45 +496,45 @@ const MainDashboard = () => {
 
           <main className="dashboard-main-area">
             
-            <div style={{ marginBottom: '20px' }}>
+            <div style={{ marginBottom: '16px' }}>
               <input 
                 type="text" 
-                placeholder="🔍 Search catalog by service name, vendor, category, or location..." 
-                style={{ width: '100%', padding: '16px 20px', borderRadius: '16px', border: '2px solid #eaeaea', backgroundColor: '#fff', outline: 'none', fontSize: '0.95rem', fontWeight: '600', boxSizing: 'border-box', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }} 
+                placeholder="Search catalog by service name, vendor, category, or location..." 
+                style={{ width: '100%', padding: '14px 18px', borderRadius: '12px', border: '1px solid #cbd5e1', backgroundColor: '#fff', outline: 'none', fontSize: '0.9rem', fontWeight: '500', boxSizing: 'border-box', boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }} 
                 value={searchTerm} 
                 onChange={(e) => setSearchTerm(e.target.value)} 
               />
             </div>
 
-            <div className="dashboard-tabs-container" style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '10px', marginBottom: '20px' }}>
+            <div className="dashboard-tabs-container" style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '8px', marginBottom: '16px' }}>
               {availableCategories.map((category) => (
                 <button 
                   key={category}
                   onClick={() => setActiveCategory(category)}
                   className={`dashboard-tab-btn ${activeCategory === category ? 'active' : ''}`}
-                  style={{ whiteSpace: 'nowrap' }}
+                  style={{ whiteSpace: 'nowrap', padding: '8px 14px', borderRadius: '8px', fontSize: '0.8rem', fontWeight: '600', border: '1px solid #cbd5e1', background: activeCategory === category ? '#0f172a' : '#fff', color: activeCategory === category ? '#fff' : '#334155', cursor: 'pointer' }}
                 >
-                  <Tag size={14} /> {category} {category === 'All' ? `(${services.length})` : `(${services.filter(s => s.category?.toLowerCase() === category.toLowerCase()).length})`}
+                  <Tag size={13} style={{ display: 'inline', marginRight: '4px' }} /> {category} {category === 'All' ? `(${services.length})` : `(${services.filter(s => s.category?.toLowerCase() === category.toLowerCase()).length})`}
                 </button>
               ))}
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
-              <h2 className="text-xl font-black text-black tracking-tight" style={{ margin: 0 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
+              <h2 style={{ fontSize: '1.05rem', fontWeight: '800', color: '#0f172a', margin: 0 }}>
                 {activeCategory === 'All' ? 'All Available Services & Bundles' : `${activeCategory} Services`}
               </h2>
-              <span className="text-xs font-extrabold text-slate-600 bg-slate-50 px-4 py-2 rounded-full border border-slate-200">
+              <span style={{ fontSize: '0.75rem', fontWeight: '700', color: '#64748b', background: '#fff', padding: '6px 12px', borderRadius: '999px', border: '1px solid #e2e8f0' }}>
                 {filteredServices.length} Results
               </span>
             </div>
             
             {filteredServices.length > 0 ? (
-              <div className="dashboard-services-grid">
+              <div className="dashboard-services-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '16px' }}>
                 {filteredServices.map(s => {
                   const isAlreadyAdded = architectItems.some(item => item.id === s.id);
 
                   return (
-                    <div key={s.id} style={{ backgroundColor: '#fff', borderRadius: '22px', border: '1px solid #eaeaea', overflow: 'hidden', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxShadow: '0 10px 25px rgba(0,0,0,0.03)' }}>
+                    <div key={s.id} style={{ backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #e2e8f0', overflow: 'hidden', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
                       <div style={{ flex: 1 }}>
                         <ServiceCard 
                           service={s} 
@@ -538,27 +550,27 @@ const MainDashboard = () => {
                           }} 
                         />
                       </div>
-                      <div style={{ padding: '16px 20px 20px 20px', background: '#fff', borderTop: '1px solid #f8fafc' }}>
+                      <div style={{ padding: '14px 16px 16px 16px', background: '#fff', borderTop: '1px solid #f1f5f9' }}>
                         <button 
                           onClick={() => handleAddToArchitect(s)}
                           disabled={isAlreadyAdded}
                           style={{
                             width: '100%',
-                            backgroundColor: isAlreadyAdded ? '#047857' : '#000000',
+                            backgroundColor: isAlreadyAdded ? '#16a34a' : '#0f172a',
                             color: '#fff',
                             border: 'none',
-                            padding: '12px',
-                            borderRadius: '12px',
-                            fontWeight: '900',
-                            fontSize: '0.85rem',
+                            padding: '10px',
+                            borderRadius: '10px',
+                            fontWeight: '700',
+                            fontSize: '0.8rem',
                             cursor: isAlreadyAdded ? 'default' : 'pointer',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            gap: '8px'
+                            gap: '6px'
                           }}
                         >
-                          {isAlreadyAdded ? <CheckCircle size={16} /> : <Plus size={16} />}
+                          {isAlreadyAdded ? <CheckCircle size={15} /> : <Plus size={15} />}
                           {isAlreadyAdded ? 'Added to Blueprint' : 'Add to Blueprint'}
                         </button>
                       </div>
@@ -567,8 +579,8 @@ const MainDashboard = () => {
                 })}
               </div>
             ) : (
-              <div style={{ background: '#fafafa', padding: '60px', borderRadius: '24px', textAlign: 'center', border: '1px solid #eaeaea' }}>
-                <p className="text-sm text-slate-500 font-semibold italic">No services or bundles found matching your filter criteria.</p>
+              <div style={{ background: '#fff', padding: '40px', borderRadius: '16px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
+                <p style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: '500', margin: 0, fontStyle: 'italic' }}>No services or bundles found matching your filter criteria.</p>
               </div>
             )}
           </main>
@@ -581,10 +593,10 @@ const MainDashboard = () => {
 };
 
 const styles = {
-  modalOverlay: { position: 'fixed', inset: 0, backgroundColor: 'rgba(0, 0, 0, 0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, backdropFilter: 'blur(6px)' },
-  modalCard: { backgroundColor: '#fff', padding: '32px', borderRadius: '24px', width: '100%', maxWidth: '400px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', border: '1px solid #eaeaea' },
-  modalCancelBtn: { flex: 1, backgroundColor: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', padding: '12px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.9rem' },
-  modalConfirmBtn: { flex: 1, backgroundColor: '#ef4444', color: '#fff', border: 'none', padding: '12px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.9rem' }
+  modalOverlay: { position: 'fixed', inset: 0, backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, backdropFilter: 'blur(4px)' },
+  modalCard: { backgroundColor: '#fff', padding: '28px', borderRadius: '20px', width: '100%', maxWidth: '380px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', border: '1px solid #e2e8f0' },
+  modalCancelBtn: { flex: 1, backgroundColor: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', padding: '10px', borderRadius: '10px', fontWeight: '700', cursor: 'pointer', fontSize: '0.85rem' },
+  modalConfirmBtn: { flex: 1, backgroundColor: '#ef4444', color: '#fff', border: 'none', padding: '10px', borderRadius: '10px', fontWeight: '700', cursor: 'pointer', fontSize: '0.85rem' }
 };
 
 export default MainDashboard;
