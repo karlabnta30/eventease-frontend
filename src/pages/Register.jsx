@@ -4,9 +4,11 @@ import api from '../api';
 import { ChevronLeft, X, User, Mail, Phone, MapPin, Lock, Eye, EyeOff } from 'lucide-react';
 
 const partyImages = [
-  "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?auto=format&fit=crop&w=1600&q=80", 
-  "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=1600&q=80", 
-  "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1600&q=80"
+  "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=600&q=80",
+  "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=600&q=80",
+  "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?auto=format&fit=crop&w=600&q=80",
+  "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=600&q=80",
+  "https://images.unsplash.com/photo-1532712938310-34cb3982ef74?auto=format&fit=crop&w=600&q=80"
 ];
 
 const Register = () => {
@@ -20,11 +22,9 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
   
-  // New States para sa Password Toggle at Strength/Validation
   const [showPassword, setShowPassword] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState({ text: '', color: '' });
   
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const navigate = useNavigate();
 
@@ -36,15 +36,6 @@ const Register = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentImageIndex((prevIndex) => (prevIndex + 1) % partyImages.length);
-    }, 8000); 
-
-    return () => clearInterval(timer);
-  }, []);
-
-  // Password evaluation logic (8-20 chars, numbers, symbols)
   const handlePasswordChange = (e) => {
     const val = e.target.value;
     setPassword(val);
@@ -72,7 +63,6 @@ const Register = () => {
     e.preventDefault(); 
     if (!acceptedTerms) return;
 
-    // Strict validation bago mag-submit
     const lengthValid = password.length >= 8 && password.length <= 20;
     const hasNumber = /\d/.test(password);
     const hasSymbol = /[!@#$%^&*(),.?":{}|<>]/.test(password);
@@ -126,7 +116,7 @@ const Register = () => {
       display: 'flex',
       minHeight: '100vh',
       width: '100vw',
-      backgroundColor: '#070b19',
+      backgroundColor: '#f8fafc',
       alignItems: 'center',
       justifyContent: 'center',
       fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
@@ -141,11 +131,12 @@ const Register = () => {
       maxWidth: isMobile ? '400px' : '1150px',
       height: isMobile ? 'auto' : '740px',
       minHeight: isMobile ? '640px' : 'unset',
-      backgroundColor: '#ffffff',
+      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+      backdropFilter: 'blur(12px)',
       borderRadius: '36px',
-      boxShadow: '0 25px 60px rgba(0, 0, 0, 0.4)',
+      boxShadow: '0 25px 60px rgba(0, 0, 0, 0.15)',
       overflow: 'hidden',
-      border: '1px solid rgba(255, 255, 255, 0.15)',
+      border: '1px solid #e2e8f0',
       position: 'relative',
       zIndex: 2,
       flexDirection: isMobile ? 'column' : 'row'
@@ -155,7 +146,7 @@ const Register = () => {
       flex: '1.1',
       position: 'relative',
       overflow: 'hidden',
-      backgroundColor: '#070b19',
+      backgroundColor: '#0f172a',
       borderRadius: '28px',
       margin: '12px',
       flexDirection: 'column',
@@ -169,7 +160,7 @@ const Register = () => {
       flexDirection: 'column',
       padding: isMobile ? '28px 20px' : '24px 50px',
       boxSizing: 'border-box',
-      backgroundColor: '#ffffff',
+      backgroundColor: 'transparent',
       overflowY: 'auto',
       width: '100%',
       justifyContent: 'center'
@@ -186,34 +177,48 @@ const Register = () => {
   return (
     <div style={dynamicStyles.pageContainer}>
       
-      {/* SYNCHRONIZED FULL-PAGE BACKGROUND CAROUSEL */}
-      {partyImages.map((img, index) => (
-        <div 
-          key={'bg-' + index}
-          style={{
-            ...styles.globalBackground,
-            backgroundImage: `url(${img})`,
-            opacity: index === currentImageIndex ? 0.45 : 0,
-          }}
-        />
-      ))}
-      <div style={styles.globalBackdropOverlay} />
+      {/* SHOPIFY-STYLE DIAGONAL BACKGROUND MARQUEE ANIMATION */}
+      <div className="shopify-bg-wrapper" style={{
+        position: 'fixed',
+        inset: '-50px',
+        pointerEvents: 'none',
+        overflow: 'hidden',
+        zIndex: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        gap: '30px',
+        opacity: '0.18',
+        transform: 'rotate(-6deg) scale(1.2)'
+      }}>
+        <div className="diagonal-track" style={{ display: 'flex', gap: '30px', width: 'max-content', animation: 'diagonalMarquee 35s linear infinite' }}>
+          {[...partyImages, ...partyImages, ...partyImages, ...partyImages].map((img, index) => (
+            <div key={index} style={{ width: '280px', height: '180px', borderRadius: '16px', overflow: 'hidden', flexShrink: 0, boxShadow: '0 8px 20px rgba(0,0,0,0.08)' }}>
+              <img src={img} alt="bg" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            </div>
+          ))}
+        </div>
+        <div className="diagonal-track" style={{ display: 'flex', gap: '30px', width: 'max-content', animation: 'diagonalMarquee 40s linear infinite reverse' }}>
+          {[...partyImages, ...partyImages, ...partyImages, ...partyImages].map((img, index) => (
+            <div key={index} style={{ width: '280px', height: '180px', borderRadius: '16px', overflow: 'hidden', flexShrink: 0, boxShadow: '0 8px 20px rgba(0,0,0,0.08)' }}>
+              <img src={img} alt="bg" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            </div>
+          ))}
+        </div>
+      </div>
 
-      {/* CENTRAL CARD CONTAINER WITH MATCHING DESIGN AS LOGIN */}
+      {/* CENTRAL CARD CONTAINER */}
       <div style={dynamicStyles.cardWrapper}>
         
-        {/* Left Side: Curved Artwork Box synchronized with the background (Hidden on Mobile) */}
+        {/* Left Side: Artwork Box */}
         <div style={dynamicStyles.leftCardSection}>
-          {partyImages.map((img, index) => (
-            <div 
-              key={index}
-              style={{
-                ...styles.carouselImage,
-                backgroundImage: `url(${img})`,
-                opacity: index === currentImageIndex ? 1 : 0,
-              }}
-            />
-          ))}
+          <div style={{
+            position: 'absolute',
+            inset: 0,
+            backgroundImage: `url(${partyImages[0]})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }} />
           <div style={styles.imageOverlay} />
           
           <div style={styles.leftTopBar}>
@@ -413,29 +418,6 @@ const Register = () => {
 };
 
 const styles = {
-  globalBackground: {
-    position: 'absolute',
-    inset: '-30px',
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-    filter: 'blur(35px) brightness(0.6)',
-    transition: 'opacity 1.5s ease-in-out',
-    zIndex: 0
-  },
-  globalBackdropOverlay: {
-    position: 'absolute',
-    inset: 0,
-    backgroundColor: 'rgba(7, 11, 25, 0.5)',
-    zIndex: 1
-  },
-  carouselImage: {
-    position: 'absolute',
-    inset: 0,
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-    transition: 'opacity 1.5s ease-in-out',
-    zIndex: 1
-  },
   imageOverlay: {
     position: 'absolute',
     inset: 0,

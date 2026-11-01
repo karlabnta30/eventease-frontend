@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ArrowRight, Sparkles } from 'lucide-react';
 
 const LandingPage = () => {
   const navigate = useNavigate();
-  const [activeModal, setActiveModal] = useState(null); // 'privacy' | 'terms' | 'security' | null
+  const [activeModal, setActiveModal] = useState(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
-  // Dynamic screen listener para sa mobile responsiveness
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth <= 768);
@@ -15,7 +15,6 @@ const LandingPage = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // SMART NAVIGATION: Sinusuri kung naka-login na ang user o admin para hindi na sila pabalikin sa login page
   const handleStartPlanning = () => {
     const token = localStorage.getItem('token');
     const userRole = localStorage.getItem('userRole');
@@ -25,15 +24,24 @@ const LandingPage = () => {
       return;
     }
 
-    // Kung naka-login na, dalhin sila agad sa kaukulang dashboard depende sa role
     if (userRole === 'admin') {
       navigate('/admin-dashboard');
     } else if (userRole === 'vendor') {
       navigate('/vendor-dashboard');
     } else {
-      navigate('/dashboard'); // Main dashboard para sa regular client/user
+      navigate('/dashboard');
     }
   };
+
+  const galleryImages = [
+    "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80",
+    "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=400&q=80",
+    "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?auto=format&fit=crop&w=400&q=80",
+    "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=400&q=80",
+    "https://images.unsplash.com/photo-1532712938310-34cb3982ef74?auto=format&fit=crop&w=400&q=80",
+    "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=400&q=80",
+    "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=400&q=80"
+  ];
 
   const modalContent = {
     privacy: {
@@ -52,27 +60,39 @@ const LandingPage = () => {
 
   const styles = {
     pageWrapper: {
-      backgroundColor: '#ffffff',
+      backgroundColor: 'transparent',
       color: '#0f172a',
       fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
       minHeight: '100vh',
+      width: '100%',
       overflowX: 'hidden',
       position: 'relative',
     },
+    contentLayer: {
+      position: 'relative',
+      zIndex: 10,
+      width: '100%',
+    },
     heroSection: {
       display: 'flex',
-      flexDirection: isMobile ? 'column' : 'row',
-      justifyContent: 'space-between',
+      flexDirection: 'column',
+      justifyContent: 'center',
       alignItems: 'center',
-      padding: isMobile ? '24px 20px' : '24px 40px',
-      gap: isMobile ? '30px' : '40px',
-      maxWidth: '1440px',
-      margin: '0 auto',
-      minHeight: 'auto',
-    },
-    heroContent: {
-      flex: '1 1 100%',
+      padding: isMobile ? '60px 20px' : '100px 20px',
+      minHeight: '85vh',
+      textAlign: 'center',
       width: '100%',
+    },
+    heroCard: {
+      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+      backdropFilter: 'blur(12px)',
+      padding: isMobile ? '30px 20px' : '45px 50px',
+      borderRadius: '28px',
+      maxWidth: '650px',
+      width: '90%',
+      textAlign: 'center',
+      boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.15)',
+      border: '1px solid #e2e8f0',
     },
     pillTag: {
       display: 'inline-flex',
@@ -87,41 +107,41 @@ const LandingPage = () => {
       color: '#047857',
       textTransform: 'uppercase',
       letterSpacing: '1px',
-      marginBottom: '12px',
+      marginBottom: '16px',
     },
     heroHeading: {
-      fontSize: isMobile ? '2.4rem' : '3.6rem',
+      fontSize: isMobile ? '2.2rem' : '3.2rem',
       fontWeight: '900',
-      lineHeight: '1.08',
-      letterSpacing: '-2px',
-      marginBottom: '14px',
+      lineHeight: '1.1',
+      letterSpacing: '-1.5px',
+      marginBottom: '16px',
       color: '#0f172a',
     },
     heroSubheading: {
-      fontSize: isMobile ? '0.95rem' : '1.05rem',
+      fontSize: isMobile ? '0.90rem' : '1.05rem',
       color: '#64748b',
       lineHeight: '1.6',
-      marginBottom: '24px',
-      maxWidth: '560px',
+      marginBottom: '28px',
       fontWeight: '500',
     },
     heroButtons: {
       display: 'flex',
       flexDirection: isMobile ? 'column' : 'row',
-      gap: '14px',
-      alignItems: isMobile ? 'stretch' : 'center',
+      gap: '12px',
+      justifyContent: 'center',
+      alignItems: 'stretch',
       marginBottom: '24px',
     },
     primaryBtn: {
       backgroundColor: '#10b981',
       color: '#ffffff',
       border: 'none',
-      padding: '14px 30px',
+      padding: '14px 28px',
       borderRadius: '14px',
       fontWeight: '900',
       fontSize: '0.90rem',
       cursor: 'pointer',
-      boxShadow: '0 10px 30px rgba(16, 185, 129, 0.25)',
+      boxShadow: '0 10px 25px rgba(16, 185, 129, 0.25)',
       transition: 'all 0.2s ease',
       textAlign: 'center',
     },
@@ -139,13 +159,13 @@ const LandingPage = () => {
     },
     ratingsRow: {
       display: 'flex',
-      gap: '10px',
-      alignItems: 'center',
-      fontSize: '0.8rem',
+      gap: '8px',
+      justifyContent: 'center',
+      fontSize: '0.75rem',
       color: '#475569',
       fontWeight: '700',
       borderTop: '1px solid #f1f5f9',
-      paddingTop: '14px',
+      paddingTop: '16px',
       flexWrap: 'wrap',
     },
     ratingItem: {
@@ -153,33 +173,12 @@ const LandingPage = () => {
       alignItems: 'center',
       gap: '6px',
       backgroundColor: '#f8fafc',
-      padding: '6px 12px',
-      borderRadius: '12px',
+      padding: '6px 10px',
+      borderRadius: '10px',
       border: '1px solid #e2e8f0',
-    },
-    photoGrid: {
-      flex: '1 1 100%',
-      width: '100%',
-      display: 'grid',
-      gridTemplateColumns: 'repeat(3, 1fr)',
-      gap: '12px',
-      height: isMobile ? '280px' : '420px',
-    },
-    collageCol: {
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '12px',
-    },
-    collageImg: {
-      width: '100%',
-      height: '100%',
-      objectFit: 'cover',
-      borderRadius: '18px',
-      border: '1px solid #e2e8f0',
-      boxShadow: '0 15px 30px rgba(0,0,0,0.05)',
     },
     featureSection: {
-      padding: isMobile ? '24px 20px' : '40px 40px',
+      padding: isMobile ? '40px 20px' : '60px 40px',
       maxWidth: '1300px',
       margin: '0 auto',
       display: 'grid',
@@ -187,7 +186,8 @@ const LandingPage = () => {
       gap: '24px',
     },
     featureCard: {
-      backgroundColor: '#f8fafc',
+      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+      backdropFilter: 'blur(6px)',
       border: '1px solid #e2e8f0',
       borderRadius: '28px',
       padding: isMobile ? '24px' : '36px',
@@ -210,7 +210,7 @@ const LandingPage = () => {
       marginBottom: '20px',
     },
     industrySection: {
-      padding: isMobile ? '24px 20px' : '40px 40px',
+      padding: isMobile ? '40px 20px' : '60px 40px',
       textAlign: 'center',
       maxWidth: '1200px',
       margin: '0 auto',
@@ -243,8 +243,9 @@ const LandingPage = () => {
       background: 'linear-gradient(to top, rgba(15,23,42,0.85) 10%, rgba(15,23,42,0.2) 100%)',
     },
     testimonialSection: {
-      padding: isMobile ? '30px 20px' : '50px 40px',
-      backgroundColor: '#f8fafc',
+      padding: isMobile ? '40px 20px' : '60px 40px',
+      backgroundColor: 'rgba(248, 250, 252, 0.95)',
+      backdropFilter: 'blur(6px)',
       borderTop: '1px solid #e2e8f0',
       borderBottom: '1px solid #e2e8f0',
     },
@@ -263,7 +264,7 @@ const LandingPage = () => {
       boxShadow: '0 10px 30px rgba(0,0,0,0.02)',
     },
     footer: {
-      padding: isMobile ? '24px 20px' : '30px 40px',
+      padding: isMobile ? '30px 20px' : '40px 40px',
       maxWidth: '1300px',
       margin: '0 auto',
       display: 'flex',
@@ -274,6 +275,7 @@ const LandingPage = () => {
       color: '#64748b',
       fontSize: '0.80rem',
       textAlign: isMobile ? 'center' : 'left',
+      backgroundColor: 'transparent',
     },
     footerLink: {
       cursor: 'pointer',
@@ -329,181 +331,203 @@ const LandingPage = () => {
 
   return (
     <div style={styles.pageWrapper}>
-      {/* HERO SECTION */}
-      <section style={styles.heroSection}>
-        <div style={styles.heroContent}>
-          <div style={styles.pillTag}>
-            <span>✦ Next-Gen Event Infrastructure &bull; OTP Resend Enabled</span>
-          </div>
-          <h1 style={styles.heroHeading}>
-            Architect your next extraordinary event.
-          </h1>
-          <p style={styles.heroSubheading}>
-            The elite platform engineered with robust Aiven database stability, instant OTP verification and resend features, custom vendor bundling, and secure PayMongo checkout.
-          </p>
-          <div style={styles.heroButtons}>
-            <button 
-              style={styles.primaryBtn} 
-              onClick={handleStartPlanning}
-              onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
-              onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
-            >
-              Start Planning Now &rarr;
-            </button>
-            <button 
-              style={styles.secondaryBtn} 
-              onClick={handleStartPlanning}
-              onMouseOver={(e) => e.currentTarget.style.borderColor = '#0f172a'}
-              onMouseOut={(e) => e.currentTarget.style.borderColor = '#cbd5e1'}
-            >
-              Explore Catalog
-            </button>
-          </div>
-
-          <div style={styles.ratingsRow}>
-            <div style={styles.ratingItem}>
-              <span>⭐</span> <strong>Aiven Database</strong> Reliability
+      
+      {/* 🌟 SHOPIFY-STYLE DIAGONAL BACKGROUND GALLERY (PUNO AT PANTAY) */}
+      <div className="shopify-bg-wrapper">
+        <div className="diagonal-track">
+          {[...galleryImages, ...galleryImages, ...galleryImages, ...galleryImages].map((img, index) => (
+            <div key={index} style={{ width: '280px', height: '180px', borderRadius: '16px', overflow: 'hidden', flexShrink: 0, boxShadow: '0 8px 20px rgba(0,0,0,0.08)' }}>
+              <img src={img} alt="Shopify style bg" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             </div>
-            <div style={styles.ratingItem}>
-              <span>🔒</span> <strong>Secure PayMongo</strong> Integration
-            </div>
-            <div style={styles.ratingItem}>
-              <span>✉️</span> <strong>OTP Resend</strong> Security
-            </div>
-          </div>
+          ))}
         </div>
-
-        {/* Cinematic Photo Collage Grid */}
-        <div style={styles.photoGrid}>
-          <div style={styles.collageCol}>
-            <img src="https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=400&q=80" alt="Event 1" style={styles.collageImg} />
-            <img src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=400&q=80" alt="Event 2" style={{...styles.collageImg, height: isMobile ? '120px' : '170px'}} />
-          </div>
-          <div style={{...styles.collageCol, marginTop: isMobile ? '10px' : '25px'}}>
-            <img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=400&q=80" alt="Event 3" style={{...styles.collageImg, height: isMobile ? '120px' : '170px'}} />
-            <img src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=400&q=80" alt="Event 4" style={styles.collageImg} />
-          </div>
-          <div style={styles.collageCol}>
-            <img src="https://images.unsplash.com/photo-1465847899084-d164df4dedc6?auto=format&fit=crop&w=400&q=80" alt="Event 5" style={styles.collageImg} />
-            <img src="https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?auto=format&fit=crop&w=400&q=80" alt="Event 6" style={{...styles.collageImg, height: isMobile ? '120px' : '170px'}} />
-          </div>
+        <div className="diagonal-track">
+          {[...galleryImages, ...galleryImages, ...galleryImages, ...galleryImages].map((img, index) => (
+            <div key={index} style={{ width: '280px', height: '180px', borderRadius: '16px', overflow: 'hidden', flexShrink: 0, boxShadow: '0 8px 20px rgba(0,0,0,0.08)' }}>
+              <img src={img} alt="Shopify style bg" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            </div>
+          ))}
         </div>
-      </section>
+        <div className="diagonal-track">
+          {[...galleryImages, ...galleryImages, ...galleryImages, ...galleryImages].map((img, index) => (
+            <div key={index} style={{ width: '280px', height: '180px', borderRadius: '16px', overflow: 'hidden', flexShrink: 0, boxShadow: '0 8px 20px rgba(0,0,0,0.08)' }}>
+              <img src={img} alt="Shopify style bg" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            </div>
+          ))}
+        </div>
+        <div className="diagonal-track">
+          {[...galleryImages, ...galleryImages, ...galleryImages, ...galleryImages].map((img, index) => (
+            <div key={index} style={{ width: '280px', height: '180px', borderRadius: '16px', overflow: 'hidden', flexShrink: 0, boxShadow: '0 8px 20px rgba(0,0,0,0.08)' }}>
+              <img src={img} alt="Shopify style bg" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            </div>
+          ))}
+        </div>
+      </div>
 
-      {/* CORE ARCHITECT & SECURE PAYMENTS FEATURE SECTION */}
-      <section style={styles.featureSection}>
-        <div style={styles.featureCard}>
-          <div>
-            <div style={{ color: '#059669', fontWeight: '800', fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '1px' }}>Custom Canvas</div>
-            <h2 style={styles.featureHeading}>The Bundle Architect</h2>
-            <p style={styles.featureText}>
-              Curate independent vendor services and pre-made bundles into a unified custom blueprint backed seamlessly by your Aiven cloud database infrastructure.
+      {/* BUONG NILALAMAN NG PAGE */}
+      <div style={styles.contentLayer}>
+        
+        {/* HERO SECTION */}
+        <section style={styles.heroSection}>
+          <div style={styles.heroCard}>
+            <div style={styles.pillTag}>
+              <span>✦ Next-Gen Event Infrastructure &bull; OTP Resend Enabled</span>
+            </div>
+            <h1 style={styles.heroHeading}>
+              Architect your next extraordinary event.
+            </h1>
+            <p style={styles.heroSubheading}>
+              The elite platform engineered with robust Aiven database stability, instant OTP verification and resend features, custom vendor bundling, and secure PayMongo checkout.
             </p>
-          </div>
-          <button style={{ ...styles.primaryBtn, width: isMobile ? '100%' : 'fit-content', marginTop: '16px' }} onClick={handleStartPlanning}>
-            Try Bundle Architect &rarr;
-          </button>
-        </div>
+            <div style={styles.heroButtons}>
+              <button 
+                style={styles.primaryBtn} 
+                onClick={handleStartPlanning}
+                onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+              >
+                Start Planning Now &rarr;
+              </button>
+              <button 
+                style={styles.secondaryBtn} 
+                onClick={handleStartPlanning}
+                onMouseOver={(e) => e.currentTarget.style.borderColor = '#0f172a'}
+                onMouseOut={(e) => e.currentTarget.style.borderColor = '#cbd5e1'}
+              >
+                Explore Catalog
+              </button>
+            </div>
 
-        <div style={styles.featureCard}>
-          <div>
-            <div style={{ color: '#059669', fontWeight: '800', fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '1px' }}>Seamless Billing & Auth</div>
-            <h2 style={styles.featureHeading}>OTP Resend & PayMongo</h2>
-            <p style={styles.featureText}>
-              Enjoy frictionless onboarding with instant email OTP verification and quick resend handling, alongside secure per-service transactions via PayMongo.
-            </p>
+            <div style={styles.ratingsRow}>
+              <div style={styles.ratingItem}>
+                <span>⭐</span> <strong>Aiven Database</strong> Reliability
+              </div>
+              <div style={styles.ratingItem}>
+                <span>🔒</span> <strong>Secure PayMongo</strong> Integration
+              </div>
+              <div style={styles.ratingItem}>
+                <span>✉️</span> <strong>OTP Resend</strong> Security
+              </div>
+            </div>
           </div>
-          <button style={{ ...styles.primaryBtn, width: isMobile ? '100%' : 'fit-content', marginTop: '16px' }} onClick={handleStartPlanning}>
-            Explore Security Features &rarr;
-          </button>
-        </div>
-      </section>
+        </section>
 
-      {/* TRUSTED INDUSTRIES SECTION */}
-      <section style={styles.industrySection}>
-        <h2 style={{ fontSize: isMobile ? '1.6rem' : '2rem', fontWeight: '900', letterSpacing: '-1px', color: '#0f172a' }}>Engineered for elite event categories</h2>
-        <div style={styles.industryGrid}>
-          <div style={{ ...styles.industryCard, backgroundImage: `url('https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=300&q=80')` }}>
-            <div style={styles.industryOverlay}></div>
-            <span style={{ position: 'relative', zIndex: 2, color: '#ffffff' }}>Corporate Galas</span>
+        {/* CORE ARCHITECT & SECURE PAYMENTS FEATURE SECTION */}
+        <section style={styles.featureSection}>
+          <div style={styles.featureCard}>
+            <div>
+              <div style={{ color: '#059669', fontWeight: '800', fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '1px' }}>Custom Canvas</div>
+              <h2 style={styles.featureHeading}>The Bundle Architect</h2>
+              <p style={styles.featureText}>
+                Curate independent vendor services and pre-made bundles into a unified custom blueprint backed seamlessly by your Aiven cloud database infrastructure.
+              </p>
+            </div>
+            <button style={{ ...styles.primaryBtn, width: isMobile ? '100%' : 'fit-content', marginTop: '16px' }} onClick={handleStartPlanning}>
+              Try Bundle Architect &rarr;
+            </button>
           </div>
-          <div style={{ ...styles.industryCard, backgroundImage: `url('https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=300&q=80')` }}>
-            <div style={styles.industryOverlay}></div>
-            <span style={{ position: 'relative', zIndex: 2, color: '#ffffff' }}>Academic Seminars</span>
-          </div>
-          <div style={{ ...styles.industryCard, backgroundImage: `url('https://images.unsplash.com/photo-1531206715517-5c0ba140b2b8?auto=format&fit=crop&w=300&q=80')` }}>
-            <div style={styles.industryOverlay}></div>
-            <span style={{ position: 'relative', zIndex: 2, color: '#ffffff' }}>Executive Councils</span>
-          </div>
-          <div style={{ ...styles.industryCard, backgroundImage: `url('https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=300&q=80')` }}>
-            <div style={styles.industryOverlay}></div>
-            <span style={{ position: 'relative', zIndex: 2, color: '#ffffff' }}>Live Concerts</span>
-          </div>
-          <div style={{ ...styles.industryCard, backgroundImage: `url('https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&w=300&q=80')` }}>
-            <div style={styles.industryOverlay}></div>
-            <span style={{ position: 'relative', zIndex: 2, color: '#ffffff' }}>Community Mixers</span>
-          </div>
-        </div>
-      </section>
 
-      {/* TESTIMONIALS SECTION */}
-      <section style={styles.testimonialSection}>
-        <div style={{ maxWidth: '1300px', margin: '0 auto', textAlign: 'center' }}>
-          <h2 style={{ fontSize: isMobile ? '1.6rem' : '2rem', fontWeight: '900', letterSpacing: '-1px', color: '#0f172a' }}>Trusted by elite event organizers</h2>
-          <p style={{ color: '#64748b', marginTop: '6px', fontSize: '0.90rem' }}>Maintaining top-tier reliability across authentication and booking workflows.</p>
-        </div>
-        <div style={styles.testimonialGrid}>
-          <div style={styles.testimonialCard}>
-            <div style={{ color: '#059669', marginBottom: '12px', fontSize: '0.85rem' }}>★★★★★</div>
-            <h4 style={{ fontWeight: '800', marginBottom: '8px', fontSize: '1rem', color: '#0f172a' }}>Flawless vendor coordination</h4>
-            <p style={{ color: '#64748b', fontSize: '0.85rem', lineHeight: '1.6' }}>"The Bundle Architect completely transformed how we pitch packages to clients with rock-solid Aiven database stability."</p>
-            <div style={{ marginTop: '20px', fontWeight: '700', fontSize: '0.80rem', color: '#334155' }}>Rory W. — Lead Event Director</div>
+          <div style={styles.featureCard}>
+            <div>
+              <div style={{ color: '#059669', fontWeight: '800', fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '1px' }}>Seamless Billing & Auth</div>
+              <h2 style={styles.featureHeading}>OTP Resend & PayMongo</h2>
+              <p style={styles.featureText}>
+                Enjoy frictionless onboarding with instant email OTP verification and quick resend handling, alongside secure per-service transactions via PayMongo.
+              </p>
+            </div>
+            <button style={{ ...styles.primaryBtn, width: isMobile ? '100%' : 'fit-content', marginTop: '16px' }} onClick={handleStartPlanning}>
+              Explore Security Features &rarr;
+            </button>
           </div>
-          <div style={styles.testimonialCard}>
-            <div style={{ color: '#059669', marginBottom: '12px', fontSize: '0.85rem' }}>★★★★★</div>
-            <h4 style={{ fontWeight: '800', marginBottom: '8px', fontSize: '1rem', color: '#0f172a' }}>Secure billing & OTP resend</h4>
-            <p style={{ color: '#64748b', fontSize: '0.85rem', lineHeight: '1.6' }}>"Integrating PayMongo checkout alongside seamless OTP email verification flows resolved all user signup bottlenecks overnight."</p>
-            <div style={{ marginTop: '20px', fontWeight: '700', fontSize: '0.80rem', color: '#334155' }}>Nikki K. — Operations Manager</div>
-          </div>
-          <div style={styles.testimonialCard}>
-            <div style={{ color: '#059669', marginBottom: '12px', fontSize: '0.85rem' }}>★★★★★</div>
-            <h4 style={{ fontWeight: '800', marginBottom: '8px', fontSize: '1rem', color: '#0f172a' }}>Exceptional UI architecture</h4>
-            <p style={{ color: '#64748b', fontSize: '0.85rem', lineHeight: '1.6' }}>"From instant code deployments to live itinerary tracking, every workflow is polished to absolute perfection."</p>
-            <div style={{ marginTop: '20px', fontWeight: '700', fontSize: '0.80rem', color: '#334155' }}>Piyush G. — Technical Lead</div>
-          </div>
-        </div>
-      </section>
+        </section>
 
-      {/* FOOTER */}
-      <footer style={styles.footer}>
-        <div>© 2026 EventEase Inc. All rights reserved.</div>
-        <div style={{ display: 'flex', gap: '20px', color: '#64748b', fontWeight: '600', flexWrap: 'wrap', justifyContent: 'center' }}>
-          <span 
-            style={styles.footerLink} 
-            onClick={() => setActiveModal('privacy')}
-            onMouseOver={(e) => e.currentTarget.style.color = '#0f172a'}
-            onMouseOut={(e) => e.currentTarget.style.color = '#64748b'}
-          >
-            Privacy Policy
-          </span>
-          <span 
-            style={styles.footerLink} 
-            onClick={() => setActiveModal('terms')}
-            onMouseOver={(e) => e.currentTarget.style.color = '#0f172a'}
-            onMouseOut={(e) => e.currentTarget.style.color = '#64748b'}
-          >
-            Terms of Service
-          </span>
-          <span 
-            style={styles.footerLink} 
-            onClick={() => setActiveModal('security')}
-            onMouseOver={(e) => e.currentTarget.style.color = '#0f172a'}
-            onMouseOut={(e) => e.currentTarget.style.color = '#64748b'}
-          >
-            Security
-          </span>
-        </div>
-      </footer>
+        {/* TRUSTED INDUSTRIES SECTION */}
+        <section style={styles.industrySection}>
+          <h2 style={{ fontSize: isMobile ? '1.6rem' : '2rem', fontWeight: '900', letterSpacing: '-1px', color: '#0f172a' }}>Engineered for elite event categories</h2>
+          <div style={styles.industryGrid}>
+            <div style={{ ...styles.industryCard, backgroundImage: `url('https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=300&q=80')` }}>
+              <div style={styles.industryOverlay}></div>
+              <span style={{ position: 'relative', zIndex: 2, color: '#ffffff' }}>Corporate Galas</span>
+            </div>
+            <div style={{ ...styles.industryCard, backgroundImage: `url('https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=300&q=80')` }}>
+              <div style={styles.industryOverlay}></div>
+              <span style={{ position: 'relative', zIndex: 2, color: '#ffffff' }}>Academic Seminars</span>
+            </div>
+            <div style={{ ...styles.industryCard, backgroundImage: `url('https://images.unsplash.com/photo-1531206715517-5c0ba140b2b8?auto=format&fit=crop&w=300&q=80')` }}>
+              <div style={styles.industryOverlay}></div>
+              <span style={{ position: 'relative', zIndex: 2, color: '#ffffff' }}>Executive Councils</span>
+            </div>
+            <div style={{ ...styles.industryCard, backgroundImage: `url('https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=300&q=80')` }}>
+              <div style={styles.industryOverlay}></div>
+              <span style={{ position: 'relative', zIndex: 2, color: '#ffffff' }}>Live Concerts</span>
+            </div>
+            <div style={{ ...styles.industryCard, backgroundImage: `url('https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&w=300&q=80')` }}>
+              <div style={styles.industryOverlay}></div>
+              <span style={{ position: 'relative', zIndex: 2, color: '#ffffff' }}>Community Mixers</span>
+            </div>
+          </div>
+        </section>
+
+        {/* TESTIMONIALS SECTION */}
+        <section style={styles.testimonialSection}>
+          <div style={{ maxWidth: '1300px', margin: '0 auto', textAlign: 'center' }}>
+            <h2 style={{ fontSize: isMobile ? '1.6rem' : '2rem', fontWeight: '900', letterSpacing: '-1px', color: '#0f172a' }}>Trusted by elite event organizers</h2>
+            <p style={{ color: '#64748b', marginTop: '6px', fontSize: '0.90rem' }}>Maintaining top-tier reliability across authentication and booking workflows.</p>
+          </div>
+          <div style={styles.testimonialGrid}>
+            <div style={styles.testimonialCard}>
+              <div style={{ color: '#059669', marginBottom: '12px', fontSize: '0.85rem' }}>★★★★★</div>
+              <h4 style={{ fontWeight: '800', marginBottom: '8px', fontSize: '1rem', color: '#0f172a' }}>Flawless vendor coordination</h4>
+              <p style={{ color: '#64748b', fontSize: '0.85rem', lineHeight: '1.6' }}>"The Bundle Architect completely transformed how we pitch packages to clients with rock-solid Aiven database stability."</p>
+              <div style={{ marginTop: '20px', fontWeight: '700', fontSize: '0.80rem', color: '#334155' }}>Rory W. — Lead Event Director</div>
+            </div>
+            <div style={styles.testimonialCard}>
+              <div style={{ color: '#059669', marginBottom: '12px', fontSize: '0.85rem' }}>★★★★★</div>
+              <h4 style={{ fontWeight: '800', marginBottom: '8px', fontSize: '1rem', color: '#0f172a' }}>Secure billing & OTP resend</h4>
+              <p style={{ color: '#64748b', fontSize: '0.85rem', lineHeight: '1.6' }}>"Integrating PayMongo checkout alongside seamless OTP email verification flows resolved all user signup bottlenecks overnight."</p>
+              <div style={{ marginTop: '20px', fontWeight: '700', fontSize: '0.80rem', color: '#334155' }}>Nikki K. — Operations Manager</div>
+            </div>
+            <div style={styles.testimonialCard}>
+              <div style={{ color: '#059669', marginBottom: '12px', fontSize: '0.85rem' }}>★★★★★</div>
+              <h4 style={{ fontWeight: '800', marginBottom: '8px', fontSize: '1rem', color: '#0f172a' }}>Exceptional UI architecture</h4>
+              <p style={{ color: '#64748b', fontSize: '0.85rem', lineHeight: '1.6' }}>"From instant code deployments to live itinerary tracking, every workflow is polished to absolute perfection."</p>
+              <div style={{ marginTop: '20px', fontWeight: '700', fontSize: '0.80rem', color: '#334155' }}>Piyush G. — Technical Lead</div>
+            </div>
+          </div>
+        </section>
+
+        {/* FOOTER */}
+        <footer style={styles.footer}>
+          <div>© 2026 EventEase Inc. All rights reserved.</div>
+          <div style={{ display: 'flex', gap: '20px', color: '#64748b', fontWeight: '600', flexWrap: 'wrap', justifyContent: 'center' }}>
+            <span 
+              style={styles.footerLink} 
+              onClick={() => setActiveModal('privacy')}
+              onMouseOver={(e) => e.currentTarget.style.color = '#0f172a'}
+              onMouseOut={(e) => e.currentTarget.style.color = '#64748b'}
+            >
+              Privacy Policy
+            </span>
+            <span 
+              style={styles.footerLink} 
+              onClick={() => setActiveModal('terms')}
+              onMouseOver={(e) => e.currentTarget.style.color = '#0f172a'}
+              onMouseOut={(e) => e.currentTarget.style.color = '#64748b'}
+            >
+              Terms of Service
+            </span>
+            <span 
+              style={styles.footerLink} 
+              onClick={() => setActiveModal('security')}
+              onMouseOver={(e) => e.currentTarget.style.color = '#0f172a'}
+              onMouseOut={(e) => e.currentTarget.style.color = '#64748b'}
+            >
+              Security
+            </span>
+          </div>
+        </footer>
+
+      </div>
 
       {/* POPUP MODAL */}
       {activeModal && (
