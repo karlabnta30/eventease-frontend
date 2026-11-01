@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { ArrowLeft } from 'lucide-react';
 import ServiceCard from '../components/ServiceCard';
 
 const PublicCatalog = () => {
@@ -118,6 +119,30 @@ const PublicCatalog = () => {
         {/* Main Content */}
         <div style={{ maxWidth: '1300px', margin: isMobile ? '20px auto' : '40px auto', padding: isMobile ? '0 16px' : '0 40px' }}>
           
+          {/* Back to Home Button */}
+          <div style={{ marginBottom: '20px' }}>
+            <button 
+              onClick={() => navigate('/')}
+              style={{ 
+                backgroundColor: 'rgba(255, 255, 255, 0.9)', 
+                border: '1px solid #cbd5e1', 
+                color: '#0f172a', 
+                padding: '8px 16px', 
+                borderRadius: '12px', 
+                cursor: 'pointer', 
+                display: 'inline-flex', 
+                alignItems: 'center', 
+                gap: '8px', 
+                fontSize: '0.85rem', 
+                fontWeight: '700', 
+                boxShadow: '0 4px 12px rgba(0,0,0,0.05)', 
+                transition: 'all 0.2s ease' 
+              }}
+            >
+              <ArrowLeft size={16} /> Back to Home
+            </button>
+          </div>
+
           {/* Header Card */}
           <div style={{ 
             textAlign: 'center', 
