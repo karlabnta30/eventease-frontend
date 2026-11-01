@@ -11,7 +11,7 @@ const PublicCatalog = () => {
 
   useEffect(() => {
     // Fetch live services/bundles from your Laravel backend API connected to Aiven
-    axios.get('https://your-backend-url.onrender.com/api/services') 
+    axios.get('https://eventease-backend-v9za.onrender.com/api/services') 
       .then(response => {
         setServices(response.data.data || response.data);
         setLoading(false);
