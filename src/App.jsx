@@ -19,7 +19,7 @@ import ContactPage from './pages/contactpage';
 import AdminDashboard from './pages/AdminDashboard'; 
 import AdminFeedback from './pages/AdminFeedback'; 
 import AboutPage from "./pages/aboutpage";
-import HelpPage from "./pages/help"; // <--- ITAMA DITO: ginawang lowercase 'help' para tumugma sa help.jsx mo
+import HelpPage from "./pages/help"; 
 import UserProfile from './pages/UserProfile'; 
 import EditEvents from './pages/EditEvents'; 
 import VendorProfile from './pages/VendorProfile'; 
@@ -34,6 +34,7 @@ import PaymentSuccess from './pages/PaymentSuccess';
 import VendorDashboard from './pages/VendorDashboard'; 
 import VendorList from './pages/VendorList';
 import AddService from './pages/AddService'; 
+import VendorEventsPage from './pages/VendorEventsPage'; // <--- Idinagdag ang import na ito para sa Vendor Events Page
 
 // --- PROTECTED ROUTE WRAPPER ---
 const ProtectedRoute = () => {
@@ -156,6 +157,10 @@ function App() {
             <Route 
               path="/add-service" 
               element={userRole === 'vendor' ? <AddService /> : <Navigate to={getDefaultDashboard()} replace />} 
+            />
+            <Route 
+              path="/vendor-events" 
+              element={userRole === 'vendor' ? <VendorEventsPage /> : <Navigate to={getDefaultDashboard()} replace />} 
             />
 
             {/* ADMIN ROUTES */}
