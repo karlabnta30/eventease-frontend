@@ -2,9 +2,35 @@ import React, { useState, useEffect } from 'react';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
 import api from '../api';
 import { notifyNewBooking } from '../toastUtils.jsx';
 import { Calendar, MapPin, Tag, Users, Wallet, CheckCircle2, Info, Sparkles, FileText, CheckCircle, AlertTriangle, Navigation } from 'lucide-react';
+
+// --- LEAFLET MARKER ICON FIX ---
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
+
+// --- MAP CLICK HANDLER COMPONENT ---
+const LocationMarker = ({ position, setPosition, onChange }) => {
+  useMapEvents({
+    click(e) {
+      setPosition(e.latlng);
+      onChange('latitude', e.latlng.lat.toFixed(6));
+      onChange('longitude', e.latlng.lng.toFixed(6));
+    },
+  });
+
+  return position === null ? null : (
+    <Marker position={position}></Marker>
+  );
+};
 
 // --- SUCCESS MODAL ---
 const SuccessModal = ({ isOpen, onClose, eventId, currentBudget }) => {
@@ -211,6 +237,7 @@ const CreateEvent = () => {
   const [vendorTerms, setVendorTerms] = useState("");
   const [formError, setFormError] = useState("");
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 900);
+  const [mapPosition, setMapPosition] = useState(null);
 
   const [eventData, setEventData] = useState({
     name: '',
@@ -262,8 +289,11 @@ const CreateEvent = () => {
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        handleChange('latitude', position.coords.latitude.toFixed(6));
-        handleChange('longitude', position.coords.longitude.toFixed(6));
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        handleChange('latitude', lat.toFixed(6));
+        handleChange('longitude', lng.toFixed(6));
+        setMapPosition({ lat, lng });
       },
       (error) => {
         alert("Unable to retrieve your location. Please enter manually.");
@@ -426,7 +456,7 @@ const CreateEvent = () => {
       display: 'flex',
       alignItems: 'center',
       gap: '6px',
-      marginTop: '10px',
+      marginTop: '12px',
       boxShadow: '0 2px 6px rgba(37, 99, 235, 0.2)'
     }
   };
@@ -476,21 +506,41 @@ const CreateEvent = () => {
           </div>
 
           <div style={styles.card}>
-            <div style={styles.sectionHeader}><MapPin size={20} color="#3b82f6"/><h3 style={{fontWeight: '900', margin: 0, fontSize: '1.1rem'}}>Location & Map Pin</h3></div>
+            <div style={styles.sectionHeader}><MapPin size={20} color="#3b82f6"/><h3 style={{fontWeight: '900', margin: 0, fontSize: '1.1rem'}}>Location & Interactive Map Pin</h3></div>
             <div style={styles.venueToggle}><CheckCircle2 size={16}/> PHYSICAL VENUE</div>
             
             <label style={styles.label}>Street Address / Landmark</label>
             <input type="text" placeholder="Enter full address or venue name" style={styles.input} value={eventData.address} onChange={(e) => handleChange('address', e.target.value)} />
             
+            {/* INTERACTIVE LEAFLET MAP */}
+            <div style={{ margin: '16px 0', height: '260px', borderRadius: '16px', overflow: 'hidden', border: '2px solid #f1f5f9', zIndex: 1, position: 'relative' }}>
+              <MapContainer 
+                center={[14.5995, 120.9842]} 
+                zoom={13} 
+                style={{ height: '100%', width: '100%' }}
+              >
+                <TileLayer
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                />
+                <LocationMarker 
+                  position={mapPosition} 
+                  setPosition={setMapPosition} 
+                  onChange={handleChange} 
+                />
+              </MapContainer>
+            </div>
+            <p style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '16px', fontWeight: '600' }}>💡 Click anywhere on the map to drop a pin on your exact venue location.</p>
+
             {/* GPS Pin Location Fields */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '16px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
               <div>
                 <label style={styles.label}>Latitude</label>
-                <input type="text" placeholder="e.g. 14.5995" style={styles.input} value={eventData.latitude} onChange={(e) => handleChange('latitude', e.target.value)} />
+                <input type="text" readOnly placeholder="Auto-filled from map" style={styles.input} value={eventData.latitude} />
               </div>
               <div>
                 <label style={styles.label}>Longitude</label>
-                <input type="text" placeholder="e.g. 120.9842" style={styles.input} value={eventData.longitude} onChange={(e) => handleChange('longitude', e.target.value)} />
+                <input type="text" readOnly placeholder="Auto-filled from map" style={styles.input} value={eventData.longitude} />
               </div>
             </div>
 
