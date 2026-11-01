@@ -17,13 +17,24 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-// --- MAP CLICK HANDLER COMPONENT ---
-const LocationMarker = ({ position, setPosition, onChange }) => {
+// --- MAP CLICK HANDLER & REVERSE GEOCODER COMPONENT ---
+const LocationMarker = ({ position, setPosition, onLocationSelected }) => {
   useMapEvents({
-    click(e) {
+    async click(e) {
+      const lat = e.latlng.lat;
+      const lng = e.latlng.lng;
       setPosition(e.latlng);
-      onChange('latitude', e.latlng.lat.toFixed(6));
-      onChange('longitude', e.latlng.lng.toFixed(6));
+      
+      // Kunin ang address gamit ang reverse geocoding mula sa pinindot na lat/lng
+      try {
+        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+        const data = await response.json();
+        const addressName = data && data.display_name ? data.display_name : `Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`;
+        onLocationSelected(lat, lng, addressName);
+      } catch (error) {
+        console.error("Error fetching address:", error);
+        onLocationSelected(lat, lng, `Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`);
+      }
     },
   });
 
@@ -280,7 +291,17 @@ const CreateEvent = () => {
     if (formError) setFormError("");
   };
 
-  // Helper para makuha ang kasalukuyang geolocation ng user gamit ang GPS
+  // Two-way handler kapag pumili o nag-click sa mapa
+  const handleMapLocationSelected = (lat, lng, addressName) => {
+    setEventData(prev => ({
+      ...prev,
+      latitude: lat.toFixed(6),
+      longitude: lng.toFixed(6),
+      address: addressName
+    }));
+  };
+
+  // GPS Location Handler
   const handleGetCurrentLocation = () => {
     if (!navigator.geolocation) {
       alert("Geolocation is not supported by your browser");
@@ -288,12 +309,28 @@ const CreateEvent = () => {
     }
 
     navigator.geolocation.getCurrentPosition(
-      (position) => {
+      async (position) => {
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
-        handleChange('latitude', lat.toFixed(6));
-        handleChange('longitude', lng.toFixed(6));
         setMapPosition({ lat, lng });
+
+        let resolvedAddress = '';
+        try {
+          const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+          const data = await response.json();
+          if (data && data.display_name) {
+            resolvedAddress = data.display_name;
+          }
+        } catch (e) {
+          console.error("GPS Reverse geocode error:", e);
+        }
+
+        setEventData(prev => ({
+          ...prev,
+          latitude: lat.toFixed(6),
+          longitude: lng.toFixed(6),
+          address: resolvedAddress || `Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`
+        }));
       },
       (error) => {
         alert("Unable to retrieve your location. Please enter manually.");
@@ -510,7 +547,13 @@ const CreateEvent = () => {
             <div style={styles.venueToggle}><CheckCircle2 size={16}/> PHYSICAL VENUE</div>
             
             <label style={styles.label}>Street Address / Landmark</label>
-            <input type="text" placeholder="Enter full address or venue name" style={styles.input} value={eventData.address} onChange={(e) => handleChange('address', e.target.value)} />
+            <input 
+              type="text" 
+              placeholder="Click on the map or type address here" 
+              style={styles.input} 
+              value={eventData.address} 
+              onChange={(e) => handleChange('address', e.target.value)} 
+            />
             
             {/* INTERACTIVE LEAFLET MAP */}
             <div style={{ margin: '16px 0', height: '260px', borderRadius: '16px', overflow: 'hidden', border: '2px solid #f1f5f9', zIndex: 1, position: 'relative' }}>
@@ -526,11 +569,11 @@ const CreateEvent = () => {
                 <LocationMarker 
                   position={mapPosition} 
                   setPosition={setMapPosition} 
-                  onChange={handleChange} 
+                  onLocationSelected={handleMapLocationSelected} 
                 />
               </MapContainer>
             </div>
-            <p style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '16px', fontWeight: '600' }}>💡 Click anywhere on the map to drop a pin on your exact venue location.</p>
+            <p style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '16px', fontWeight: '600' }}>💡 Click anywhere on the map to drop a pin. The exact address will automatically populate the text box above!</p>
 
             {/* GPS Pin Location Fields */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
