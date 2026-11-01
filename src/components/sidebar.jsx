@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   Home, CalendarDays, PlusCircle, ChevronLeft, ChevronRight, 
-  LogOut, MessageSquare, Mail, List, Bell 
+  LogOut, MessageSquare, Mail, List, Bell, Calendar 
 } from 'lucide-react';
 
 const Sidebar = ({ children }) => {
@@ -46,10 +46,14 @@ const Sidebar = ({ children }) => {
     } 
     
     if (userRole === 'vendor') {
-      return [...baseItems, { name: 'My Services', icon: <List size={18} />, path: '/vendor-services' }];
+      return [
+        ...baseItems, 
+        { name: 'My Services', icon: <List size={18} />, path: '/vendor-services' },
+        // Dito idinagdag ang menu para sa Vendor Events / Down Payment Monitor na vendor side lang ang makikita
+        { name: 'Vendor Events', icon: <Calendar size={18} />, path: '/vendor-events' }
+      ];
     }
 
-    // Tinanggal na ang 'About' dito, kundi nalang ang 'Contact' kung kailangan
     return [
       ...baseItems,
       { name: 'Contact', icon: <Mail size={18} />, path: '/contact' }
