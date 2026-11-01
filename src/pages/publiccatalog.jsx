@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, User, LayoutDashboard } from 'lucide-react';
 import ServiceCard from '../components/ServiceCard';
 
 const PublicCatalog = () => {
@@ -10,6 +10,11 @@ const PublicCatalog = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  
+  // States para malaman kung naka-log in ang user
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userName, setUserName] = useState('');
+  const [userRole, setUserRole] = useState('');
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -18,7 +23,18 @@ const PublicCatalog = () => {
   }, []);
 
   useEffect(() => {
-    // Nakaturo na ngayon sa iyong aktwal na Render backend URL
+    // Suriin ang localStorage kung may active token at user session
+    const token = localStorage.getItem('token');
+    const role = localStorage.getItem('userRole');
+    const name = localStorage.getItem('userName') || 'Account';
+
+    if (token) {
+      setIsLoggedIn(true);
+      setUserRole(role);
+      setUserName(name);
+    }
+
+    // Fetch live services mula sa Aiven database/backend
     axios.get('https://eventease-backend-v9za.onrender.com/api/services') 
       .then(response => {
         setServices(response.data.data || response.data);
@@ -29,6 +45,16 @@ const PublicCatalog = () => {
         setLoading(false);
       });
   }, []);
+
+  const handleDashboardRedirect = () => {
+    if (userRole === 'admin') {
+      navigate('/admin-dashboard');
+    } else if (userRole === 'vendor') {
+      navigate('/vendor-dashboard');
+    } else {
+      navigate('/dashboard');
+    }
+  };
 
   const galleryImages = [
     "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80",
@@ -85,7 +111,7 @@ const PublicCatalog = () => {
       {/* Main Container Layer */}
       <div style={{ position: 'relative', zIndex: 10 }}>
         
-        {/* Top Navbar */}
+        {/* Top Navbar (Dynamic: Nagbabago depende kung naka-log in o hindi) */}
         <nav style={{ 
           display: 'flex', 
           justifyContent: 'space-between', 
@@ -100,19 +126,43 @@ const PublicCatalog = () => {
           <h2 style={{ margin: 0, fontWeight: '900', fontSize: '1.4rem', letterSpacing: '-0.5px', cursor: 'pointer' }} onClick={() => navigate('/')}>
             EVENTEASE
           </h2>
-          <div style={{ display: 'flex', gap: '10px', width: isMobile ? '100%' : 'auto', justifyContent: isMobile ? 'center' : 'flex-end' }}>
-            <button 
-              onClick={() => navigate('/login')}
-              style={{ backgroundColor: 'transparent', border: '1px solid #cbd5e1', padding: '8px 16px', borderRadius: '10px', fontWeight: '700', cursor: 'pointer', fontSize: '0.85rem' }}
-            >
-              Log In
-            </button>
-            <button 
-              onClick={() => navigate('/login')}
-              style={{ backgroundColor: '#10b981', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '10px', fontWeight: '700', cursor: 'pointer', fontSize: '0.85rem' }}
-            >
-              Get Started
-            </button>
+          <div style={{ display: 'flex', gap: '10px', width: isMobile ? '100%' : 'auto', justifyContent: isMobile ? 'center' : 'flex-end', alignItems: 'center' }}>
+            {isLoggedIn ? (
+              <button 
+                onClick={handleDashboardRedirect}
+                style={{ 
+                  backgroundColor: '#10b981', 
+                  color: '#fff', 
+                  border: 'none', 
+                  padding: '8px 16px', 
+                  borderRadius: '10px', 
+                  fontWeight: '700', 
+                  cursor: 'pointer', 
+                  fontSize: '0.85rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)'
+                }}
+              >
+                <LayoutDashboard size={16} /> Hi, {userName} (Dashboard)
+              </button>
+            ) : (
+              <>
+                <button 
+                  onClick={() => navigate('/login')}
+                  style={{ backgroundColor: 'transparent', border: '1px solid #cbd5e1', padding: '8px 16px', borderRadius: '10px', fontWeight: '700', cursor: 'pointer', fontSize: '0.85rem' }}
+                >
+                  Log In
+                </button>
+                <button 
+                  onClick={() => navigate('/login')}
+                  style={{ backgroundColor: '#10b981', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '10px', fontWeight: '700', cursor: 'pointer', fontSize: '0.85rem' }}
+                >
+                  Get Started
+                </button>
+              </>
+            )}
           </div>
         </nav>
 
@@ -195,11 +245,17 @@ const PublicCatalog = () => {
               {filteredServices.map(service => (
                 <div key={service.id || service.bundle_id} style={{ position: 'relative' }}>
                   <ServiceCard service={service} />
-                  {/* Overlay layer prompting login to book */}
+                  {/* Overlay layer kung naka-log in ba o hindi */}
                   <div 
                     style={{ position: 'absolute', inset: 0, cursor: 'pointer' }} 
-                    onClick={() => navigate('/login')} 
-                    title="Log in to book this service" 
+                    onClick={() => {
+                      if (!isLoggedIn) {
+                        navigate('/login');
+                      } else {
+                        handleDashboardRedirect();
+                      }
+                    }} 
+                    title={isLoggedIn ? "Go to dashboard to book" : "Log in to book this service"} 
                   />
                 </div>
               ))}
