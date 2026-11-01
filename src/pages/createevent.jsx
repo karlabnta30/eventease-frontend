@@ -4,7 +4,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import api from '../api';
 import { notifyNewBooking } from '../toastUtils.jsx';
-import { Calendar, MapPin, Tag, Users, Wallet, CheckCircle2, Info, Sparkles, FileText, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Calendar, MapPin, Tag, Users, Wallet, CheckCircle2, Info, Sparkles, FileText, CheckCircle, AlertTriangle, Navigation } from 'lucide-react';
 
 // --- SUCCESS MODAL ---
 const SuccessModal = ({ isOpen, onClose, eventId, currentBudget }) => {
@@ -215,6 +215,8 @@ const CreateEvent = () => {
   const [eventData, setEventData] = useState({
     name: '',
     address: '',
+    latitude: '',
+    longitude: '',
     startDate: new Date(),
     endDate: new Date(new Date().setHours(new Date().getHours() + 2)),
     category: '',
@@ -249,6 +251,24 @@ const CreateEvent = () => {
   const handleChange = (field, value) => {
     setEventData(prev => ({ ...prev, [field]: value }));
     if (formError) setFormError("");
+  };
+
+  // Helper para makuha ang kasalukuyang geolocation ng user gamit ang GPS
+  const handleGetCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        handleChange('latitude', position.coords.latitude.toFixed(6));
+        handleChange('longitude', position.coords.longitude.toFixed(6));
+      },
+      (error) => {
+        alert("Unable to retrieve your location. Please enter manually.");
+      }
+    );
   };
 
   const handleApplyRecommended = () => {
@@ -288,6 +308,8 @@ const CreateEvent = () => {
     const payload = {
       event_name: eventData.name,
       location: eventData.address,
+      latitude: eventData.latitude ? parseFloat(eventData.latitude) : null,
+      longitude: eventData.longitude ? parseFloat(eventData.longitude) : null,
       category: eventData.category,
       event_date: formatMySQLDate(eventData.startDate),
       end_time: formatMySQLDate(eventData.endDate),
@@ -391,6 +413,21 @@ const CreateEvent = () => {
       gap: '6px',
       width: isMobile ? '100%' : 'auto',
       boxShadow: '0 2px 6px rgba(15, 23, 42, 0.2)'
+    },
+    gpsBtn: {
+      background: '#2563eb',
+      color: '#fff',
+      border: 'none',
+      padding: '10px 14px',
+      borderRadius: '10px',
+      fontSize: '0.75rem',
+      fontWeight: '800',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '6px',
+      marginTop: '10px',
+      boxShadow: '0 2px 6px rgba(37, 99, 235, 0.2)'
     }
   };
 
@@ -439,10 +476,27 @@ const CreateEvent = () => {
           </div>
 
           <div style={styles.card}>
-            <div style={styles.sectionHeader}><MapPin size={20} color="#3b82f6"/><h3 style={{fontWeight: '900', margin: 0, fontSize: '1.1rem'}}>Location</h3></div>
+            <div style={styles.sectionHeader}><MapPin size={20} color="#3b82f6"/><h3 style={{fontWeight: '900', margin: 0, fontSize: '1.1rem'}}>Location & Map Pin</h3></div>
             <div style={styles.venueToggle}><CheckCircle2 size={16}/> PHYSICAL VENUE</div>
+            
             <label style={styles.label}>Street Address / Landmark</label>
             <input type="text" placeholder="Enter full address or venue name" style={styles.input} value={eventData.address} onChange={(e) => handleChange('address', e.target.value)} />
+            
+            {/* GPS Pin Location Fields */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '16px' }}>
+              <div>
+                <label style={styles.label}>Latitude</label>
+                <input type="text" placeholder="e.g. 14.5995" style={styles.input} value={eventData.latitude} onChange={(e) => handleChange('latitude', e.target.value)} />
+              </div>
+              <div>
+                <label style={styles.label}>Longitude</label>
+                <input type="text" placeholder="e.g. 120.9842" style={styles.input} value={eventData.longitude} onChange={(e) => handleChange('longitude', e.target.value)} />
+              </div>
+            </div>
+
+            <button type="button" onClick={handleGetCurrentLocation} style={styles.gpsBtn}>
+              <Navigation size={14} /> Use Current GPS Location
+            </button>
           </div>
         </div>
 
