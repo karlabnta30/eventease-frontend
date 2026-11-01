@@ -332,7 +332,7 @@ const LandingPage = () => {
   return (
     <div style={styles.pageWrapper}>
       
-      {/* 🌟 SHOPIFY-STYLE DIAGONAL BACKGROUND GALLERY (PUNO AT PANTAY) */}
+      {/* 🌟 SHOPIFY-STYLE DIAGONAL BACKGROUND GALLERY */}
       <div className="shopify-bg-wrapper">
         <div className="diagonal-track">
           {[...galleryImages, ...galleryImages, ...galleryImages, ...galleryImages].map((img, index) => (
@@ -390,7 +390,7 @@ const LandingPage = () => {
               </button>
               <button 
                 style={styles.secondaryBtn} 
-                onClick={handleStartPlanning}
+                onClick={() => navigate('/catalog')}
                 onMouseOver={(e) => e.currentTarget.style.borderColor = '#0f172a'}
                 onMouseOut={(e) => e.currentTarget.style.borderColor = '#cbd5e1'}
               >
