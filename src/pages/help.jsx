@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronDown, ChevronUp, ArrowLeft, Search, HelpCircle, ShieldCheck, Headphones, CreditCard } from 'lucide-react';
+import { Plus, Minus, ArrowLeft, Search, HelpCircle, ShieldCheck, Headphones, CreditCard } from 'lucide-react';
 
 const HelpPage = () => {
   const navigate = useNavigate();
@@ -18,58 +18,66 @@ const HelpPage = () => {
     setOpenIndex(openIndex === index ? null : index);
   };
 
+  const galleryImages = [
+    "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80",
+    "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=400&q=80",
+    "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?auto=format&fit=crop&w=400&q=80",
+    "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=400&q=80",
+    "https://images.unsplash.com/photo-1532712938310-34cb3982ef74?auto=format&fit=crop&w=400&q=80"
+  ];
+
   const helpItems = [
     {
       category: "Payments",
-      icon: <CreditCard size={18} color="#2563eb" />,
+      icon: <CreditCard size={18} color="#0f172a" />,
       question: "How do payments work?",
       answer: "Payments are securely processed through integrated gateways like PayMongo. You can pay for bookings or custom vendor bundles safely with instant ledger updates and automated transaction receipts."
     },
     {
       category: "Bookings",
-      icon: <HelpCircle size={18} color="#2563eb" />,
+      icon: <HelpCircle size={18} color="#0f172a" />,
       question: "Cancellations & Rescheduling",
       answer: "Cancellations and rescheduling depend on the specific vendor terms and agreement periods. You can review or initiate status updates directly via your event itinerary dashboard."
     },
     {
       category: "Security",
-      icon: <ShieldCheck size={18} color="#2563eb" />,
+      icon: <ShieldCheck size={18} color="#0f172a" />,
       question: "Trust & Safety Infrastructure",
       answer: "EventEase ensures platform security utilizing robust Aiven cloud database encryption, token-authenticated sessions, and secure email OTP verification loops."
     },
     {
       category: "Vendors",
-      icon: <Headphones size={18} color="#2563eb" />,
+      icon: <Headphones size={18} color="#0f172a" />,
       question: "Your Listings & Portfolio",
       answer: "Vendors have complete control over creating, updating, and toggling the availability status of their service packages right from their dedicated management portal."
     },
     {
       category: "Logistics",
-      icon: <HelpCircle size={18} color="#2563eb" />,
+      icon: <HelpCircle size={18} color="#0f172a" />,
       question: "Rental & Equipment Help",
       answer: "Need assistance with venue rentals or audio-visual equipment packages? Reach out to our technical support team or message vendors directly through the built-in communication workspace."
     },
     {
       category: "Account",
-      icon: <ShieldCheck size={18} color="#2563eb" />,
+      icon: <ShieldCheck size={18} color="#0f172a" />,
       question: "Managing Your Account & Roles",
       answer: "Manage your credentials, update profile configurations, and monitor active booking timelines seamlessly through your account settings across Client, Vendor, or Admin roles."
     },
     {
       category: "Payouts",
-      icon: <CreditCard size={18} color="#2563eb" />,
+      icon: <CreditCard size={18} color="#0f172a" />,
       question: "How Vendors Get Paid",
       answer: "Registered vendors receive their payout settlements securely through standard administrative channels upon completing confirmed event service milestones."
     },
     {
       category: "Legal",
-      icon: <ShieldCheck size={18} color="#2563eb" />,
+      icon: <ShieldCheck size={18} color="#0f172a" />,
       question: "User Agreement & Guidelines",
       answer: "By utilizing EventEase, users agree to abide by our community standards, fair booking policies, and platform operational guidelines."
     },
     {
       category: "Privacy",
-      icon: <ShieldCheck size={18} color="#2563eb" />,
+      icon: <ShieldCheck size={18} color="#0f172a" />,
       question: "Privacy Policy & Data Protection",
       answer: "We protect your data privacy with strict confidentiality measures. Review our complete data handling practices to understand how we secure your personal information."
     }
@@ -88,16 +96,16 @@ const HelpPage = () => {
       minHeight: '100vh',
       fontFamily: "'Inter', sans-serif",
       paddingBottom: '80px',
+      position: 'relative',
+      overflowX: 'hidden',
     },
     heroSection: {
-      background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #2563eb 100%)',
-      padding: isMobile ? '40px 20px 50px' : '70px 60px 80px',
-      borderBottom: '1px solid #e2e8f0',
+      padding: isMobile ? '40px 20px 40px' : '70px 20px 60px',
       position: 'relative',
-      overflow: 'hidden',
+      zIndex: 2,
     },
     heroContent: {
-      maxWidth: '1200px',
+      maxWidth: '900px',
       margin: '0 auto',
       display: 'flex',
       flexDirection: 'column',
@@ -107,34 +115,35 @@ const HelpPage = () => {
       zIndex: 2,
     },
     backBtn: {
-      background: 'rgba(255, 255, 255, 0.1)',
-      border: '1px solid rgba(255, 255, 255, 0.2)',
-      color: '#ffffff',
+      backgroundColor: 'rgba(255, 255, 255, 0.9)',
+      border: '1px solid #cbd5e1',
+      color: '#0f172a',
       padding: '8px 16px',
-      borderRadius: '10px',
+      borderRadius: '12px',
       cursor: 'pointer',
       display: 'inline-flex',
       alignItems: 'center',
       gap: '8px',
       fontSize: '0.85rem',
-      fontWeight: '600',
+      fontWeight: '700',
       marginBottom: '24px',
-      backdropFilter: 'blur(8px)',
+      boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
       transition: 'all 0.2s ease',
     },
     title: {
-      fontSize: isMobile ? '2.4rem' : '3.5rem',
+      fontSize: isMobile ? '2.2rem' : '3.2rem',
       fontWeight: '900',
       letterSpacing: '-1.5px',
-      color: '#ffffff',
+      color: '#0f172a',
       marginBottom: '12px',
     },
     subtitle: {
-      color: '#94a3b8',
-      fontSize: isMobile ? '0.95rem' : '1.1rem',
+      color: '#64748b',
+      fontSize: isMobile ? '1.05rem' : '1.1rem',
       lineHeight: '1.6',
       maxWidth: '650px',
       marginBottom: '32px',
+      fontWeight: '500',
     },
     searchContainer: {
       position: 'relative',
@@ -144,7 +153,8 @@ const HelpPage = () => {
     searchInput: {
       width: '100%',
       padding: '16px 20px 16px 50px',
-      backgroundColor: '#ffffff',
+      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+      backdropFilter: 'blur(12px)',
       border: '1px solid #cbd5e1',
       borderRadius: '16px',
       color: '#0f172a',
@@ -152,6 +162,7 @@ const HelpPage = () => {
       outline: 'none',
       boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.08)',
       transition: 'border-color 0.2s ease',
+      boxSizing: 'border-box',
     },
     searchIcon: {
       position: 'absolute',
@@ -159,31 +170,41 @@ const HelpPage = () => {
       top: '50%',
       transform: 'translateY(-50%)',
       color: '#64748b',
+      zIndex: 3,
     },
     mainContainer: {
-      maxWidth: '1200px',
-      margin: '50px auto 0',
+      maxWidth: '1100px',
+      margin: '20px auto 0',
       padding: isMobile ? '0 16px' : '0 40px',
       display: 'grid',
-      gridTemplateColumns: isMobile ? '1fr' : '1.3fr 0.7fr',
+      gridTemplateColumns: isMobile ? '1fr' : '1fr 340px',
       gap: '40px',
       alignItems: 'start',
+      position: 'relative',
+      zIndex: 2,
     },
     accordionList: {
       display: 'flex',
       flexDirection: 'column',
-      gap: '14px',
+      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+      backdropFilter: 'blur(12px)',
+      border: '1px solid #e2e8f0',
+      borderRadius: '28px',
+      padding: isMobile ? '20px' : '35px',
+      boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.1)',
     },
-    card: (isOpen) => ({
-      border: isOpen ? '1px solid #2563eb' : '1px solid #e2e8f0',
-      borderRadius: '16px',
-      backgroundColor: '#ffffff',
-      overflow: 'hidden',
-      transition: 'all 0.25s ease',
-      boxShadow: isOpen ? '0 10px 30px -10px rgba(37, 99, 235, 0.15)' : '0 4px 12px rgba(0, 0, 0, 0.03)',
-    }),
+    sectionHeading: {
+      fontSize: '1.8rem',
+      fontWeight: '900',
+      letterSpacing: '-1px',
+      color: '#0f172a',
+      marginBottom: '24px',
+    },
+    accordionItem: {
+      borderBottom: '1px solid #e2e8f0',
+    },
     cardHeader: {
-      padding: '20px 24px',
+      padding: '22px 0',
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
@@ -193,51 +214,55 @@ const HelpPage = () => {
     questionWrapper: {
       display: 'flex',
       alignItems: 'center',
-      gap: '12px',
+      gap: '14px',
     },
     questionText: {
-      fontWeight: '700',
+      fontWeight: '800',
       fontSize: '1.05rem',
       color: '#0f172a',
     },
-    badge: {
-      backgroundColor: '#dbeafe',
-      color: '#1d4ed8',
-      fontSize: '0.7rem',
-      fontWeight: '800',
-      padding: '4px 10px',
-      borderRadius: '999px',
-      textTransform: 'uppercase',
-      letterSpacing: '0.5px',
+    iconCircle: {
+      width: '36px',
+      height: '36px',
+      borderRadius: '50%',
+      backgroundColor: '#0f172a',
+      color: '#ffffff',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexShrink: 0,
+      boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
     },
     cardBody: {
-      padding: '0 24px 22px 24px',
-      color: '#475569',
+      padding: '0 0 24px 0',
+      color: '#64748b',
       fontSize: '0.95rem',
       lineHeight: '1.7',
-      borderTop: '1px solid #f1f5f9',
-      paddingTop: '16px',
+      fontWeight: '500',
     },
     sidebarImagesCard: {
-      backgroundColor: '#ffffff',
+      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+      backdropFilter: 'blur(12px)',
       border: '1px solid #e2e8f0',
-      borderRadius: '24px',
+      borderRadius: '28px',
       padding: '28px',
       position: 'sticky',
       top: '30px',
-      boxShadow: '0 20px 40px -15px rgba(0, 0, 0, 0.05)',
+      boxShadow: '0 20px 40px -15px rgba(0, 0, 0, 0.08)',
     },
     sidebarTitle: {
       fontSize: '1.25rem',
       fontWeight: '900',
       color: '#0f172a',
       marginBottom: '8px',
+      letterSpacing: '-0.5px',
     },
     sidebarText: {
       fontSize: '0.9rem',
       color: '#64748b',
-      lineHeight: '1.5',
+      lineHeight: '1.6',
       marginBottom: '20px',
+      fontWeight: '500',
     },
     imageGrid: {
       display: 'grid',
@@ -247,46 +272,78 @@ const HelpPage = () => {
     },
     gridImg: {
       width: '100%',
-      height: '110px',
+      height: '100px',
       objectFit: 'cover',
       borderRadius: '12px',
       border: '1px solid #e2e8f0',
-      transition: 'transform 0.2s ease',
     },
     supportBox: {
-      backgroundColor: '#eff6ff',
-      border: '1px solid #bfdbfe',
-      borderRadius: '16px',
+      backgroundColor: '#f8fafc',
+      border: '1px solid #e2e8f0',
+      borderRadius: '20px',
       padding: '20px',
       textAlign: 'center',
     },
     supportTitle: {
-      fontSize: '1rem',
+      fontSize: '0.95rem',
       fontWeight: '800',
-      color: '#1e3a8a',
+      color: '#0f172a',
       marginBottom: '6px',
     },
     supportText: {
       fontSize: '0.85rem',
-      color: '#3b82f6',
-      marginBottom: '14px',
+      color: '#64748b',
+      marginBottom: '16px',
+      lineHeight: '1.5',
     },
     contactBtn: {
-      backgroundColor: '#2563eb',
+      backgroundColor: '#10b981',
       color: '#ffffff',
       border: 'none',
-      padding: '10px 20px',
-      borderRadius: '10px',
-      fontWeight: '800',
+      padding: '12px 20px',
+      borderRadius: '12px',
+      fontWeight: '900',
       fontSize: '0.85rem',
       cursor: 'pointer',
       width: '100%',
+      boxShadow: '0 10px 25px rgba(16, 185, 129, 0.25)',
       transition: 'all 0.2s ease',
     }
   };
 
   return (
     <div style={styles.wrapper}>
+      
+      {/* SHOPIFY-STYLE DIAGONAL BACKGROUND MARQUEE ANIMATION */}
+      <div className="shopify-bg-wrapper" style={{
+        position: 'fixed',
+        inset: '-50px',
+        pointerEvents: 'none',
+        overflow: 'hidden',
+        zIndex: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        gap: '30px',
+        opacity: '0.18',
+        transform: 'rotate(-6deg) scale(1.2)'
+      }}>
+        <div className="diagonal-track" style={{ display: 'flex', gap: '30px', width: 'max-content', animation: 'diagonalMarquee 35s linear infinite' }}>
+          {[...galleryImages, ...galleryImages, ...galleryImages, ...galleryImages].map((img, index) => (
+            <div key={index} style={{ width: '280px', height: '180px', borderRadius: '16px', overflow: 'hidden', flexShrink: 0, boxShadow: '0 8px 20px rgba(0,0,0,0.08)' }}>
+              <img src={img} alt="bg" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            </div>
+          ))}
+        </div>
+        <div className="diagonal-track" style={{ display: 'flex', gap: '30px', width: 'max-content', animation: 'diagonalMarquee 40s linear infinite reverse' }}>
+          {[...galleryImages, ...galleryImages, ...galleryImages, ...galleryImages].map((img, index) => (
+            <div key={index} style={{ width: '280px', height: '180px', borderRadius: '16px', overflow: 'hidden', flexShrink: 0, boxShadow: '0 8px 20px rgba(0,0,0,0.08)' }}>
+              <img src={img} alt="bg" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* HERO BANNER SECTION */}
       <section style={styles.heroSection}>
         <div style={styles.heroContent}>
@@ -314,21 +371,21 @@ const HelpPage = () => {
 
       {/* MAIN LAYOUT WITH ACCORDION & SIDEBAR IMAGES */}
       <div style={styles.mainContainer}>
+        
         {/* LEFT: FAQ ACCORDION LIST */}
         <div style={styles.accordionList}>
+          <h2 style={styles.sectionHeading}>Questions?</h2>
           {filteredHelpItems.length > 0 ? (
             filteredHelpItems.map((item, index) => {
               const isOpen = openIndex === index;
               return (
-                <div key={index} style={styles.card(isOpen)}>
+                <div key={index} style={styles.accordionItem}>
                   <div style={styles.cardHeader} onClick={() => toggleAccordion(index)}>
                     <div style={styles.questionWrapper}>
-                      {item.icon}
                       <span style={styles.questionText}>{item.question}</span>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      {!isMobile && <span style={styles.badge}>{item.category}</span>}
-                      {isOpen ? <ChevronUp size={20} color="#2563eb" /> : <ChevronDown size={20} color="#64748b" />}
+                    <div style={styles.iconCircle}>
+                      {isOpen ? <Minus size={18} /> : <Plus size={18} />}
                     </div>
                   </div>
                   {isOpen && (
@@ -340,7 +397,7 @@ const HelpPage = () => {
               );
             })
           ) : (
-            <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>
+            <div style={{ textAlign: 'center', padding: '40px', color: '#64748b', fontWeight: '600' }}>
               <p>No matching questions found. Try searching for another keyword.</p>
             </div>
           )}
@@ -386,8 +443,8 @@ const HelpPage = () => {
                 <button 
                   style={styles.contactBtn} 
                   onClick={() => navigate('/contact')}
-                  onMouseOver={(e) => e.currentTarget.style.opacity = '0.9'}
-                  onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
+                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#059669'}
+                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#10b981'}
                 >
                   Contact Support Team &rarr;
                 </button>
