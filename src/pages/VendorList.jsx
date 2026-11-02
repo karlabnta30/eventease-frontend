@@ -225,7 +225,11 @@ const VendorList = () => {
     const isCartOverBudget = userBudget > 0 && totalSelectedCost > userBudget;
 
     const handleMultiServiceCheckout = async () => {
-        if (selectedServices.length === 0) return;
+        // --- VALIDATION: Siguraduhing may laman ang cart bago payagang mag-book ---
+        if (selectedServices.length === 0) {
+            toast.error("Walang napiling vendor o service sa iyong cart! Mangyaring pumili muna ng kahit isang serbisyo.");
+            return;
+        }
 
         if (!eventIdFromUrl) {
             alert("No event ID detected in URL. Please start booking from your event itinerary.");
