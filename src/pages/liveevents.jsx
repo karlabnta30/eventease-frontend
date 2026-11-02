@@ -309,7 +309,6 @@ const LiveEvents = () => {
         ) : (
           <div style={styles.grid}>
             {bookings.length > 0 ? bookings.map((item) => {
-              // Binigyang-daan ang iba't ibang posibleng status galing sa database (paid, downpayment_paid, partial)
               const paymentStatus = (item.payment_status || '').toLowerCase();
               const isPaid = paymentStatus === 'paid' || paymentStatus === 'downpayment_paid' || paymentStatus === 'partial' || paymentStatus === 'completed' || item.is_paid === true;
 
@@ -382,7 +381,7 @@ const LiveEvents = () => {
                 <div>
                   {item.status === 'accepted' && !isPaid && (
                       <button 
-                          onClick={() => navigate(`/checkout?booking_id=${item.id}&amount=${downpaymentAmount}`)}
+                          onClick={() => navigate(`/checkout?booking_id=${item.id}&amount=${payableAmount}`)}
                           style={styles.paymentBtn}
                       >
                           <CreditCard size={16} /> PAY 50% DOWNPAYMENT (₱{downpaymentAmount.toLocaleString()})
