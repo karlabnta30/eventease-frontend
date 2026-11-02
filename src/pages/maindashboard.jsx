@@ -10,7 +10,6 @@ const MainDashboard = () => {
   const navigate = useNavigate();
   const userRole = localStorage.getItem('userRole');
   
-  // Kunin ang pangalan ng user mula sa localStorage (kung naka-save o kung may auth user state)
   const clientName = localStorage.getItem('userName') || 'Valued Client';
   
   const [services, setServices] = useState([]); 
@@ -114,7 +113,9 @@ const MainDashboard = () => {
         if (results[bookingsIndex] && results[bookingsIndex].status === 'fulfilled') {
           const bookingsRes = results[bookingsIndex].value;
           const rawBookings = bookingsRes.data.data || (Array.isArray(bookingsRes.data) ? bookingsRes.data : []);
-          const assignedBookings = rawBookings.filter(item => item.vendor_id || item.vendor || item.service_id);
+          
+          // Naayos ang pag-filter upang masalo ang lahat ng active bookings na may event_name o ID
+          const assignedBookings = rawBookings.filter(item => item.id || item.event_name || item.vendor_id || item.vendor || item.service_id);
           setMyBookings(assignedBookings);
         }
 
@@ -293,7 +294,7 @@ const MainDashboard = () => {
                   <span style={{ background: '#f1f5f9', color: '#334155', fontSize: '0.7rem', fontWeight: '800', padding: '4px 10px', borderRadius: '6px', textTransform: 'uppercase', letterSpacing: '0.05em', border: '1px solid #e2e8f0' }}>
                     Client Portal
                   </span>
-                  <span style={{ color: '#64748b', fontSize: '0.85rem', fontWeight: '500' }}>• Event Management</span>
+                  <span style={{ color: '#64748b', fontSize: '0.85rem', fontWeight: '500' }}>Event Management</span>
                 </div>
                 <h1 style={{ fontSize: '1.5rem', fontWeight: '800', margin: '0 0 4px 0', color: '#0f172a', letterSpacing: '-0.01em' }}>
                   Welcome back, {clientName}! 👋
