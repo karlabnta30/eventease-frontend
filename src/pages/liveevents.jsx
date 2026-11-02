@@ -133,7 +133,7 @@ const LiveEvents = () => {
     if (!eventToDelete) return;
 
     const currentPaymentStatus = (eventToDelete.payment_status || '').toLowerCase();
-    if (currentPaymentStatus === 'paid' || currentPaymentStatus === 'downpayment_paid' || currentPaymentStatus === 'partial') {
+    if (currentPaymentStatus.includes('paid') || currentPaymentStatus.includes('partial')) {
         alert("Transaction Secured: Paid events cannot be cancelled through the dashboard.");
         setIsDeleteOpen(false);
         return;
@@ -310,7 +310,7 @@ const LiveEvents = () => {
           <div style={styles.grid}>
             {bookings.length > 0 ? bookings.map((item) => {
               const paymentStatus = (item.payment_status || '').toLowerCase();
-              const isPaid = paymentStatus === 'paid' || paymentStatus === 'downpayment_paid' || paymentStatus === 'partial' || paymentStatus === 'completed' || item.is_paid === true;
+              const isPaid = paymentStatus.includes('paid') || paymentStatus.includes('partial') || paymentStatus.includes('completed') || item.is_paid === true;
 
               const calculatedServicesTotal = item.services && item.services.length > 0
                 ? item.services.reduce((sum, s) => sum + (parseFloat(s.price || s.starting_price || s.cost || 0)), 0)
@@ -360,7 +360,7 @@ const LiveEvents = () => {
                     <span>{assignedVendorName ? `Hired: ${assignedVendorName}` : 'No Vendor Assigned'}</span>
                   </div>
 
-                  <div style={styles.infoRow}>
+                <div style={styles.infoRow}>
                     <MapPin size={16} color="#000" style={{ flexShrink: 0 }} />
                     <span style={{ fontWeight: '600' }}>{item.location || 'Venue TBD'}</span>
                   </div>
@@ -381,7 +381,7 @@ const LiveEvents = () => {
                 <div>
                   {item.status === 'accepted' && !isPaid && (
                       <button 
-                          onClick={() => navigate(`/checkout?booking_id=${item.id}&amount=${payableAmount}`)}
+                          onClick={() => navigate(`/checkout?booking_id=${item.id}&amount=${downpaymentAmount}`)}
                           style={styles.paymentBtn}
                       >
                           <CreditCard size={16} /> PAY 50% DOWNPAYMENT (₱{downpaymentAmount.toLocaleString()})
