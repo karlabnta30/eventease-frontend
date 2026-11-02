@@ -49,7 +49,6 @@ const Sidebar = ({ children }) => {
       return [
         ...baseItems, 
         { name: 'My Services', icon: <List size={18} />, path: '/vendor-services' },
-        // Dito idinagdag ang menu para sa Vendor Events / Down Payment Monitor na vendor side lang ang makikita
         { name: 'Vendor Events', icon: <Calendar size={18} />, path: '/vendor-events' }
       ];
     }
@@ -71,11 +70,12 @@ const Sidebar = ({ children }) => {
       overflowX: 'hidden' 
     },
     sidebar: {
-      width: isMobile ? '100%' : (isCollapsed ? '70px' : '240px'),
+      // Pinalaki ang expanded width mula 240px patungong 300px para mas maluwag ang content
+      width: isMobile ? '100%' : (isCollapsed ? '80px' : '300px'),
       backgroundColor: '#ffffff',
       borderRight: isMobile ? 'none' : '1px solid #eee',
       borderBottom: isMobile ? '1px solid #eee' : 'none',
-      padding: '15px 10px',
+      padding: '20px 16px', // Pinalaki nang konti ang padding para mas balanse
       display: 'flex',
       flexDirection: isMobile ? 'row' : 'column', 
       justifyContent: 'space-between',
@@ -89,7 +89,7 @@ const Sidebar = ({ children }) => {
       overflowX: isMobile ? 'auto' : 'hidden',
       overflowY: 'auto',
       flex: 1,
-      gap: isMobile ? '10px' : '0',
+      gap: isMobile ? '10px' : '4px',
       alignItems: isMobile ? 'center' : 'stretch',
       paddingRight: '4px',
       width: '100%'
@@ -98,16 +98,16 @@ const Sidebar = ({ children }) => {
       display: isMobile ? 'none' : 'flex', 
       alignItems: 'center',
       justifyContent: isCollapsed ? 'center' : 'flex-start',
-      gap: '10px',
-      padding: '10px',
+      gap: '12px',
+      padding: '12px',
       marginBottom: '15px',
-      borderRadius: '10px',
+      borderRadius: '12px',
       cursor: 'pointer',
       backgroundColor: location.pathname === '/profile' ? '#f4f1ea' : 'transparent',
     },
     avatar: {
-      width: '32px',
-      height: '32px',
+      width: '38px', // Pinalaki ang avatar para maging angkop sa bagong lapad
+      height: '38px',
       borderRadius: '50%',
       backgroundColor: '#1a1a1a',
       display: 'flex',
@@ -115,28 +115,28 @@ const Sidebar = ({ children }) => {
       justifyContent: 'center',
       color: 'white',
       fontWeight: 'bold',
-      fontSize: '14px',
+      fontSize: '15px',
       flexShrink: 0
     },
     createBtn: {
       display: userRole === 'admin' ? 'none' : 'flex',
       alignItems: 'center', 
       gap: isCollapsed ? '0' : '10px',
-      padding: '10px', 
-      borderRadius: '10px',
+      padding: '12px 14px', 
+      borderRadius: '12px',
       backgroundColor: '#1a1a1a', 
       color: 'white', 
       cursor: 'pointer', 
       border: 'none',
-      marginBottom: isMobile ? '0' : '15px', 
+      marginBottom: isMobile ? '0' : '18px', 
       fontWeight: '700', 
-      fontSize: '12px',
+      fontSize: '13px',
       justifyContent: 'center',
     },
     bottomSection: {
       display: isMobile ? 'none' : 'block', 
       borderTop: '1px solid #eee',
-      paddingTop: '10px',
+      paddingTop: '12px',
       marginTop: '10px'
     },
     mainContent: { 
@@ -152,14 +152,14 @@ const Sidebar = ({ children }) => {
       display: 'flex', 
       alignItems: 'center', 
       justifyContent: isCollapsed && !isMobile ? 'center' : 'flex-start',
-      gap: '10px', 
-      padding: '10px 12px',
-      borderRadius: '8px',
+      gap: '12px', 
+      padding: '12px 14px', // Pinalaki ang padding para mas madaling i-click at lumawak tingnan
+      borderRadius: '10px',
       cursor: 'pointer', 
       backgroundColor: isActive ? '#f4f1ea' : 'transparent',
       color: isActive ? '#1a1a1a' : '#555', 
       fontWeight: isActive ? '700' : '400', 
-      fontSize: '13px',
+      fontSize: '14px', // Pinalaki nang konti ang font size para sa mas magandang readability
       whiteSpace: 'nowrap',
     })
   };
@@ -174,8 +174,8 @@ const Sidebar = ({ children }) => {
             <div style={styles.avatar}>{userName.charAt(0).toUpperCase()}</div>
             {!isCollapsed && (
               <div style={{ overflow: 'hidden' }}>
-                <p style={{ margin: 0, fontSize: '13px', fontWeight: '800', color: '#1a1a1a' }}>{userName}</p>
-                <p style={{ margin: 0, fontSize: '10px', color: '#888' }}>{userRole}</p>
+                <p style={{ margin: 0, fontSize: '14px', fontWeight: '800', color: '#1a1a1a' }}>{userName}</p>
+                <p style={{ margin: 0, fontSize: '11px', color: '#888', textTransform: 'capitalize' }}>{userRole}</p>
               </div>
             )}
           </div>
@@ -215,7 +215,7 @@ const Sidebar = ({ children }) => {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '24px' }}>
                 {isCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
             </div>
-            {!isCollapsed && <span style={{ marginLeft: '10px' }}>Collapse</span>}
+            {!isCollapsed && <span style={{ marginLeft: '4px' }}>Collapse</span>}
           </div>
           
           <div 
@@ -225,7 +225,7 @@ const Sidebar = ({ children }) => {
              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '24px' }}>
                 <LogOut size={18} /> 
             </div>
-            {!isCollapsed && <span style={{ marginLeft: '10px' }}>Sign Out</span>}
+            {!isCollapsed && <span style={{ marginLeft: '4px' }}>Sign Out</span>}
           </div>
         </div>
 
