@@ -349,12 +349,6 @@ const CreateEvent = () => {
     const token = localStorage.getItem('token');
     if (!token) { navigate('/login'); return; }
     
-    // SAFETY CHECK: I-block ang pag-book kapag walang napiling vendor o service
-    if (!eventData.service_id) {
-        setFormError("Walang napiling vendor o service! Mangyaring pumili muna ng vendor bago simulan ang event.");
-        return;
-    }
-
     if (!eventData.name || !eventData.address || !eventData.category || !eventData.pax) {
         setFormError("Please fill in all required event fields including guest count.");
         return;
