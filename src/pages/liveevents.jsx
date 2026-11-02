@@ -309,9 +309,23 @@ const LiveEvents = () => {
           <div style={styles.grid}>
             {bookings.length > 0 ? bookings.map((item) => {
               const isPaid = item.payment_status && item.payment_status.toLowerCase() === 'paid';
-              const payableAmount = item.service_price || item.price || item.total_price || item.budget || 0;
 
-              // Kukunin ang pangalan ng vendor o service mula sa iba't ibang posibleng database relation structures
+              // Kukunin ang actual total cost mula sa mga napiling serbisyo/vendors sa halip na sundin ang budget limit
+              const calculatedServicesTotal = item.services && item.services.length > 0
+                ? item.services.reduce((sum, s) => sum + (parseFloat(s.price || s.starting_price || s.cost || 0)), 0)
+                : item.vendors && item.vendors.length > 0
+                ? item.vendors.reduce((sum, v) => sum + (parseFloat(v.price || v.starting_price || v.cost || 0)), 0)
+                : 0;
+
+              // Gagamitin ang actual services total kung mayroon man, kung wala ay fallback sa item.service_price o item.price
+              const payableAmount = calculatedServicesTotal > 0 
+                ? calculatedServicesTotal 
+                : (parseFloat(item.service_price || item.price || item.total_price || 0) || 0);
+
+              // 50% Downpayment calculation
+              const downpaymentAmount = payableAmount / 2;
+
+              // Kukunin ang pangalan ng vendor o service
               const assignedVendorName = 
                 (item.services && item.services.length > 0) 
                   ? item.services.map(s => s.business_name || s.name).join(', ')
@@ -344,7 +358,6 @@ const LiveEvents = () => {
                   
                   <h3 style={{ fontSize: '1.2rem', fontWeight: '900', marginBottom: '8px', color: '#000', letterSpacing: '-0.5px', wordBreak: 'break-word' }}>{item.event_name}</h3>
                   
-                  {/* DITO IPINAPALABAS ANG NAKA-ASSIGN NA VENDOR O SERVICE */}
                   <div style={{ fontSize: '0.85rem', fontWeight: '800', color: assignedVendorName ? '#16a34a' : '#94a3b8', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <span>{assignedVendorName ? `Hired: ${assignedVendorName}` : 'No Vendor Assigned'}</span>
                   </div>
@@ -356,19 +369,24 @@ const LiveEvents = () => {
                   
                   <div style={styles.infoRow}>
                     <CreditCard size={16} color="#000" style={{ flexShrink: 0 }} />
-                    <span style={{ fontWeight: '800', color: '#000' }}>
-                      Service Cost: ₱{parseFloat(payableAmount).toLocaleString()}
-                    </span>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <span style={{ fontWeight: '800', color: '#000' }}>
+                        Total Services Cost: ₱{payableAmount.toLocaleString()}
+                      </span>
+                      <span style={{ fontWeight: '700', color: '#2563eb', fontSize: '0.8rem', marginTop: '2px' }}>
+                        Required 50% Downpayment: ₱{downpaymentAmount.toLocaleString()}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
                 <div>
                   {item.status === 'accepted' && !isPaid && (
                       <button 
-                          onClick={() => navigate(`/checkout?booking_id=${item.id}&amount=${payableAmount}`)}
+                          onClick={() => navigate(`/checkout?booking_id=${item.id}&amount=${downpaymentAmount}`)}
                           style={styles.paymentBtn}
                       >
-                          <CreditCard size={16} /> PROCEED TO PAYMENT (₱{parseFloat(payableAmount).toLocaleString()})
+                          <CreditCard size={16} /> PAY 50% DOWNPAYMENT (₱{downpaymentAmount.toLocaleString()})
                       </button>
                   )}
 
