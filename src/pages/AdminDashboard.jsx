@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import api from '../api';
 import { toast } from 'react-hot-toast';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
-import { LayoutDashboard, Calendar as CalendarIcon, UserCheck, FileText, CheckCircle, XCircle, MapPin, Users, Briefcase, CreditCard, Clock, X } from 'lucide-react';
+import { LayoutDashboard, Calendar as CalendarIcon, UserCheck, FileText, CheckCircle, XCircle, MapPin, Users, Briefcase, CreditCard, Clock, X, ArrowUpDown } from 'lucide-react';
 import './CalendarCustom.css'; 
 
 const AdminDashboard = () => {
@@ -16,6 +16,9 @@ const AdminDashboard = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [previewImage, setPreviewImage] = useState(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  // --- STATE PARA SA CATEGORY SORTING (PANELIST SUGGESTION) ---
+  const [categorySortOrder, setCategorySortOrder] = useState('highest'); // 'highest', 'lowest', 'alphabetical'
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -71,6 +74,23 @@ const AdminDashboard = () => {
     }
   };
 
+  // --- SORTING LOGIC PARA SA CATEGORY DISTRIBUTION ---
+  const sortedCategories = useMemo(() => {
+    if (!stats?.category_data) return [];
+    const categoriesCopy = [...stats.category_data];
+
+    return categoriesCopy.sort((a, b) => {
+      if (categorySortOrder === 'highest') {
+        return b.total - a.total; // Pinakamarami papuntang kaunti
+      } else if (categorySortOrder === 'lowest') {
+        return a.total - b.total; // Pinakakaunti papuntang marami
+      } else if (categorySortOrder === 'alphabetical') {
+        return a.category.localeCompare(b.category); // A-Z
+      }
+      return 0;
+    });
+  }, [stats?.category_data, categorySortOrder]);
+
   const tileContent = ({ date, view }) => {
     if (view === 'month') {
       const hasBooking = allBookings.some(b => 
@@ -118,9 +138,36 @@ const AdminDashboard = () => {
           </div>
 
           <div style={{ background: '#fff', padding: isMobile ? '20px' : '30px', borderRadius: '24px', border: '1px solid #eee' }}>
-            <h3 style={{ fontWeight: '800', fontSize: isMobile ? '1.1rem' : '1.3rem' }}>Category Distribution</h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
+              <h3 style={{ fontWeight: '800', fontSize: isMobile ? '1.1rem' : '1.3rem', margin: 0 }}>Category Distribution</h3>
+              
+              {/* --- PANELISTS RECOMMENDATION: SORTING BUTTONS --- */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#f8fafc', padding: '6px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                <ArrowUpDown size={14} color="#64748b" style={{ marginLeft: '4px' }} />
+                <span style={{ fontSize: '0.75rem', fontWeight: '800', color: '#64748b', marginRight: '4px' }}>Sort:</span>
+                <button 
+                  onClick={() => setCategorySortOrder('highest')}
+                  style={{ background: categorySortOrder === 'highest' ? '#0f172a' : 'transparent', color: categorySortOrder === 'highest' ? '#fff' : '#475569', border: 'none', padding: '6px 10px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: '800', cursor: 'pointer' }}
+                >
+                  Highest
+                </button>
+                <button 
+                  onClick={() => setCategorySortOrder('lowest')}
+                  style={{ background: categorySortOrder === 'lowest' ? '#0f172a' : 'transparent', color: categorySortOrder === 'lowest' ? '#fff' : '#475569', border: 'none', padding: '6px 10px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: '800', cursor: 'pointer' }}
+                >
+                  Lowest
+                </button>
+                <button 
+                  onClick={() => setCategorySortOrder('alphabetical')}
+                  style={{ background: categorySortOrder === 'alphabetical' ? '#0f172a' : 'transparent', color: categorySortOrder === 'alphabetical' ? '#fff' : '#475569', border: 'none', padding: '6px 10px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: '800', cursor: 'pointer' }}
+                >
+                  A-Z
+                </button>
+              </div>
+            </div>
+
             <div style={{ marginTop: '20px' }}>
-              {stats?.category_data && stats.category_data.length > 0 ? stats.category_data.map(cat => (
+              {sortedCategories && sortedCategories.length > 0 ? sortedCategories.map(cat => (
                 <div key={cat.category} style={{ marginBottom: '20px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: '700', marginBottom: '8px' }}>
                     <span>{cat.category}</span>
