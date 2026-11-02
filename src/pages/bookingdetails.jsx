@@ -62,7 +62,8 @@ const BookingDetails = () => {
   }, [id, navigate]);
 
   const handleConfirmDelete = async () => {
-    if (event?.payment_status?.toLowerCase() === 'paid' && userRole !== 'admin') {
+    const currentPaymentStatus = (event?.payment_status || '').toLowerCase();
+    if ((currentPaymentStatus.includes('paid') || currentPaymentStatus.includes('partial')) && userRole !== 'admin') {
         alert("Action Restricted: Paid events cannot be cancelled by clients.");
         setIsDeleteModalOpen(false);
         return;
@@ -87,9 +88,18 @@ const BookingDetails = () => {
   if (loading) return <div style={styles.loadingState}>Synchronizing event data...</div>;
   if (!event) return <div style={styles.loadingState}>Event not found.</div>;
 
-  const isPaid = event.payment_status?.toLowerCase() === 'paid';
+  const paymentStatus = (event.payment_status || '').toLowerCase();
+  const isPaid = paymentStatus.includes('paid') || paymentStatus.includes('partial') || paymentStatus.includes('completed') || event.is_paid === true;
   const isLocked = isPaid && userRole !== 'admin';
   const isAdminOverride = isPaid && userRole === 'admin';
+
+  // Nasusunod ang iba't ibang posibleng relasyon ng vendors/services galing sa database
+  const assignedVendorName = 
+    (event.services && event.services.length > 0) 
+      ? event.services.map(s => s.business_name || s.name).join(', ')
+      : (event.vendors && event.vendors.length > 0)
+      ? event.vendors.map(v => v.business_name || v.name).join(', ')
+      : (event.service?.business_name || event.service?.name || event.vendor?.business_name || event.vendor?.name || event.vendor_name || 'Awaiting Vendor');
 
   return (
     <div style={{ ...styles.pageWrapper, padding: isMobile ? '20px 16px' : '50px 20px' }}>
@@ -113,7 +123,7 @@ const BookingDetails = () => {
 
           <div style={{ ...styles.gridSection, gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(280px, 1fr))' }}>
             <DetailBlock label="Hired Service" icon={<ShieldCheck size={18} color="#2563eb" style={{ flexShrink: 0 }}/>} 
-              value={event.service?.business_name || event.service?.name || 'Awaiting Vendor'} />
+              value={assignedVendorName} />
             <DetailBlock label="Venue / Location" icon={<MapPin size={18} color="#2563eb" style={{ flexShrink: 0 }}/>} 
               value={event.location} />
             <DetailBlock label="Event Date" icon={<Calendar size={18} color="#2563eb" style={{ flexShrink: 0 }}/>} 
@@ -198,11 +208,14 @@ const styles = {
     background: status === 'pending' ? '#fef3c7' : '#f1f5f9',
     color: status === 'pending' ? '#d97706' : '#0f172a'
   }),
-  paymentIndicator: (pay) => ({
-    padding: '6px 14px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: '900', textTransform: 'uppercase',
-    background: pay === 'Paid' ? '#d1fae5' : '#fee2e2',
-    color: pay === 'Paid' ? '#059669' : '#ef4444'
-  }),
+  paymentIndicator: (pay) => {
+    const isPaid = (pay || '').toLowerCase().includes('paid');
+    return {
+      padding: '6px 14px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: '900', textTransform: 'uppercase',
+      background: isPaid ? '#d1fae5' : '#fee2e2',
+      color: isPaid ? '#059669' : '#ef4444'
+    };
+  },
   modalOverlay: { position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(15, 23, 42, 0.85)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, backdropFilter: 'blur(10px)', padding: '16px', boxSizing: 'border-box' },
   modalContent: { background: '#ffffff', padding: '30px 20px', borderRadius: '28px', textAlign: 'center', maxWidth: '420px', width: '100%', boxShadow: '0 25px 50px rgba(0,0,0,0.25)', border: '1px solid #e2e8f0', boxSizing: 'border-box' },
   modalCancelBtn: { flex: 1, padding: '14px', borderRadius: '14px', border: '1px solid #cbd5e1', background: '#f1f5f9', cursor: 'pointer', fontWeight: '800', color: '#475569', fontSize: '0.88rem', width: '100%' },
