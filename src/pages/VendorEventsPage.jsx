@@ -38,7 +38,13 @@ const VendorEventsPage = () => {
 
   // Filtering logic based on the selected filter button
   const filteredEvents = events.filter(event => {
-    const isPaid = event.payment_status?.toLowerCase().includes('paid') || event.payment_status?.toLowerCase().includes('accepted');
+    const paymentStatus = (event.payment_status || '').toLowerCase().trim();
+    const isPaid = paymentStatus === 'paid' || 
+                   paymentStatus === 'downpayment_paid' || 
+                   paymentStatus === 'paid (50% down payment)' || 
+                   paymentStatus === 'completed' || 
+                   event.is_paid === true;
+
     if (filter === 'paid') return isPaid;
     if (filter === 'pending') return !isPaid;
     return true; // 'all'
@@ -94,7 +100,13 @@ const VendorEventsPage = () => {
             const totalPrice = Number(event.budget || event.total_price || 0);
             const downPayment = totalPrice * 0.50;
             const remainingBalance = totalPrice - downPayment;
-            const isPaid = event.payment_status?.toLowerCase().includes('paid') || event.payment_status?.toLowerCase().includes('accepted');
+            
+            const paymentStatus = (event.payment_status || '').toLowerCase().trim();
+            const isPaid = paymentStatus === 'paid' || 
+                           paymentStatus === 'downpayment_paid' || 
+                           paymentStatus === 'paid (50% down payment)' || 
+                           paymentStatus === 'completed' || 
+                           event.is_paid === true;
 
             return (
               <div key={bookingId} style={{ backgroundColor: '#fff', padding: '24px', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 4px 20px rgba(0,0,0,0.02)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '20px' }}>
