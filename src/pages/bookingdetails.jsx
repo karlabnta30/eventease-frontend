@@ -62,8 +62,14 @@ const BookingDetails = () => {
   }, [id, navigate]);
 
   const handleConfirmDelete = async () => {
-    const currentPaymentStatus = (event?.payment_status || '').toLowerCase();
-    if ((currentPaymentStatus.includes('paid') || currentPaymentStatus.includes('partial')) && userRole !== 'admin') {
+    const currentPaymentStatus = (event?.payment_status || '').toLowerCase().trim();
+    const isSecuredPaid = currentPaymentStatus === 'paid' || 
+                          currentPaymentStatus === 'downpayment_paid' || 
+                          currentPaymentStatus === 'paid (50% down payment)' || 
+                          currentPaymentStatus === 'completed' || 
+                          event?.is_paid === true;
+
+    if (isSecuredPaid && userRole !== 'admin') {
         alert("Action Restricted: Paid events cannot be cancelled by clients.");
         setIsDeleteModalOpen(false);
         return;
@@ -88,8 +94,15 @@ const BookingDetails = () => {
   if (loading) return <div style={styles.loadingState}>Synchronizing event data...</div>;
   if (!event) return <div style={styles.loadingState}>Event not found.</div>;
 
-  const paymentStatus = (event.payment_status || '').toLowerCase();
-  const isPaid = paymentStatus.includes('paid') || paymentStatus.includes('partial') || paymentStatus.includes('completed') || event.is_paid === true;
+  const paymentStatus = (event.payment_status || '').toLowerCase().trim();
+  
+  // Mahigpit na susuriin kung bayad na ba talaga upang hindi sumabit sa salitang "unpaid"
+  const isPaid = paymentStatus === 'paid' || 
+                 paymentStatus === 'downpayment_paid' || 
+                 paymentStatus === 'paid (50% down payment)' || 
+                 paymentStatus === 'completed' || 
+                 event.is_paid === true;
+
   const isLocked = isPaid && userRole !== 'admin';
   const isAdminOverride = isPaid && userRole === 'admin';
 
@@ -222,7 +235,9 @@ const styles = {
     color: status === 'pending' ? '#d97706' : '#0f172a'
   }),
   paymentIndicator: (pay) => {
-    const isPaid = (pay || '').toLowerCase().includes('paid');
+    const isPaid = ((pay || '').toLowerCase().trim() === 'paid' || 
+                    (pay || '').toLowerCase().includes('downpayment') || 
+                    (pay || '').toLowerCase().includes('completed'));
     return {
       padding: '6px 14px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: '900', textTransform: 'uppercase',
       background: isPaid ? '#d1fae5' : '#fee2e2',
