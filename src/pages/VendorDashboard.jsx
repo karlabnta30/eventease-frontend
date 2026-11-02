@@ -13,11 +13,9 @@ const VendorDashboard = () => {
   const [bookings, setBookings] = useState([]);
   const [vendorBundles, setVendorBundles] = useState([]);
   const [stats, setStats] = useState({ earnings: 0, pending: 0 });
-  const [loading, setLoading] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   
-  // State for tracking active bill negotiation edits
   const [editingBookingId, setEditingBookingId] = useState(null);
   const [newBudgetInput, setNewBudgetInput] = useState('');
 
@@ -58,7 +56,6 @@ const VendorDashboard = () => {
             }
           });
         }
-
       } catch (err) { 
         console.error("Dashboard Fetch Error:", err); 
       }
@@ -69,9 +66,7 @@ const VendorDashboard = () => {
   const handleStatus = async (id, status) => {
     try {
       await api.patch(`/bookings/${id}/status`, { status });
-      
       setBookings(bookings.map(b => b.id === id ? { ...b, status } : b));
-      
       const statRes = await api.get('/vendor/bookings');
       setStats(statRes.data.stats);
       notifySuccess(`Booking successfully ${status}!`);
@@ -115,7 +110,7 @@ const VendorDashboard = () => {
           notifySuccess('Bundle deleted successfully!');
         } catch (err2) {
           console.error("Bundle deletion error:", err2);
-          alert("Failed to delete bundle. Please check your Laravel backend delete route mapping.");
+          alert("Failed to delete bundle. Please check your backend delete route mapping.");
         }
       }
     }
@@ -135,131 +130,127 @@ const VendorDashboard = () => {
   );
 
   return (
-    <div style={{ padding: isMobile ? '20px 16px' : '40px', backgroundColor: '#ffffff', minHeight: '100vh', fontFamily: "'Inter', sans-serif" }}>
+    <div style={{ padding: isMobile ? '16px 12px' : '40px', backgroundColor: '#ffffff', minHeight: '100vh', fontFamily: "'Inter', sans-serif" }}>
       <Toaster position="top-right" />
       
-      <div style={{ marginBottom: isMobile ? '25px' : '40px', display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'flex-start', flexWrap: 'wrap', gap: '15px' }}>
+      <div style={{ marginBottom: isMobile ? '20px' : '40px', display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'flex-start', flexWrap: 'wrap', gap: '15px' }}>
         <div>
-            <h1 style={{ fontSize: isMobile ? '1.8rem' : '2.5rem', fontWeight: '900', letterSpacing: '-1.5px', color: '#1a1a1a', margin: 0 }}>Vendor Command Center</h1>
-            <p style={{ color: '#666', fontWeight: '500', marginTop: '8px', fontSize: isMobile ? '0.9rem' : '1rem' }}>Your central hub for event management, bill adjustments, and scheduling.</p>
+            <h1 style={{ fontSize: isMobile ? '1.5rem' : '2.5rem', fontWeight: '900', letterSpacing: '-1.5px', color: '#1a1a1a', margin: 0, wordBreak: 'break-word' }}>Vendor Command Center</h1>
+            <p style={{ color: '#666', fontWeight: '500', marginTop: '6px', fontSize: isMobile, fontSize: isMobile ? '0.85rem' : '1rem' }}>Your central hub for event management, bill adjustments, and scheduling.</p>
         </div>
         <div style={{ display: 'flex', gap: '10px', width: isMobile ? '100%' : 'auto', flexWrap: 'wrap' }}>
             <button onClick={() => navigate('/vendor-services')} style={{ ...styles.manageBtn, flex: isMobile ? 1 : 'unset', justifyContent: 'center' }}>
-                <LayoutGrid size={18} /> Manage My Services
+                <LayoutGrid size={16} /> Manage Services
             </button>
             <button onClick={() => navigate('/notifications')} style={{ ...styles.notifBtn, flex: isMobile ? 1 : 'unset', justifyContent: 'center' }}>
-                <Bell size={18} /> Notifications
+                <Bell size={16} /> Notifications
             </button>
         </div>
       </div>
       
-      {/* Top Stats Box including Revenue, Awaiting Approval, and Active Bundles */}
-      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '20px', marginBottom: isMobile ? '30px' : '50px' }}>
+      {/* Top Stats Box */}
+      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '16px', marginBottom: isMobile ? '24px' : '40px' }}>
         <div style={styles.statBox}>
-          <div style={{ background: '#f0f0f0', padding: '15px', borderRadius: '14px', flexShrink: 0 }}>
-            <CreditCard size={24} color="#000" />
+          <div style={{ background: '#f0f0f0', padding: '12px', borderRadius: '12px', flexShrink: 0 }}>
+            <CreditCard size={22} color="#000" />
           </div>
           <div>
             <p style={styles.statLabel}>Revenue</p>
-            <h2 style={styles.statValue}>₱{(stats.earnings || 0).toLocaleString()}</h2>
+            <h2 style={{ ...styles.statValue, fontSize: isMobile ? '1.4rem' : '1.8rem' }}>₱{(stats.earnings || 0).toLocaleString()}</h2>
           </div>
         </div>
         <div style={styles.statBox}>
-          <div style={{ background: '#000', padding: '15px', borderRadius: '14px', flexShrink: 0 }}>
-            <Package size={24} color="#fff" />
+          <div style={{ background: '#000', padding: '12px', borderRadius: '12px', flexShrink: 0 }}>
+            <Package size={22} color="#fff" />
           </div>
           <div>
             <p style={styles.statLabel}>Awaiting Approval</p>
-            <h2 style={styles.statValue}>{stats.pending || 0}</h2>
+            <h2 style={{ ...styles.statValue, fontSize: isMobile ? '1.4rem' : '1.8rem' }}>{stats.pending || 0}</h2>
           </div>
         </div>
         <div style={styles.statBox}>
-          <div style={{ background: '#059669', padding: '15px', borderRadius: '14px', flexShrink: 0 }}>
-            <Package size={24} color="#fff" />
+          <div style={{ background: '#059669', padding: '12px', borderRadius: '12px', flexShrink: 0 }}>
+            <Package size={22} color="#fff" />
           </div>
           <div>
             <p style={styles.statLabel}>Active Bundles</p>
-            <h2 style={styles.statValue}>{vendorBundles.length}</h2>
+            <h2 style={{ ...styles.statValue, fontSize: isMobile ? '1.4rem' : '1.8rem' }}>{vendorBundles.length}</h2>
           </div>
         </div>
       </div>
 
-      {/* Live Active Bundles Grid on Vendor Dashboard with working Delete permissions */}
-      <div style={{ background: '#f8fafc', padding: isMobile ? '18px' : '24px', borderRadius: '24px', border: '1px solid #e2e8f0', marginBottom: isMobile ? '30px' : '50px' }}>
-        <h3 style={{ fontSize: '1.25rem', fontWeight: '900', marginBottom: '16px', color: '#0f172a' }}>
+      {/* Live Active Bundles Grid */}
+      <div style={{ background: '#f8fafc', padding: isMobile ? '16px' : '24px', borderRadius: '20px', border: '1px solid #e2e8f0', marginBottom: isMobile ? '24px' : '40px' }}>
+        <h3 style={{ fontSize: isMobile ? '1.1rem' : '1.25rem', fontWeight: '900', marginBottom: '14px', color: '#0f172a' }}>
           My Active Bundles ({vendorBundles.length})
         </h3>
         {vendorBundles.length > 0 ? (
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(280px, 1fr))', gap: '14px' }}>
             {vendorBundles.map(bundle => (
-              <div key={bundle.id} style={{ background: '#fff', padding: '16px', borderRadius: '16px', border: '1px solid #cbd5e1', boxShadow: '0 4px 12px rgba(0,0,0,0.02)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div key={bundle.id} style={{ background: '#fff', padding: '14px', borderRadius: '14px', border: '1px solid #cbd5e1', boxShadow: '0 4px 12px rgba(0,0,0,0.02)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div style={{ minWidth: 0, paddingRight: '10px' }}>
-                  <p style={{ fontWeight: '800', fontSize: '1rem', margin: '0 0 4px 0', color: '#1a1a1a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{bundle.bundle_name}</p>
-                  <p style={{ fontSize: '0.85rem', color: '#059669', fontWeight: '800', margin: 0 }}>₱{Number(bundle.price).toLocaleString()}</p>
+                  <p style={{ fontWeight: '800', fontSize: '0.95rem', margin: '0 0 4px 0', color: '#1a1a1a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{bundle.bundle_name}</p>
+                  <p style={{ fontSize: '0.8rem', color: '#059669', fontWeight: '800', margin: 0 }}>₱{Number(bundle.price).toLocaleString()}</p>
                 </div>
                 <button 
                   onClick={() => handleDeleteBundle(bundle.id)}
-                  style={{
-                    background: '#fee2e2', color: '#ef4444', border: 'none', padding: '10px', 
-                    borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
-                  }}
+                  style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '8px 10px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
                   title="Delete Bundle"
                 >
-                  <Trash2 size={16} />
+                  <Trash2 size={15} />
                 </button>
               </div>
             ))}
           </div>
         ) : (
-          <p style={{ fontSize: '0.9rem', color: '#94a3b8', fontStyle: 'italic', margin: 0 }}>No active bundles created yet.</p>
+          <p style={{ fontSize: '0.85rem', color: '#94a3b8', fontStyle: 'italic', margin: 0 }}>No active bundles created yet.</p>
         )}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1.2fr 1fr', gap: '30px', marginBottom: isMobile ? '30px' : '50px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1.2fr 1fr', gap: '20px', marginBottom: isMobile ? '24px' : '40px' }}>
         <div style={styles.mainCard}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
-                <CalendarIcon size={22} />
-                <h2 style={{ fontSize: '1.3rem', fontWeight: '800', margin: 0 }}>Availability Calendar</h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                <CalendarIcon size={20} />
+                <h2 style={{ fontSize: isMobile ? '1.1rem' : '1.3rem', fontWeight: '800', margin: 0 }}>Availability Calendar</h2>
             </div>
-            <Calendar onChange={setSelectedDate} value={selectedDate} tileContent={tileContent} className="eventease-main-calendar" />
+            <div style={{ width: '100%', overflowX: 'auto' }}>
+              <Calendar onChange={setSelectedDate} value={selectedDate} tileContent={tileContent} className="eventease-main-calendar" />
+            </div>
         </div>
 
         <div style={styles.mainCard}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
-                <Clock size={22} />
-                <h2 style={{ fontSize: '1.3rem', fontWeight: '800', margin: 0 }}>Schedule: {selectedDate.toLocaleDateString()}</h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                <Clock size={20} />
+                <h2 style={{ fontSize: isMobile ? '1.1rem' : '1.3rem', fontWeight: '800', margin: 0, wordBreak: 'break-word' }}>Schedule: {selectedDate.toLocaleDateString()}</h2>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', maxHeight: '400px', overflowY: 'auto' }}>
                 {selectedDateBookings.length > 0 ? selectedDateBookings.map(b => (
                     <div key={b.id} style={styles.eventItem}>
-                        {/* Event Header with Name & Budget */}
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '5px' }}>
-                          <div style={{ fontWeight: '900', fontSize: '1.1rem', color: '#0f172a', wordBreak: 'break-word' }}>{b.event_name}</div>
-                          <div style={{ fontWeight: '900', color: '#059669', fontSize: '1rem' }}>₱{parseFloat(b.budget || 0).toLocaleString()}</div>
+                          <div style={{ fontWeight: '900', fontSize: '1rem', color: '#0f172a', wordBreak: 'break-word' }}>{b.event_name}</div>
+                          <div style={{ fontWeight: '900', color: '#059669', fontSize: '0.95rem' }}>₱{parseFloat(b.budget || 0).toLocaleString()}</div>
                         </div>
 
-                        {/* Comprehensive Details Grid */}
-                        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '8px', fontSize: '0.85rem', color: '#475569', marginBottom: '12px', background: '#f1f5f9', padding: '10px', borderRadius: '12px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '6px', fontSize: '0.8rem', color: '#475569', marginBottom: '10px', background: '#f1f5f9', padding: '8px 10px', borderRadius: '10px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                <MapPin size={14} color="#64748b" style={{ flexShrink: 0 }} />
+                                <MapPin size={13} color="#64748b" style={{ flexShrink: 0 }} />
                                 <span style={{ wordBreak: 'break-word' }}><strong>Location:</strong> {b.location}</span>
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                <Users size={14} color="#64748b" style={{ flexShrink: 0 }} />
+                                <Users size={13} color="#64748b" style={{ flexShrink: 0 }} />
                                 <span><strong>Guests:</strong> {b.guest_count || 1} pax</span>
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                <Briefcase size={14} color="#64748b" style={{ flexShrink: 0 }} />
+                                <Briefcase size={13} color="#64748b" style={{ flexShrink: 0 }} />
                                 <span><strong>Category:</strong> {b.category || 'General'}</span>
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                <CreditCard size={14} color="#64748b" style={{ flexShrink: 0 }} />
+                                <CreditCard size={13} color="#64748b" style={{ flexShrink: 0 }} />
                                 <span><strong>Payment:</strong> {b.payment_status || 'Unpaid'}</span>
                             </div>
                         </div>
 
-                        {/* Client & Vendor / Service Breakdown Info */}
-                        <div style={{ fontSize: '0.8rem', color: '#64748b', marginBottom: '12px', display: 'flex', flexDirection: 'column', gap: '4px', wordBreak: 'break-word' }}>
+                        <div style={{ fontSize: '0.78rem', color: '#64748b', marginBottom: '10px', display: 'flex', flexDirection: 'column', gap: '3px', wordBreak: 'break-word' }}>
                             {b.user && <div>👤 <strong>Client:</strong> {b.user.name} ({b.user.email})</div>}
                             {b.service && <div>🛠️ <strong>Assigned Service:</strong> {b.service.business_name || b.service.title}</div>}
                             {b.services && b.services.length > 0 && (
@@ -267,8 +258,7 @@ const VendorDashboard = () => {
                             )}
                         </div>
 
-                        {/* Bill Adjustment Footer Controls */}
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', borderTop: '1px solid #e2e8f0', paddingTop: '10px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', borderTop: '1px solid #e2e8f0', paddingTop: '8px' }}>
                             {editingBookingId === b.id ? (
                               <div style={{ display: 'flex', gap: '6px', alignItems: 'center', width: '100%', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
                                 <input 
@@ -276,43 +266,43 @@ const VendorDashboard = () => {
                                   value={newBudgetInput} 
                                   onChange={(e) => setNewBudgetInput(e.target.value)} 
                                   placeholder="New budget" 
-                                  style={{ padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', width: isMobile ? '100%' : '120px', fontSize: '0.85rem' }}
+                                  style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', width: isMobile ? '100%' : '110px', fontSize: '0.8rem' }}
                                 />
                                 <div style={{ display: 'flex', gap: '6px', width: isMobile ? '100%' : 'auto', justifyContent: 'flex-end' }}>
-                                  <button onClick={() => handleAdjustBill(b.id)} style={{ background: '#000', color: '#fff', border: 'none', padding: '8px 14px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: '700', flex: isMobile ? 1 : 'unset' }}>Save</button>
-                                  <button onClick={() => setEditingBookingId(null)} style={{ background: '#e2e8f0', border: 'none', padding: '8px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem', flex: isMobile ? 1 : 'unset' }}>Cancel</button>
+                                  <button onClick={() => handleAdjustBill(b.id)} style={{ background: '#000', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.75rem', fontWeight: '700', flex: isMobile ? 1 : 'unset' }}>Save</button>
+                                  <button onClick={() => setEditingBookingId(null)} style={{ background: '#e2e8f0', border: 'none', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.75rem', flex: isMobile ? 1 : 'unset' }}>Cancel</button>
                                 </div>
                               </div>
                             ) : (
-                              <button onClick={() => { setEditingBookingId(b.id); setNewBudgetInput(b.budget); }} style={{ background: 'transparent', border: 'none', color: '#2563eb', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem', fontWeight: '800' }}>
-                                <Edit3 size={14} /> Adjust Bill / Negotiate Terms
+                              <button onClick={() => { setEditingBookingId(b.id); setNewBudgetInput(b.budget); }} style={{ background: 'transparent', border: 'none', color: '#2563eb', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.8rem', fontWeight: '800' }}>
+                                <Edit3 size={13} /> Adjust Bill / Negotiate Terms
                               </button>
                             )}
                         </div>
                     </div>
-                )) : <div style={{ textAlign: 'center', padding: '40px 0' }}><p style={{ color: '#aaa', fontWeight: '500' }}>No confirmed events.</p></div>}
+                )) : <div style={{ textAlign: 'center', padding: '30px 0' }}><p style={{ color: '#aaa', fontSize: '0.85rem' }}>No confirmed events for this date.</p></div>}
             </div>
         </div>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '25px', flexWrap: 'wrap' }}>
-        <h2 style={{ fontSize: '1.4rem', fontWeight: '800', margin: 0 }}>Pending Hire Requests</h2>
-        <div style={{ flex: 1, height: '2px', background: '#f0f0f0', minWidth: '50px' }}></div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
+        <h2 style={{ fontSize: isMobile ? '1.2rem' : '1.4rem', fontWeight: '800', margin: 0 }}>Pending Hire Requests</h2>
+        <div style={{ flex: 1, height: '1px', background: '#f0f0f0', minWidth: '40px' }}></div>
       </div>
 
       <div style={styles.requestList}>
         {bookings.filter(b => b.status === 'pending').map(job => (
-          <div key={job.id} style={{ ...styles.requestCard, flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', gap: isMobile ? '20px' : '0' }}>
+          <div key={job.id} style={{ ...styles.requestCard, flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', gap: isMobile ? '16px' : '0' }}>
             <div style={{ flex: 1, width: '100%' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
                   <span style={styles.categoryBadge}>{job.category}</span>
-                  <h4 style={{ margin: 0, fontWeight: '900', fontSize: '1.15rem', wordBreak: 'break-word' }}>{job.event_name}</h4>
+                  <h4 style={{ margin: 0, fontWeight: '900', fontSize: '1rem', wordBreak: 'break-word' }}>{job.event_name}</h4>
               </div>
-              <p style={{ fontSize: '0.9rem', color: '#555', margin: 0, fontWeight: '500', wordBreak: 'break-word' }}>📍 {job.location} | ₱{parseFloat(job.budget || 0).toLocaleString()}</p>
+              <p style={{ fontSize: '0.85rem', color: '#555', margin: 0, fontWeight: '500', wordBreak: 'break-word' }}>📍 {job.location} | ₱{parseFloat(job.budget || 0).toLocaleString()}</p>
             </div>
-            <div style={{ display: 'flex', gap: '10px', width: isMobile ? '100%' : 'auto' }}>
-              <button onClick={() => handleStatus(job.id, 'accepted')} style={{ ...styles.acceptBtn, flex: isMobile ? 1 : 'unset', justifyContent: 'center' }}><Check size={18}/> Accept</button>
-              <button onClick={() => handleStatus(job.id, 'rejected')} style={{ ...styles.rejectBtn, flex: isMobile ? 'unset' : 'unset', justifyContent: 'center' }}><X size={18}/></button>
+            <div style={{ display: 'flex', gap: '8px', width: isMobile ? '100%' : 'auto' }}>
+              <button onClick={() => handleStatus(job.id, 'accepted')} style={{ ...styles.acceptBtn, flex: isMobile ? 1 : 'unset', justifyContent: 'center' }}><Check size={16}/> Accept</button>
+              <button onClick={() => handleStatus(job.id, 'rejected')} style={{ ...styles.rejectBtn, flex: isMobile ? 1 : 'unset', justifyContent: 'center' }}><X size={16}/> Reject</button>
             </div>
           </div>
         ))}
@@ -322,17 +312,17 @@ const VendorDashboard = () => {
 };
 
 const styles = {
-  statBox: { flex: 1, background: '#fff', padding: '24px', borderRadius: '28px', display: 'flex', alignItems: 'center', gap: '20px', border: '1px solid #f0f0f0', boxShadow: '0 15px 35px rgba(0,0,0,0.03)' },
-  mainCard: { background: '#fff', padding: '24px', borderRadius: '32px', border: '1px solid #f0f0f0', boxShadow: '0 20px 40px rgba(0,0,0,0.03)' },
-  statLabel: { margin: 0, color: '#888', fontSize: '0.75rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '1px' },
-  statValue: { margin: 0, fontSize: '1.8rem', fontWeight: '900', color: '#1a1a1a' },
-  requestCard: { background: '#fff', padding: '24px', borderRadius: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', border: '1px solid #f0f0f0', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' },
-  categoryBadge: { background: '#f0f0f0', color: '#000', padding: '6px 12px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: '800', textTransform: 'uppercase' },
-  acceptBtn: { background: '#000', color: '#fff', border: 'none', padding: '12px 20px', borderRadius: '14px', fontWeight: '800', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem' },
-  rejectBtn: { background: '#fff', color: '#ff4d4d', border: '1px solid #fee2e2', padding: '12px 16px', borderRadius: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  notifBtn: { background: '#fff', border: '2px solid #f0f0f0', padding: '12px 18px', borderRadius: '14px', fontWeight: '800', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem' },
-  manageBtn: { background: '#1a1a1a', color: '#fff', border: 'none', padding: '12px 18px', borderRadius: '14px', fontWeight: '800', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem' },
-  eventItem: { padding: '16px', background: '#fcfcfc', borderRadius: '20px', borderLeft: '5px solid #000', marginBottom: '15px' }
+  statBox: { flex: 1, background: '#fff', padding: '18px 20px', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '16px', border: '1px solid #f0f0f0', boxShadow: '0 10px 25px rgba(0,0,0,0.02)' },
+  mainCard: { background: '#fff', padding: '20px', borderRadius: '24px', border: '1px solid #f0f0f0', boxShadow: '0 15px 30px rgba(0,0,0,0.02)', boxSizing: 'border-box' },
+  statLabel: { margin: 0, color: '#888', fontSize: '0.7rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.5px' },
+  statValue: { margin: 0, fontWeight: '900', color: '#1a1a1a' },
+  requestCard: { background: '#fff', padding: '18px 20px', borderRadius: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', border: '1px solid #f0f0f0', boxShadow: '0 4px 15px rgba(0,0,0,0.02)', boxSizing: 'border-box', width: '100%' },
+  categoryBadge: { background: '#f0f0f0', color: '#000', padding: '4px 10px', borderRadius: '8px', fontSize: '0.65rem', fontWeight: '800', textTransform: 'uppercase' },
+  acceptBtn: { background: '#000', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '12px', fontWeight: '800', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem' },
+  rejectBtn: { background: '#fff', color: '#ff4d4d', border: '1px solid #fee2e2', padding: '10px 14px', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontWeight: '800', fontSize: '0.8rem' },
+  notifBtn: { background: '#fff', border: '2px solid #f0f0f0', padding: '10px 14px', borderRadius: '12px', fontWeight: '800', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem' },
+  manageBtn: { background: '#1a1a1a', color: '#fff', border: 'none', padding: '10px 14px', borderRadius: '12px', fontWeight: '800', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem' },
+  eventItem: { padding: '14px', background: '#fcfcfc', borderRadius: '16px', borderLeft: '4px solid #000', marginBottom: '12px', boxSizing: 'border-box' }
 };
 
 export default VendorDashboard;

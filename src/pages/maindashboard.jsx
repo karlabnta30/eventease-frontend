@@ -10,20 +10,26 @@ const MainDashboard = () => {
   const navigate = useNavigate();
   const userRole = localStorage.getItem('userRole');
   
-  // Kunin ang pangalan ng user mula sa localStorage (kung naka-save o kung may auth user state)
   const clientName = localStorage.getItem('userName') || 'Valued Client';
   
   const [services, setServices] = useState([]); 
   const [myBookings, setMyBookings] = useState([]); 
   const [searchTerm, setSearchTerm] = useState('');
-  
   const [activeCategory, setActiveCategory] = useState('All');
 
   const [architectItems, setArchitectItems] = useState([]);
   const [bundleName, setBundleName] = useState('My Custom Event Blueprint');
   const [isSavingBundle, setIsSavingBundle] = useState(false);
-
   const [bookingToCancel, setBookingToCancel] = useState(null);
+
+  // --- MOBILE RESPONSIVENESS STATE ---
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const fetchData = async () => {
     try {
@@ -262,10 +268,10 @@ const MainDashboard = () => {
 
   const cardStyle = { 
     backgroundColor: '#ffffff', 
-    padding: '24px', 
+    padding: isMobile ? '16px' : '24px', 
     borderRadius: '20px', 
     border: '1px solid #e2e8f0', 
-    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.01)'
+    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.02)'
   };
 
   const inputStyle = { 
@@ -282,81 +288,79 @@ const MainDashboard = () => {
 
   return (
     <div className="main-dashboard-container" style={{ backgroundColor: '#f8fafc', minHeight: '100vh', fontFamily: "'Inter', sans-serif" }}>
-      <div className="dashboard-wrapper" style={{ paddingTop: '24px', maxWidth: '1400px', margin: '0 auto', paddingLeft: '24px', paddingRight: '24px' }}>
+      <div className="dashboard-wrapper" style={{ paddingTop: '24px', maxWidth: '1400px', margin: '0 auto', paddingLeft: isMobile ? '12px' : '24px', paddingRight: isMobile ? '12px' : '24px', paddingBottom: '60px' }}>
 
-        {/* --- DYNAMIC CLIENT HEADER & CONDITIONAL EVENT STATUS --- */}
+        {/* --- DYNAMIC CLIENT HEADER --- */}
         {userRole !== 'vendor' && (
           <div style={{ marginBottom: '28px' }}>
-            <div style={{ background: '#ffffff', borderRadius: '20px', padding: '24px 28px', border: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+            <div style={{ background: '#ffffff', borderRadius: '20px', padding: isMobile ? '18px' : '24px 28px', border: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', flexWrap: 'wrap', gap: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                  <span style={{ background: '#f1f5f9', color: '#334155', fontSize: '0.7rem', fontWeight: '800', padding: '4px 10px', borderRadius: '6px', textTransform: 'uppercase', letterSpacing: '0.05em', border: '1px solid #e2e8f0' }}>
+                  <span style={{ background: '#f1f5f9', color: '#334155', fontSize: '0.7rem', fontWeight: '800', padding: '4px 10px', borderRadius: '6px', textTransform: 'uppercase', border: '1px solid #e2e8f0' }}>
                     Client Portal
                   </span>
-                  <span style={{ color: '#64748b', fontSize: '0.85rem', fontWeight: '500' }}>• Event Management</span>
+                  <span style={{ color: '#64748b', fontSize: '0.85rem', fontWeight: '500' }}>Event Management</span>
                 </div>
-                <h1 style={{ fontSize: '1.5rem', fontWeight: '800', margin: '0 0 4px 0', color: '#0f172a', letterSpacing: '-0.01em' }}>
+                <h1 style={{ fontSize: isMobile ? '1.3rem' : '1.5rem', fontWeight: '800', margin: '0 0 4px 0', color: '#0f172a', letterSpacing: '-0.01em', wordBreak: 'break-word' }}>
                   Welcome back, {clientName}! 👋
                 </h1>
-                <p style={{ color: '#64748b', fontSize: '0.9rem', margin: 0, fontWeight: '400' }}>
+                <p style={{ color: '#64748b', fontSize: '0.85rem', margin: 0, fontWeight: '400' }}>
                   Here is the current overview of your upcoming event preparations and service bookings.
                 </p>
               </div>
-              <div style={{ display: 'flex', gap: '16px', background: '#f8fafc', padding: '14px 20px', borderRadius: '14px', border: '1px solid #e2e8f0' }}>
+              <div style={{ display: 'flex', gap: '16px', background: '#f8fafc', padding: '12px 16px', borderRadius: '14px', border: '1px solid #e2e8f0', width: isMobile ? '100%' : 'auto', justifyContent: 'space-around' }}>
                 <div style={{ textAlign: 'left' }}>
-                  <div style={{ fontSize: '1.1rem', fontWeight: '800', color: '#0f172a' }}>
+                  <div style={{ fontSize: '1rem', fontWeight: '800', color: '#0f172a' }}>
                     {myBookings.length > 0 ? 'Active Phase' : 'No Events'}
                   </div>
-                  <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: '600' }}>
-                    {myBookings.length > 0 ? 'Status: Preparation' : 'Status: Ready to Plan'}
+                  <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: '600' }}>
+                    {myBookings.length > 0 ? 'Status: Prep' : 'Status: Ready'}
                   </div>
                 </div>
                 <div style={{ width: '1px', background: '#cbd5e1' }} />
                 <div style={{ textAlign: 'left' }}>
-                  <div style={{ fontSize: '1.1rem', fontWeight: '800', color: myBookings.length > 0 ? '#0284c7' : '#94a3b8' }}>
+                  <div style={{ fontSize: '1rem', fontWeight: '800', color: myBookings.length > 0 ? '#0284c7' : '#94a3b8' }}>
                     {myBookings.length > 0 ? `${myBookings.length} Booked` : 'No Events'}
                   </div>
-                  <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: '600' }}>Suppliers Confirmed</div>
+                  <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: '600' }}>Suppliers</div>
                 </div>
               </div>
             </div>
 
             {/* Metrics Row */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginTop: '16px' }}>
-              <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', padding: '16px 20px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', marginTop: '16px' }}>
+              <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', padding: '14px 18px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '14px' }}>
                 <div style={{ background: '#f0f9ff', color: '#0284c7', padding: '10px', borderRadius: '12px', display: 'flex' }}>
                   <Building size={20} />
                 </div>
                 <div>
                   <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: '700', textTransform: 'uppercase' }}>Booked Vendors</div>
-                  <div style={{ fontSize: '1.1rem', fontWeight: '800', color: '#0f172a' }}>
-                    {myBookings.length > 0 ? `${myBookings.length} Active` : 'No Events'}
-                  </div>
+                  <div style={{ fontSize: '1rem', fontWeight: '800', color: '#0f172a' }}>{myBookings.length > 0 ? `${myBookings.length} Active` : 'No Events'}</div>
                 </div>
               </div>
-              <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', padding: '16px 20px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '14px' }}>
+              <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', padding: '14px 18px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '14px' }}>
                 <div style={{ background: '#f0fdf4', color: '#16a34a', padding: '10px', borderRadius: '12px', display: 'flex' }}>
                   <CheckSquare size={20} />
                 </div>
                 <div>
                   <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: '700', textTransform: 'uppercase' }}>Blueprint Items</div>
-                  <div style={{ fontSize: '1.1rem', fontWeight: '800', color: '#0f172a' }}>{architectItems.length} Services</div>
+                  <div style={{ fontSize: '1rem', fontWeight: '800', color: '#0f172a' }}>{architectItems.length} Services</div>
                 </div>
               </div>
-              <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', padding: '16px 20px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '14px' }}>
+              <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', padding: '14px 18px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '14px' }}>
                 <div style={{ background: '#fffbeb', color: '#d97706', padding: '10px', borderRadius: '12px', display: 'flex' }}>
                   <Clock size={20} />
                 </div>
                 <div>
-                  <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: '700', textTransform: 'uppercase' }}>System Connectivity</div>
-                  <div style={{ fontSize: '1.1rem', fontWeight: '800', color: '#0f172a' }}>Online & Synced</div>
+                  <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: '700', textTransform: 'uppercase' }}>Connectivity</div>
+                  <div style={{ fontSize: '1rem', fontWeight: '800', color: '#0f172a' }}>Online & Synced</div>
                 </div>
               </div>
             </div>
           </div>
         )}
 
-        <div className="dashboard-header-container" style={{ marginTop: '0', paddingTop: '0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <div className="dashboard-header-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
           <div>
             <h1 className="dashboard-main-title" style={{ fontSize: '1.25rem', fontWeight: '800', color: '#0f172a', margin: 0 }}>
               {userRole === 'vendor' ? 'Manage Business & Services' : 'Service Catalog & Bundle Architect'}
@@ -367,7 +371,7 @@ const MainDashboard = () => {
           </div>
           
           {userRole !== 'admin' && (
-            <button onClick={() => navigate('/create-event')} className="new-event-btn" style={{ background: '#0f172a', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '10px', fontWeight: '700', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+            <button onClick={() => navigate('/create-event')} className="new-event-btn" style={{ background: '#0f172a', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '10px', fontWeight: '700', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', width: isMobile ? '100%' : 'auto', justifyContent: 'center' }}>
               <Plus size={16} /> New Event Plan
             </button>
           )}
@@ -391,14 +395,15 @@ const MainDashboard = () => {
           </div>
         )}
 
-        <div className="dashboard-content-grid" style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: '24px', alignItems: 'start' }}>
+        {/* --- MAIN GRID (STACKS ON MOBILE) --- */}
+        <div className="dashboard-content-grid" style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '320px 1fr', gap: '20px', alignItems: 'start' }}>
           
           <aside className="dashboard-sidebar" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             
             {/* --- BUNDLE ARCHITECT CANVAS --- */}
             <div style={{ ...cardStyle, border: '1px solid #cbd5e1', background: '#ffffff' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                <h4 style={{ margin: 0, fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px', color: '#0f172a', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+                <h4 style={{ margin: 0, fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px', color: '#0f172a', fontSize: '0.85rem', textTransform: 'uppercase' }}>
                   <ShoppingBag size={16} /> Bundle Architect
                 </h4>
                 <span style={{ background: '#0f172a', color: '#fff', fontSize: '0.7rem', fontWeight: '800', padding: '2px 8px', borderRadius: '999px' }}>
@@ -428,9 +433,7 @@ const MainDashboard = () => {
                   </div>
                 )) : (
                   <div style={{ background: '#f8fafc', border: '1px dashed #cbd5e1', padding: '16px', borderRadius: '12px', textAlign: 'center' }}>
-                    <p style={{ fontSize: '0.75rem', color: '#64748b', fontStyle: 'italic', margin: 0 }}>
-                      Blueprint is empty. Add services from the catalog.
-                    </p>
+                    <p style={{ fontSize: '0.75rem', color: '#64748b', fontStyle: 'italic', margin: 0 }}>Blueprint is empty. Add services from the catalog.</p>
                   </div>
                 )}
               </div>
@@ -471,8 +474,8 @@ const MainDashboard = () => {
                 {myBookings.length > 0 ? myBookings.map((booking) => (
                   <div key={booking.id} style={{ backgroundColor: '#f8fafc', padding: '12px', borderRadius: '12px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <span style={{ fontWeight: '800', color: '#0f172a', fontSize: '0.85rem' }}>{booking.event_name}</span>
-                      <span style={{ background: '#dcfce7', color: '#16a34a', fontSize: '0.65rem', fontWeight: '700', padding: '2px 6px', borderRadius: '4px' }}>Confirmed</span>
+                      <span style={{ fontWeight: '800', color: '#0f172a', fontSize: '0.85rem', wordBreak: 'break-word' }}>{booking.event_name}</span>
+                      <span style={{ background: '#dcfce7', color: '#16a34a', fontSize: '0.65rem', fontWeight: '700', padding: '2px 6px', borderRadius: '4px', flexShrink: 0 }}>Confirmed</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.75rem', color: '#64748b' }}>
                       <span>📅 {booking.event_date}</span>
@@ -500,7 +503,7 @@ const MainDashboard = () => {
               <input 
                 type="text" 
                 placeholder="Search catalog by service name, vendor, category, or location..." 
-                style={{ width: '100%', padding: '14px 18px', borderRadius: '12px', border: '1px solid #cbd5e1', backgroundColor: '#fff', outline: 'none', fontSize: '0.9rem', fontWeight: '500', boxSizing: 'border-box', boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }} 
+                style={{ width: '100%', padding: '14px 18px', borderRadius: '12px', border: '1px solid #cbd5e1', backgroundColor: '#fff', outline: 'none', fontSize: '0.9rem', fontWeight: '500', boxSizing: 'border-box' }} 
                 value={searchTerm} 
                 onChange={(e) => setSearchTerm(e.target.value)} 
               />
@@ -514,7 +517,7 @@ const MainDashboard = () => {
                   className={`dashboard-tab-btn ${activeCategory === category ? 'active' : ''}`}
                   style={{ whiteSpace: 'nowrap', padding: '8px 14px', borderRadius: '8px', fontSize: '0.8rem', fontWeight: '600', border: '1px solid #cbd5e1', background: activeCategory === category ? '#0f172a' : '#fff', color: activeCategory === category ? '#fff' : '#334155', cursor: 'pointer' }}
                 >
-                  <Tag size={13} style={{ display: 'inline', marginRight: '4px' }} /> {category} {category === 'All' ? `(${services.length})` : `(${services.filter(s => s.category?.toLowerCase() === category.toLowerCase()).length})`}
+                  <Tag size={13} style={{ display: 'inline', marginRight: '4px' }} /> {category}
                 </button>
               ))}
             </div>
@@ -529,7 +532,7 @@ const MainDashboard = () => {
             </div>
             
             {filteredServices.length > 0 ? (
-              <div className="dashboard-services-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '16px' }}>
+              <div className="dashboard-services-grid" style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(260px, 1fr))', gap: '16px' }}>
                 {filteredServices.map(s => {
                   const isAlreadyAdded = architectItems.some(item => item.id === s.id);
 
@@ -593,7 +596,7 @@ const MainDashboard = () => {
 };
 
 const styles = {
-  modalOverlay: { position: 'fixed', inset: 0, backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, backdropFilter: 'blur(4px)' },
+  modalOverlay: { position: 'fixed', inset: 0, backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, backdropFilter: 'blur(4px)', padding: '16px' },
   modalCard: { backgroundColor: '#fff', padding: '28px', borderRadius: '20px', width: '100%', maxWidth: '380px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', border: '1px solid #e2e8f0' },
   modalCancelBtn: { flex: 1, backgroundColor: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', padding: '10px', borderRadius: '10px', fontWeight: '700', cursor: 'pointer', fontSize: '0.85rem' },
   modalConfirmBtn: { flex: 1, backgroundColor: '#ef4444', color: '#fff', border: 'none', padding: '10px', borderRadius: '10px', fontWeight: '700', cursor: 'pointer', fontSize: '0.85rem' }
