@@ -100,7 +100,6 @@ const LiveEvents = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Optimized parallel fetching for faster load time
   useEffect(() => {
     const userRole = localStorage.getItem('userRole'); 
     if (userRole === 'vendor') { navigate('/vendor-dashboard'); return; }
@@ -118,8 +117,7 @@ const LiveEvents = () => {
 
         const rawBookings = bookingsRes.data.data || (Array.isArray(bookingsRes.data) ? bookingsRes.data : []);
         
-        // INAYOS NA FILTER: Ipakita ang lahat ng bookings na pagmamay-ari ng user o may event_name para hindi mawala ang mga ito
-        const assignedBookings = rawBookings.filter(item => item.event_name || item.vendor_id || item.vendor || item.service_id);
+        const assignedBookings = rawBookings.filter(item => item.event_name || item.vendor_id || item.vendor || item.service_id || item.services);
         setBookings(assignedBookings);
       } catch (err) { 
         console.error(err); 
@@ -313,6 +311,14 @@ const LiveEvents = () => {
               const isPaid = item.payment_status && item.payment_status.toLowerCase() === 'paid';
               const payableAmount = item.service_price || item.price || item.total_price || item.budget || 0;
 
+              // Kukunin ang pangalan ng vendor o service mula sa iba't ibang posibleng database relation structures
+              const assignedVendorName = 
+                (item.services && item.services.length > 0) 
+                  ? item.services.map(s => s.business_name || s.name).join(', ')
+                  : (item.vendors && item.vendors.length > 0)
+                  ? item.vendors.map(v => v.business_name || v.name).join(', ')
+                  : (item.vendor?.business_name || item.vendor?.name || item.vendor_name || null);
+
               return (
               <div key={item.id} style={styles.card}>
                 
@@ -336,8 +342,13 @@ const LiveEvents = () => {
                       {item.status === 'accepted' ? 'VENDOR CONFIRMED' : (item.category || 'Event')}
                   </span>
                   
-                  <h3 style={{ fontSize: '1.2rem', fontWeight: '900', marginBottom: '14px', color: '#000', letterSpacing: '-0.5px', wordBreak: 'break-word' }}>{item.event_name}</h3>
+                  <h3 style={{ fontSize: '1.2rem', fontWeight: '900', marginBottom: '8px', color: '#000', letterSpacing: '-0.5px', wordBreak: 'break-word' }}>{item.event_name}</h3>
                   
+                  {/* DITO IPINAPALABAS ANG NAKA-ASSIGN NA VENDOR O SERVICE */}
+                  <div style={{ fontSize: '0.85rem', fontWeight: '800', color: assignedVendorName ? '#16a34a' : '#94a3b8', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span>{assignedVendorName ? `Hired: ${assignedVendorName}` : 'No Vendor Assigned'}</span>
+                  </div>
+
                   <div style={styles.infoRow}>
                     <MapPin size={16} color="#000" style={{ flexShrink: 0 }} />
                     <span style={{ fontWeight: '600' }}>{item.location || 'Venue TBD'}</span>
