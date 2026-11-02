@@ -60,12 +60,22 @@ function Navbar() {
 
   const hasToken = !!localStorage.getItem('token');
 
+  // Kunin lang ang unang pangalan kung nasa mobile para hindi humaba
+  const getDisplayName = () => {
+    if (!userName) return 'Account';
+    if (isMobile) {
+      const firstName = userName.split(' ')[0];
+      return firstName; // Halimbawa: "Karl" na lang sa halip na "Karl Steven Abonita"
+    }
+    return `Hi, ${userName}`;
+  };
+
   const dynamicStyles = {
     nav: {
       display: 'flex', 
       justifyContent: 'space-between', 
       alignItems: 'center',
-      padding: isMobile ? '14px 20px' : '18px 60px', 
+      padding: isMobile ? '12px 16px' : '18px 60px', 
       background: '#ffffff', 
       borderBottom: '1px solid #e2e8f0',
       position: 'sticky',
@@ -75,7 +85,7 @@ function Navbar() {
     },
     logo: { 
       margin: 0, 
-      fontSize: isMobile ? '1.1rem' : '1.4rem', 
+      fontSize: isMobile ? '1rem' : '1.4rem', 
       fontWeight: '900', 
       letterSpacing: '-1px', 
       textTransform: 'uppercase',
@@ -84,7 +94,7 @@ function Navbar() {
     navLinksGroup: {
       display: 'flex',
       alignItems: 'center',
-      gap: isMobile ? '12px' : '24px',
+      gap: isMobile ? '10px' : '24px',
     },
     navLinkItem: {
       color: '#334155',
@@ -100,10 +110,10 @@ function Navbar() {
     createBtn: {
       backgroundColor: '#000000', 
       color: '#ffffff', 
-      padding: isMobile ? '8px 16px' : '11px 24px',
-      borderRadius: '12px', 
+      padding: isMobile ? '8px 14px' : '11px 24px',
+      borderRadius: '10px', 
       textDecoration: 'none', 
-      fontSize: isMobile ? '0.75rem' : '0.85rem', 
+      fontSize: isMobile ? '0.7rem' : '0.85rem', 
       fontWeight: '900',
       boxShadow: '0 4px 15px rgba(0, 0, 0, 0.15)',
       whiteSpace: 'nowrap'
@@ -116,28 +126,31 @@ function Navbar() {
     profileBtn: {
       backgroundColor: '#f8fafc',
       color: '#0f172a',
-      padding: '8px 14px',
-      borderRadius: '12px',
+      padding: isMobile ? '6px 10px' : '8px 14px',
+      borderRadius: '10px',
       border: '1px solid #e2e8f0',
-      fontSize: '0.85rem',
+      fontSize: isMobile ? '0.78rem' : '0.85rem',
       fontWeight: '700',
       cursor: 'pointer',
       display: 'flex',
       alignItems: 'center',
-      gap: '10px',
-      boxShadow: '0 2px 5px rgba(0,0,0,0.02)'
+      gap: isMobile ? '6px' : '10px',
+      boxShadow: '0 2px 5px rgba(0,0,0,0.02)',
+      maxWidth: isMobile ? '140px' : 'none',
+      overflow: 'hidden'
     },
     avatarCircle: {
-      width: '28px',
-      height: '28px',
+      width: isMobile ? '24px' : '28px',
+      height: isMobile ? '24px' : '28px',
       borderRadius: '50%',
       backgroundColor: '#10b981',
       color: '#ffffff',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      fontSize: '0.8rem',
-      fontWeight: 'bold'
+      fontSize: isMobile ? '0.7rem' : '0.8rem',
+      fontWeight: 'bold',
+      flexShrink: 0
     },
     dropdownMenu: {
       position: 'absolute',
@@ -172,13 +185,12 @@ function Navbar() {
 
   return (
     <nav style={dynamicStyles.nav}>
-      <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <div style={{ width: '8px', height: '8px', backgroundColor: '#10b981', borderRadius: '50%' }}></div>
+      <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <div style={{ width: '7px', height: '7px', backgroundColor: '#10b981', borderRadius: '50%' }}></div>
         <h2 style={dynamicStyles.logo}>EventEase</h2>
       </Link>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '12px' : '20px' }}>
-        {/* PUBLIC NAVBAR LINKS (About & Help) */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '20px' }}>
         {!isMobile && (
           <div style={dynamicStyles.navLinksGroup}>
             <Link to="/about" style={dynamicStyles.navLinkItem}>
@@ -199,8 +211,10 @@ function Navbar() {
               <div style={dynamicStyles.avatarCircle}>
                 {userName ? userName.charAt(0).toUpperCase() : <User size={14} />}
               </div>
-              <span>{userName ? `Hi, ${userName}` : 'Account'}</span>
-              <ChevronDown size={14} />
+              <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {getDisplayName()}
+              </span>
+              <ChevronDown size={12} style={{ flexShrink: 0 }} />
             </button>
 
             {dropdownOpen && (
@@ -229,7 +243,7 @@ function Navbar() {
           </div>
         ) : (
           <Link to="/login" style={dynamicStyles.createBtn}>
-            Sign In / Register
+            Sign In
           </Link>
         )}
       </div>
