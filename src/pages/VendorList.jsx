@@ -68,6 +68,9 @@ const VendorList = () => {
     const [aiOptimizationSummary, setAiOptimizationSummary] = useState(null);
 
     const [isCartModalOpen, setIsCartModalOpen] = useState(false);
+    
+    // --- STATE PARA SA CUSTOM DELETE MODAL ---
+    const [serviceToDelete, setServiceToDelete] = useState(null);
 
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -114,9 +117,7 @@ const VendorList = () => {
         localStorage.setItem('eventease_pending_cart', JSON.stringify(selectedServices));
     }, [selectedServices]);
 
-    // --- NAPAKABILIS NA TOGGLE: Instant UI Update (Optimistic Update) ---
     const handleToggleStatus = async (id) => {
-        // Agarang i-update ang local state para maging instant ang pag-flip ng button sa screen
         setVendors(prevVendors => 
             prevVendors.map(vendor => 
                 vendor.id === id ? { ...vendor, is_available: vendor.is_available ? 0 : 1 } : vendor
@@ -124,22 +125,26 @@ const VendorList = () => {
         );
 
         try {
-            // Isasagawa ang backend request sa background nang walang loading state sa UI
             await api.post(`/vendors/toggle/${id}`);
         } catch (error) { 
             console.error("Toggle failed", error);
-            // Kung sakaling magka-error sa server, i-revert sa dati o i-refetch
             fetchVendors();
             toast.error("Nabigo ang pag-update ng status.");
         }
     };
 
-    const handleDeleteService = async (id) => {
-        if (!window.confirm("Are you sure you want to permanently delete this service?")) return;
+    // --- MGA FUNCTIONS PARA SA CUSTOM DELETE MODAL ---
+    const handleDeleteService = (vendor) => {
+        setServiceToDelete(vendor);
+    };
+
+    const confirmDeleteService = async () => {
+        if (!serviceToDelete) return;
 
         try {
-            await api.delete(`/vendors/${id}`);
+            await api.delete(`/vendors/${serviceToDelete.id}`);
             toast.success("Service deleted successfully.");
+            setServiceToDelete(null);
             fetchVendors();
         } catch (error) {
             console.error("Delete failed:", error);
@@ -417,7 +422,7 @@ const VendorList = () => {
                                                         {vendor.is_available ? 'ONLINE' : 'OFFLINE'}
                                                     </button>
 
-                                                    <button onClick={() => handleDeleteService(vendor.id)} style={{
+                                                    <button onClick={() => handleDeleteService(vendor)} style={{
                                                         background: '#fee2e2',
                                                         color: '#991b1b',
                                                         padding: '12px 14px', borderRadius: '12px', border: 'none', fontWeight: '800', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
@@ -593,6 +598,58 @@ const VendorList = () => {
                                 }}
                             >
                                 CONFIRM & BOOK SERVICES
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* --- CUSTOM DELETE CONFIRMATION MODAL --- */}
+            {serviceToDelete && (
+                <div style={{
+                    position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)',
+                    display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1200, padding: '16px'
+                }}>
+                    <div style={{
+                        background: '#ffffff', borderRadius: '24px', width: '100%', maxWidth: '400px',
+                        padding: '24px', textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)'
+                    }}>
+                        <div style={{ 
+                            width: '50px', height: '50px', background: '#fee2e2', color: '#991b1b', 
+                            borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                            margin: '0 auto 16px auto' 
+                        }}>
+                            <Trash2 size={24} />
+                        </div>
+                        
+                        <h3 style={{ margin: '0 0 8px 0', fontWeight: '900', fontSize: '1.2rem', color: '#0f172a' }}>
+                            Delete Service?
+                        </h3>
+                        
+                        <p style={{ margin: '0 0 24px 0', fontSize: '0.88rem', color: '#64748b', fontWeight: '600', lineHeight: '1.4' }}>
+                            Are you sure you want to permanently delete <strong style={{ color: '#0f172a' }}>{serviceToDelete.business_name || serviceToDelete.name}</strong>? This action cannot be undone.
+                        </p>
+
+                        <div style={{ display: 'flex', gap: '10px' }}>
+                            <button
+                                onClick={() => setServiceToDelete(null)}
+                                style={{
+                                    flex: 1, background: '#f1f5f9', color: '#0f172a', border: 'none',
+                                    padding: '12px', borderRadius: '12px', fontWeight: '800', cursor: 'pointer',
+                                    fontSize: '0.85rem'
+                                }}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={confirmDeleteService}
+                                style={{
+                                    flex: 1, background: '#ef4444', color: '#fff', border: 'none',
+                                    padding: '12px', borderRadius: '12px', fontWeight: '800', cursor: 'pointer',
+                                    fontSize: '0.85rem'
+                                }}
+                            >
+                                Yes, Delete
                             </button>
                         </div>
                     </div>
