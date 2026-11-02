@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import api from '../api';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { MapPin, Lock, AlertCircle, Power, Star, Check, Plus, Trash2, ShieldAlert, ChevronRight, ArrowLeft, Sparkles, Sliders, ShoppingBag, X } from 'lucide-react';
+import { MapPin, Lock, AlertCircle, Power, Star, Check, Plus, Trash2, ShieldAlert, ChevronRight, ArrowLeft, Sparkles, Sliders, ShoppingBag, X, Info } from 'lucide-react';
 import { notifyNewBooking } from '../toastUtils.jsx';
 import { toast } from 'react-hot-toast';
 
@@ -10,7 +10,7 @@ const StarRating = ({ rating = 5.0, totalReviews = 12 }) => {
     const roundedStars = Math.round(numericRating);
 
     return (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '3px', margin: '8px 0 14px 0' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '3px', margin: '6px 0 10px 0' }}>
             {[...Array(5)].map((_, i) => (
                 <Star
                     key={i}
@@ -67,7 +67,6 @@ const VendorList = () => {
     const [isAiOptimizing, setIsAiOptimizing] = useState(false);
     const [aiOptimizationSummary, setAiOptimizationSummary] = useState(null);
 
-    // --- STATE PARA SA CART MODAL (FOODPANDA STYLE) ---
     const [isCartModalOpen, setIsCartModalOpen] = useState(false);
 
     useEffect(() => {
@@ -137,17 +136,11 @@ const VendorList = () => {
         }
     };
 
+    // --- TAMA NA ANG PRESYO: Direktang kukunin ang base price ng vendor nang walang multiplies ---
     const calculateDynamicPrice = (vendor) => {
         if (!vendor) return 0;
-        const raw = vendor.starting_price || vendor.price || 0;
+        const raw = vendor.starting_price || vendor.price || vendor.cost || 0;
         const basePrice = typeof raw === 'string' ? parseFloat(raw.replace(/[^0-9.]/g,"")) || 0 : parseFloat(raw) || 0;
-        
-        const cat = (vendor.category || '').toLowerCase();
-        const name = (vendor.business_name || vendor.name || '').toLowerCase();
-
-        if (cat.includes('catering') || name.includes('catering')) {
-            return basePrice * guestCount; 
-        }
         return basePrice;
     };
 
@@ -220,12 +213,11 @@ const VendorList = () => {
 
     const totalSelectedCost = useMemo(() => {
         return selectedServices.reduce((sum, item) => sum + calculateDynamicPrice(item), 0);
-    }, [selectedServices, guestCount]);
+    }, [selectedServices]);
 
     const isCartOverBudget = userBudget > 0 && totalSelectedCost > userBudget;
 
     const handleMultiServiceCheckout = async () => {
-        // --- VALIDATION: Siguraduhing may laman ang cart bago payagang mag-book ---
         if (selectedServices.length === 0) {
             toast.error("Walang napiling vendor o service sa iyong cart! Mangyaring pumili muna ng kahit isang serbisyo.");
             return;
@@ -313,67 +305,6 @@ const VendorList = () => {
                 )}
             </div>
 
-            {userRole !== 'vendor' && !activeCategoryView && (
-                <div style={{ 
-                    background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)', 
-                    border: '1px solid #bbf7d0', 
-                    borderRadius: '20px', 
-                    padding: '20px 24px', 
-                    marginTop: '24px',
-                    display: 'flex',
-                    flexDirection: isMobile ? 'column' : 'row',
-                    justifyContent: 'space-between',
-                    alignItems: isMobile ? 'flex-start' : 'center',
-                    gap: '16px',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.02)'
-                }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                        <div style={{ background: '#10b981', color: '#fff', padding: '12px', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <Sparkles size={22} />
-                        </div>
-                        <div>
-                            <h4 style={{ margin: '0 0 4px 0', fontWeight: '900', color: '#065f46', fontSize: '1rem' }}>AI Budget Optimizer Active</h4>
-                            <p style={{ margin: 0, fontSize: '0.85rem', color: '#047857', fontWeight: '600' }}>
-                                {userBudget > 0 
-                                    ? `Nakakonekta sa iyong target budget na ₱${userBudget.toLocaleString()} (${guestCount} pax). Pindutin ang button para awtomatikong i-maximize ng AI ang mga magkakasya sa cart mo.`
-                                    : `Walang limitasyong itinakda. Malayang pumili ng mga serbisyo sa ibaba.`}
-                            </p>
-                        </div>
-                    </div>
-
-                    {userBudget > 0 && (
-                        <button
-                            onClick={handleRunAiSmartAllocation}
-                            disabled={isAiOptimizing}
-                            style={{
-                                background: '#000',
-                                color: '#fff',
-                                border: 'none',
-                                padding: '12px 20px',
-                                borderRadius: '14px',
-                                fontWeight: '900',
-                                fontSize: '0.85rem',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '8px',
-                                width: isMobile ? '100%' : 'auto',
-                                flexShrink: 0
-                            }}
-                        >
-                            {isAiOptimizing ? 'OPTIMIZING...' : <><Sliders size={16} /> RUN AI SMART FIT</>}
-                        </button>
-                    )}
-                </div>
-            )}
-
-            {aiOptimizationSummary && (
-                <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', padding: '14px 20px', borderRadius: '14px', marginTop: '16px', fontSize: '0.85rem', color: '#1e40af', fontWeight: '700' }}>
-                    ✨ {aiOptimizationSummary}
-                </div>
-            )}
-
             {!activeCategoryView ? (
                 <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px', marginTop: '30px' }}>
                     {categories.map(cat => (
@@ -408,41 +339,60 @@ const VendorList = () => {
                         const isDisabled = (isTooExpensive || isOffline) && userRole !== 'vendor';
                         const isSelected = selectedServices.some(s => s.id === vendor.id);
 
+                        // Kukunin ang detalyadong info / description / inclusions mula sa service data
+                        const serviceDescription = vendor.description || vendor.details || vendor.inclusions || vendor.notes || "No additional description provided by the vendor.";
+
                         return (
                             <div key={vendor.id} style={{
                                 background: '#fff', borderRadius: '28px', overflow: 'hidden', 
                                 border: isSelected ? '2px solid #000' : '1px solid #f0f0f0', 
                                 position: 'relative', opacity: isDisabled ? 0.7 : 1, 
-                                boxShadow: isSelected ? '0 15px 30px rgba(0,0,0,0.08)' : '0 10px 20px rgba(0,0,0,0.02)'
+                                boxShadow: isSelected ? '0 15px 30px rgba(0,0,0,0.08)' : '0 10px 20px rgba(0,0,0,0.02)',
+                                display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
                             }}>
-                                <div style={{ height: '180px', backgroundImage: `url(${getCategoryPhoto(vendor.category)})`, backgroundSize: 'cover', backgroundPosition: 'center', position: 'relative' }}>
-                                    <div style={{ position: 'absolute', top: '15px', left: '15px', background: '#fff', padding: '5px 12px', borderRadius: '8px', fontSize: '0.7rem', fontWeight: '800' }}>
-                                        {vendor.category || 'General'}
-                                    </div>
-                                    
-                                    {isDisabled && (
-                                        <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
-                                            <div style={{ background: '#fff', padding: '8px 16px', borderRadius: '20px', fontWeight: '900', fontSize: '0.75rem', color: isOffline ? '#888' : '#ff4d4d', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                <Lock size={12} /> {isOffline ? 'OFFLINE' : 'OVER BUDGET'}
-                                            </div>
+                                <div>
+                                    <div style={{ height: '180px', backgroundImage: `url(${getCategoryPhoto(vendor.category)})`, backgroundSize: 'cover', backgroundPosition: 'center', position: 'relative' }}>
+                                        <div style={{ position: 'absolute', top: '15px', left: '15px', background: '#fff', padding: '5px 12px', borderRadius: '8px', fontSize: '0.7rem', fontWeight: '800' }}>
+                                            {vendor.category || 'General'}
                                         </div>
-                                    )}
+                                        
+                                        {isDisabled && (
+                                            <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
+                                                <div style={{ background: '#fff', padding: '8px 16px', borderRadius: '20px', fontWeight: '900', fontSize: '0.75rem', color: isOffline ? '#888' : '#ff4d4d', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                    <Lock size={12} /> {isOffline ? 'OFFLINE' : 'OVER BUDGET'}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div style={{ padding: '20px' }}>
+                                        <h3 style={{ fontWeight: '900', fontSize: '1.2rem', margin: '0 0 4px 0', wordBreak: 'break-word' }}>
+                                            {vendor.business_name || vendor.name}
+                                        </h3>
+                                        
+                                        <StarRating rating={vendor.rating || 5.0} totalReviews={vendor.total_reviews || 12} />
+
+                                        {/* --- CLIENT-SIDE SERVICE INFORMATION / DESCRIPTION --- */}
+                                        <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', padding: '12px 14px', borderRadius: '12px', marginBottom: '14px' }}>
+                                            <div style={{ fontSize: '0.72rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                <Info size={13} /> Service Information & Details:
+                                            </div>
+                                            <p style={{ margin: 0, fontSize: '0.85rem', color: '#334155', lineHeight: '1.4', wordBreak: 'break-word' }}>
+                                                {serviceDescription}
+                                            </p>
+                                        </div>
+
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#666', fontSize: '0.85rem', marginBottom: '16px', wordBreak: 'break-word' }}>
+                                            <MapPin size={15} style={{ flexShrink: 0 }} /> {vendor.location || 'Metro Manila'}
+                                        </div>
+                                    </div>
                                 </div>
 
-                                <div style={{ padding: '20px' }}>
-                                    <h3 style={{ fontWeight: '900', fontSize: '1.2rem', margin: '0 0 4px 0', wordBreak: 'break-word' }}>
-                                        {vendor.business_name || vendor.name}
-                                    </h3>
-                                    
-                                    <StarRating rating={vendor.rating || 5.0} totalReviews={vendor.total_reviews || 12} />
-
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#666', fontSize: '0.88rem', marginBottom: '16px', wordBreak: 'break-word' }}>
-                                        <MapPin size={16} style={{ flexShrink: 0 }} /> {vendor.location || 'Metro Manila'}
-                                    </div>
-                                    
+                                <div style={{ padding: '0 20px 20px 20px' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #f0f0f0', paddingTop: '16px', flexWrap: 'wrap', gap: '12px' }}>
                                         <div>
-                                            <div style={{ fontWeight: '900', fontSize: '1.15rem' }}>
+                                            <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: '700' }}>Package Price</div>
+                                            <div style={{ fontWeight: '900', fontSize: '1.2rem', color: '#0f172a' }}>
                                                 ₱{dynamicPrice.toLocaleString()}
                                             </div>
                                         </div>
@@ -561,7 +511,6 @@ const VendorList = () => {
                         maxHeight: '85vh', overflow: 'hidden', display: 'flex', flexDirection: 'column',
                         boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)'
                     }}>
-                        {/* Header */}
                         <div style={{ padding: '20px 24px', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                 <ShoppingBag size={22} color="#0f172a" />
@@ -577,7 +526,6 @@ const VendorList = () => {
                             </button>
                         </div>
 
-                        {/* Cart Items List */}
                         <div style={{ padding: '20px 24px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '14px' }}>
                             {selectedServices.map((item) => {
                                 const price = calculateDynamicPrice(item);
@@ -619,7 +567,6 @@ const VendorList = () => {
                             })}
                         </div>
 
-                        {/* Modal Footer */}
                         <div style={{ padding: '20px 24px', borderTop: '1px solid #f1f5f9', background: '#fafafa' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                                 <span style={{ fontWeight: '800', color: '#64748b', fontSize: '0.9rem' }}>Total Amount</span>
