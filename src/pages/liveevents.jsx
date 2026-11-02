@@ -132,7 +132,8 @@ const LiveEvents = () => {
   const handleConfirmDelete = async () => {
     if (!eventToDelete) return;
 
-    if (eventToDelete.payment_status && eventToDelete.payment_status.toLowerCase() === 'paid') {
+    const currentPaymentStatus = (eventToDelete.payment_status || '').toLowerCase();
+    if (currentPaymentStatus === 'paid' || currentPaymentStatus === 'downpayment_paid' || currentPaymentStatus === 'partial') {
         alert("Transaction Secured: Paid events cannot be cancelled through the dashboard.");
         setIsDeleteOpen(false);
         return;
@@ -308,24 +309,22 @@ const LiveEvents = () => {
         ) : (
           <div style={styles.grid}>
             {bookings.length > 0 ? bookings.map((item) => {
-              const isPaid = item.payment_status && item.payment_status.toLowerCase() === 'paid';
+              // Binigyang-daan ang iba't ibang posibleng status galing sa database (paid, downpayment_paid, partial)
+              const paymentStatus = (item.payment_status || '').toLowerCase();
+              const isPaid = paymentStatus === 'paid' || paymentStatus === 'downpayment_paid' || paymentStatus === 'partial' || paymentStatus === 'completed' || item.is_paid === true;
 
-              // Kukunin ang actual total cost mula sa mga napiling serbisyo/vendors sa halip na sundin ang budget limit
               const calculatedServicesTotal = item.services && item.services.length > 0
                 ? item.services.reduce((sum, s) => sum + (parseFloat(s.price || s.starting_price || s.cost || 0)), 0)
                 : item.vendors && item.vendors.length > 0
                 ? item.vendors.reduce((sum, v) => sum + (parseFloat(v.price || v.starting_price || v.cost || 0)), 0)
                 : 0;
 
-              // Gagamitin ang actual services total kung mayroon man, kung wala ay fallback sa item.service_price o item.price
               const payableAmount = calculatedServicesTotal > 0 
                 ? calculatedServicesTotal 
                 : (parseFloat(item.service_price || item.price || item.total_price || 0) || 0);
 
-              // 50% Downpayment calculation
               const downpaymentAmount = payableAmount / 2;
 
-              // Kukunin ang pangalan ng vendor o service
               const assignedVendorName = 
                 (item.services && item.services.length > 0) 
                   ? item.services.map(s => s.business_name || s.name).join(', ')
@@ -392,7 +391,7 @@ const LiveEvents = () => {
 
                   {isPaid && (
                       <div style={{ marginTop: '12px', color: '#047857', fontWeight: '900', display: 'flex', alignItems: 'center', gap: '8px', background: '#ecfdf5', padding: '12px', borderRadius: '12px', justifyContent: 'center', fontSize: '0.8rem', border: '1px solid #a7f3d0' }}>
-                          <CheckCircle size={16} /> BOOKING FULLY PAID
+                          <CheckCircle size={16} /> DOWNPAYMENT FULLY PAID
                       </div>
                   )}
 
