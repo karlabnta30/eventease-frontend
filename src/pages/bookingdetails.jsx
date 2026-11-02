@@ -101,6 +101,19 @@ const BookingDetails = () => {
       ? event.vendors.map(v => v.business_name || v.name).join(', ')
       : (event.service?.business_name || event.service?.name || event.vendor?.business_name || event.vendor?.name || event.vendor_name || 'Awaiting Vendor');
 
+  // Kalkulasyon ng Total Services Cost at 50% Downpayment
+  const calculatedServicesTotal = event.services && event.services.length > 0
+    ? event.services.reduce((sum, s) => sum + (parseFloat(s.price || s.starting_price || s.cost || 0)), 0)
+    : event.vendors && event.vendors.length > 0
+    ? event.vendors.reduce((sum, v) => sum + (parseFloat(v.price || v.starting_price || v.cost || 0)), 0)
+    : 0;
+
+  const payableAmount = calculatedServicesTotal > 0 
+    ? calculatedServicesTotal 
+    : (parseFloat(event.service_price || event.price || event.total_price || event.budget || 0) || 0);
+
+  const downpaymentAmount = payableAmount / 2;
+
   return (
     <div style={{ ...styles.pageWrapper, padding: isMobile ? '20px 16px' : '50px 20px' }}>
       <div style={styles.container}>
@@ -122,18 +135,18 @@ const BookingDetails = () => {
           </div>
 
           <div style={{ ...styles.gridSection, gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(280px, 1fr))' }}>
-            <DetailBlock label="Hired Service" icon={<ShieldCheck size={18} color="#2563eb" style={{ flexShrink: 0 }}/>} 
+            <DetailBlock label="Hired Service / Vendor" icon={<ShieldCheck size={18} color="#2563eb" style={{ flexShrink: 0 }}/>} 
               value={assignedVendorName} />
             <DetailBlock label="Venue / Location" icon={<MapPin size={18} color="#2563eb" style={{ flexShrink: 0 }}/>} 
-              value={event.location} />
+              value={event.location || 'Venue TBD'} />
             <DetailBlock label="Event Date" icon={<Calendar size={18} color="#2563eb" style={{ flexShrink: 0 }}/>} 
               value={event.event_date ? new Date(event.event_date).toDateString() : 'TBD'} />
             <DetailBlock label="Duration" icon={<Clock size={18} color="#2563eb" style={{ flexShrink: 0 }}/>} 
               value={event.end_time ? `Until ${event.end_time}` : 'Full Day Event'} />
             <DetailBlock label="Guest Count" icon={<Users size={18} color="#2563eb" style={{ flexShrink: 0 }}/>} 
               value={`${event.guest_count || 0} Expected Guests`} />
-            <DetailBlock label="Financial Allocation" icon={<CreditCard size={18} color="#059669" style={{ flexShrink: 0 }}/>} 
-              value={`₱${parseFloat(event.budget || 0).toLocaleString()}`} />
+            <DetailBlock label="Financial & Downpayment" icon={<CreditCard size={18} color="#059669" style={{ flexShrink: 0 }}/>} 
+              value={`Total Services: ₱${payableAmount.toLocaleString()} | Required 50% Down: ₱${downpaymentAmount.toLocaleString()}`} />
           </div>
 
           <div style={{ ...styles.footer, flexDirection: isMobile ? 'column' : 'row' }}>

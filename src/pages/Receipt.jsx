@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { CheckCircle, Printer, ArrowRight, ShieldCheck, Download } from 'lucide-react';
+import api from '../api';
+import { CheckCircle, Printer, ArrowRight, ShieldCheck } from 'lucide-react';
 
 const Receipt = () => {
     const navigate = useNavigate();
@@ -9,11 +10,36 @@ const Receipt = () => {
     const bookingId = searchParams.get('booking_id');
     const amount = searchParams.get('amount');
     const ref = searchParams.get('ref'); 
+
+    const [bookingDetails, setBookingDetails] = useState(null);
+
+    useEffect(() => {
+        const fetchBookingInfo = async () => {
+            if (!bookingId) return;
+            try {
+                const cleanId = String(bookingId).split(':')[0];
+                const res = await api.get(`/bookings/${cleanId}`);
+                setBookingDetails(res.data.data || res.data);
+            } catch (err) {
+                console.error("Error fetching booking for receipt:", err);
+            }
+        };
+        fetchBookingInfo();
+    }, [bookingId]);
+
     const date = new Date().toLocaleDateString('en-PH', { 
         year: 'numeric', 
         month: 'long', 
         day: 'numeric' 
     });
+
+    const assignedVendorName = bookingDetails 
+        ? ((bookingDetails.services && bookingDetails.services.length > 0) 
+            ? bookingDetails.services.map(s => s.business_name || s.name).join(', ')
+            : (bookingDetails.vendors && bookingDetails.vendors.length > 0)
+            ? bookingDetails.vendors.map(v => v.business_name || v.name).join(', ')
+            : (bookingDetails.service?.business_name || bookingDetails.service?.name || bookingDetails.vendor_name || 'Verified Vendor'))
+        : 'Verified Vendor';
 
     return (
         <div style={styles.page}>
@@ -86,7 +112,7 @@ const Receipt = () => {
                     </div>
                     <div style={styles.statusBadge}>
                         <div style={styles.statusDot}></div>
-                        PAYMENT SUCCESSFUL
+                        50% DOWNPAYMENT PAID
                     </div>
                 </div>
 
@@ -94,28 +120,38 @@ const Receipt = () => {
                     <div style={styles.successIconWrapper}>
                         <CheckCircle size={80} color="#22c55e" strokeWidth={2.5} />
                     </div>
-                    <h1 className="amount-responsive" style={styles.amount}>₱{Number(amount).toLocaleString()}</h1>
-                    <p style={styles.subtext}>Transaction completed on {date}</p>
+                    <h1 className="amount-responsive" style={styles.amount}>₱{Number(amount || 0).toLocaleString()}</h1>
+                    <p style={styles.subtext}>Secure Transaction Completed on {date}</p>
                 </div>
 
                 <div className="details-container-responsive" style={styles.detailsContainer}>
-                    <h3 style={styles.detailsTitle}>Payment Summary</h3>
+                    <h3 style={styles.detailsTitle}>Payment & Event Summary</h3>
                     <div style={styles.detailsTable}>
+                        {bookingDetails && (
+                            <div style={styles.row}>
+                                <span style={styles.label}>Event Name</span>
+                                <span style={styles.value}>{bookingDetails.event_name}</span>
+                            </div>
+                        )}
+                        <div style={styles.row}>
+                            <span style={styles.label}>Hired Services</span>
+                            <span style={{ ...styles.value, maxWidth: '250px', textAlign: 'right' }}>{assignedVendorName}</span>
+                        </div>
                         <div style={styles.row}>
                             <span style={styles.label}>Reference Number</span>
-                            <span style={styles.value}>EE-{ref}</span>
+                            <span style={styles.value}>{ref ? `EE-${ref}` : 'N/A'}</span>
                         </div>
                         <div style={styles.row}>
                             <span style={styles.label}>Booking ID</span>
                             <span style={styles.value}>#{bookingId}</span>
                         </div>
                         <div style={styles.row}>
-                            <span style={styles.label}>Payment Method</span>
-                            <span style={styles.value}>GCash E-Wallet</span>
+                            <span style={styles.label}>Payment Description</span>
+                            <span style={styles.value}>50% Down Payment</span>
                         </div>
                         <div style={styles.row}>
-                            <span style={styles.label}>Merchant</span>
-                            <span style={styles.value}>EventEase Philippines</span>
+                            <span style={styles.label}>Payment Method</span>
+                            <span style={styles.value}>PayMongo Secure Gateway</span>
                         </div>
                     </div>
                 </div>
