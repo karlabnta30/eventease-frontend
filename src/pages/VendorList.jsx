@@ -114,12 +114,23 @@ const VendorList = () => {
         localStorage.setItem('eventease_pending_cart', JSON.stringify(selectedServices));
     }, [selectedServices]);
 
+    // --- NAPAKABILIS NA TOGGLE: Instant UI Update (Optimistic Update) ---
     const handleToggleStatus = async (id) => {
+        // Agarang i-update ang local state para maging instant ang pag-flip ng button sa screen
+        setVendors(prevVendors => 
+            prevVendors.map(vendor => 
+                vendor.id === id ? { ...vendor, is_available: vendor.is_available ? 0 : 1 } : vendor
+            )
+        );
+
         try {
+            // Isasagawa ang backend request sa background nang walang loading state sa UI
             await api.post(`/vendors/toggle/${id}`);
-            fetchVendors();
         } catch (error) { 
-            console.error("Toggle failed", error); 
+            console.error("Toggle failed", error);
+            // Kung sakaling magka-error sa server, i-revert sa dati o i-refetch
+            fetchVendors();
+            toast.error("Nabigo ang pag-update ng status.");
         }
     };
 
@@ -136,7 +147,6 @@ const VendorList = () => {
         }
     };
 
-    // --- TAMA NA ANG PRESYO: Direktang kukunin ang base price ng vendor nang walang multiplies ---
     const calculateDynamicPrice = (vendor) => {
         if (!vendor) return 0;
         const raw = vendor.starting_price || vendor.price || vendor.cost || 0;
@@ -339,7 +349,6 @@ const VendorList = () => {
                         const isDisabled = (isTooExpensive || isOffline) && userRole !== 'vendor';
                         const isSelected = selectedServices.some(s => s.id === vendor.id);
 
-                        // Kukunin ang detalyadong info / description / inclusions mula sa service data
                         const serviceDescription = vendor.description || vendor.details || vendor.inclusions || vendor.notes || "No additional description provided by the vendor.";
 
                         return (
@@ -372,7 +381,6 @@ const VendorList = () => {
                                         
                                         <StarRating rating={vendor.rating || 5.0} totalReviews={vendor.total_reviews || 12} />
 
-                                        {/* --- CLIENT-SIDE SERVICE INFORMATION / DESCRIPTION --- */}
                                         <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', padding: '12px 14px', borderRadius: '12px', marginBottom: '14px' }}>
                                             <div style={{ fontSize: '0.72rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                                 <Info size={13} /> Service Information & Details:
@@ -441,7 +449,6 @@ const VendorList = () => {
                 </div>
             )}
 
-            {/* --- BOTTOM FLOATING CART BAR --- */}
             {selectedServices.length > 0 && userRole !== 'vendor' && (
                 <div style={{
                     position: 'fixed', bottom: '15px', left: '50%', transform: 'translateX(-50%)',
@@ -500,7 +507,6 @@ const VendorList = () => {
                 </div>
             )}
 
-            {/* --- FOODPANDA-STYLE CART ITEMS MODAL --- */}
             {isCartModalOpen && (
                 <div style={{
                     position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)',
