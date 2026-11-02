@@ -132,8 +132,14 @@ const LiveEvents = () => {
   const handleConfirmDelete = async () => {
     if (!eventToDelete) return;
 
-    const currentPaymentStatus = (eventToDelete.payment_status || '').toLowerCase();
-    if (currentPaymentStatus.includes('paid') || currentPaymentStatus.includes('partial')) {
+    const currentPaymentStatus = (eventToDelete.payment_status || '').toLowerCase().trim();
+    const isSecuredPaid = currentPaymentStatus === 'paid' || 
+                          currentPaymentStatus === 'downpayment_paid' || 
+                          currentPaymentStatus === 'paid (50% down payment)' || 
+                          currentPaymentStatus === 'completed' || 
+                          eventToDelete.is_paid === true;
+
+    if (isSecuredPaid) {
         alert("Transaction Secured: Paid events cannot be cancelled through the dashboard.");
         setIsDeleteOpen(false);
         return;
@@ -309,8 +315,14 @@ const LiveEvents = () => {
         ) : (
           <div style={styles.grid}>
             {bookings.length > 0 ? bookings.map((item) => {
-              const paymentStatus = (item.payment_status || '').toLowerCase();
-              const isPaid = paymentStatus.includes('paid') || paymentStatus.includes('partial') || paymentStatus.includes('completed') || item.is_paid === true;
+              const paymentStatus = (item.payment_status || '').toLowerCase().trim();
+              
+              // Mahigpit at eksaktong susuriin kung bayad na ba talaga
+              const isPaid = paymentStatus === 'paid' || 
+                             paymentStatus === 'downpayment_paid' || 
+                             paymentStatus === 'paid (50% down payment)' || 
+                             paymentStatus === 'completed' || 
+                             item.is_paid === true;
 
               const calculatedServicesTotal = item.services && item.services.length > 0
                 ? item.services.reduce((sum, s) => sum + (parseFloat(s.price || s.starting_price || s.cost || 0)), 0)
