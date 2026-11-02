@@ -129,11 +129,10 @@ const VendorList = () => {
         } catch (error) { 
             console.error("Toggle failed", error);
             fetchVendors();
-            toast.error("Nabigo ang pag-update ng status.");
+            toast.error("Failed to update status.");
         }
     };
 
-    // --- MGA FUNCTIONS PARA SA CUSTOM DELETE MODAL ---
     const handleDeleteService = (vendor) => {
         setServiceToDelete(vendor);
     };
@@ -176,9 +175,10 @@ const VendorList = () => {
         }
     };
 
+    // --- AI SMART BUDGET ALLOCATION & OPTIMIZER ---
     const handleRunAiSmartAllocation = async () => {
         if (userBudget <= 0) {
-            toast.error("Walang itinakdang budget limit para sa event na ito.");
+            toast.error("No budget limit has been set for this event.");
             return;
         }
 
@@ -199,7 +199,7 @@ const VendorList = () => {
                 }));
 
                 setSelectedServices(aiPicked);
-                setAiOptimizationSummary(response.data.message || `Nahanap ng AI ang mga akmang serbisyo para sa badyet mo.`);
+                setAiOptimizationSummary(response.data.message || `AI successfully found optimal services matching your budget.`);
                 toast.success("AI Budget Optimizer successfully allocated optimal services!");
                 setIsAiOptimizing(false);
                 return;
@@ -210,7 +210,7 @@ const VendorList = () => {
 
         let accumulatedCost = 0;
         let smartPicked = [];
-        const sortedVendors = [...vendors].sort((a, b) => calculateDynamicPrice(b) - calculateDynamicPrice(a));
+        const sortedVendors = [...vendors].sort((a, b) => calculateDynamicPrice(a) - calculateDynamicPrice(b));
 
         for (let v of sortedVendors) {
             const p = calculateDynamicPrice(v);
@@ -221,7 +221,7 @@ const VendorList = () => {
         }
 
         setSelectedServices(smartPicked);
-        setAiOptimizationSummary(`Smart Allocation: Nakapili ang AI ng ${smartPicked.length} serbisyo na nagkakahalaga ng ₱${accumulatedCost.toLocaleString()} pasok sa iyong badyet.`);
+        setAiOptimizationSummary(`Smart Allocation: AI automatically picked ${smartPicked.length} service(s) totaling ₱${accumulatedCost.toLocaleString()} to fit within your budget.`);
         toast.success("Smart budget allocation applied successfully!");
         setIsAiOptimizing(false);
     };
@@ -231,10 +231,11 @@ const VendorList = () => {
     }, [selectedServices]);
 
     const isCartOverBudget = userBudget > 0 && totalSelectedCost > userBudget;
+    const overBudgetAmount = totalSelectedCost - userBudget;
 
     const handleMultiServiceCheckout = async () => {
         if (selectedServices.length === 0) {
-            toast.error("Walang napiling vendor o service sa iyong cart! Mangyaring pumili muna ng kahit isang serbisyo.");
+            toast.error("No services selected in your cart! Please choose at least one service.");
             return;
         }
 
@@ -308,17 +309,44 @@ const VendorList = () => {
                 </div>
 
                 {userRole !== 'vendor' && !activeCategoryView && (
-                    <div style={{ 
-                        background: isCartOverBudget ? '#ef4444' : '#000', 
-                        color: '#fff', padding: '10px 16px', borderRadius: '12px', display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: isMobile ? '0.8rem' : '0.9rem', width: isMobile ? '100%' : 'auto', boxSizing: 'border-box'
-                    }}>
-                        {isCartOverBudget ? <ShieldAlert size={18} style={{ flexShrink: 0 }} /> : <AlertCircle size={18} style={{ flexShrink: 0 }} />}
-                        <span style={{ fontWeight: '700', wordBreak: 'break-word' }}>
-                            BUDGET LIMIT: ₱{userBudget > 0 ? userBudget.toLocaleString() : "NO LIMIT SET"} (Guests: {guestCount})
-                        </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                        <button
+                            onClick={handleRunAiSmartAllocation}
+                            disabled={isAiOptimizing}
+                            style={{
+                                background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
+                                color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '12px',
+                                fontWeight: '800', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px',
+                                fontSize: '0.85rem', boxShadow: '0 4px 12px rgba(37, 99, 235, 0.2)'
+                            }}
+                        >
+                            <Sparkles size={16} /> {isAiOptimizing ? 'Optimizing Budget...' : 'AI Smart Allocate'}
+                        </button>
+
+                        <div style={{ 
+                            background: isCartOverBudget ? '#ef4444' : '#000', 
+                            color: '#fff', padding: '10px 16px', borderRadius: '12px', display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: isMobile ? '0.8rem' : '0.9rem', boxSizing: 'border-box'
+                        }}>
+                            {isCartOverBudget ? <ShieldAlert size={18} style={{ flexShrink: 0 }} /> : <AlertCircle size={18} style={{ flexShrink: 0 }} />}
+                            <span style={{ fontWeight: '700', wordBreak: 'break-word' }}>
+                                BUDGET LIMIT: ₱{userBudget > 0 ? userBudget.toLocaleString() : "NO LIMIT SET"} (Guests: {guestCount})
+                            </span>
+                        </div>
                     </div>
                 )}
             </div>
+
+            {aiOptimizationSummary && (
+                <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', color: '#1e40af', padding: '14px 18px', borderRadius: '14px', marginTop: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', fontWeight: '700', fontSize: '0.9rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Sparkles size={18} style={{ flexShrink: 0 }} />
+                        <span>{aiOptimizationSummary}</span>
+                    </div>
+                    <button onClick={() => setAiOptimizationSummary(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#1e40af' }}>
+                        <X size={16} />
+                    </button>
+                </div>
+            )}
 
             {!activeCategoryView ? (
                 <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px', marginTop: '30px' }}>
@@ -472,7 +500,7 @@ const VendorList = () => {
                         </div>
                         <div style={{ fontSize: isMobile ? '1.2rem' : '1.4rem', fontWeight: '900', color: isCartOverBudget ? '#ef4444' : '#000', wordBreak: 'break-word' }}>
                             Total: ₱{totalSelectedCost.toLocaleString()}
-                            {isCartOverBudget && <span style={{ fontSize: '0.75rem', color: '#ef4444', marginLeft: '8px', display: isMobile ? 'block' : 'inline' }}>(Exceeds Budget)</span>}
+                            {isCartOverBudget && <span style={{ fontSize: '0.75rem', color: '#ef4444', marginLeft: '8px', display: isMobile ? 'block' : 'inline' }}>(Exceeds Budget by ₱{overBudgetAmount.toLocaleString()})</span>}
                         </div>
                     </div>
 
@@ -537,6 +565,16 @@ const VendorList = () => {
                             </button>
                         </div>
 
+                        {/* --- OVER BUDGET WARNING BANNER INSIDE CART MODAL --- */}
+                        {isCartOverBudget && (
+                            <div style={{ background: '#fef2f2', borderBottom: '1px solid #fee2e2', padding: '12px 24px', display: 'flex', alignItems: 'center', gap: '10px', color: '#991b1b', fontSize: '0.85rem', fontWeight: '700' }}>
+                                <ShieldAlert size={18} style={{ flexShrink: 0 }} />
+                                <div>
+                                    You are exceeding your budget by <span style={{ fontWeight: '900' }}>₱{overBudgetAmount.toLocaleString()}</span>. You can use <strong>AI Smart Allocate</strong> to automatically adjust options within your budget!
+                                </div>
+                            </div>
+                        )}
+
                         <div style={{ padding: '20px 24px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '14px' }}>
                             {selectedServices.map((item) => {
                                 const price = calculateDynamicPrice(item);
@@ -578,13 +616,27 @@ const VendorList = () => {
                             })}
                         </div>
 
-                        <div style={{ padding: '20px 24px', borderTop: '1px solid #f1f5f9', background: '#fafafa' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                        <div style={{ padding: '20px 24px', borderTop: '1px solid #f1f5f9', background: '#fafafa', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <span style={{ fontWeight: '800', color: '#64748b', fontSize: '0.9rem' }}>Total Amount</span>
                                 <span style={{ fontWeight: '900', color: isCartOverBudget ? '#ef4444' : '#0f172a', fontSize: '1.3rem' }}>
                                     ₱{totalSelectedCost.toLocaleString()}
                                 </span>
                             </div>
+
+                            <button
+                                onClick={() => {
+                                    setIsCartModalOpen(false);
+                                    handleRunAiSmartAllocation();
+                                }}
+                                style={{
+                                    width: '100%', background: 'linear-gradient(135deg, #2563eb, #7c3aed)', color: '#fff', border: 'none',
+                                    padding: '12px', borderRadius: '12px', fontWeight: '800', cursor: 'pointer',
+                                    fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px'
+                                }}
+                            >
+                                <Sparkles size={16} /> Optimize with AI Smart Allocate
+                            </button>
 
                             <button
                                 onClick={() => {
