@@ -3,22 +3,25 @@ import api from '../api';
 import { toast } from 'react-hot-toast';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
-import { LayoutDashboard, Calendar as CalendarIcon, UserCheck, FileText, CheckCircle, XCircle, MapPin, Users, Briefcase, CreditCard, Clock, X, ArrowUpDown } from 'lucide-react';
+import { LayoutDashboard, Calendar as CalendarIcon, UserCheck, FileText, CheckCircle, XCircle, MapPin, Users, Briefcase, CreditCard, Clock, X, ArrowUpDown, Search, History } from 'lucide-react';
 import './CalendarCustom.css'; 
 
 const AdminDashboard = () => {
   const [allBookings, setAllBookings] = useState([]);
   const [vendors, setVendors] = useState([]); 
   const [vendorPermits, setVendorPermits] = useState([]);
+  const [activityLogs, setActivityLogs] = useState([]); // --- STATE PARA SA LOGIN/LOGOUT LOGS ---
   const [stats, setStats] = useState(null);
   const [activeTab, setActiveTab] = useState('analytics');
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [previewImage, setPreviewImage] = useState(null);
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  
+  // --- STATE PARA SA POPUP MODAL (IMAGE & PDF PREVIEW) ---
+  const [previewDocument, setPreviewDocument] = useState(null);
 
-  // --- STATE PARA SA CATEGORY SORTING (PANELIST SUGGESTION) ---
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [categorySortOrder, setCategorySortOrder] = useState('highest'); // 'highest', 'lowest', 'alphabetical'
+  const [searchQuery, setSearchQuery] = useState(''); // Search filter para sa vendors/permits
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -35,13 +38,15 @@ const AdminDashboard = () => {
         api.get('/admin/bookings', { headers }),
         api.get('/admin/stats', { headers }),
         api.get('/admin/vendors', { headers }),
-        api.get('/admin/vendor-permits', { headers })
+        api.get('/admin/vendor-permits', { headers }),
+        api.get('/admin/activity-logs', { headers }) // --- KUNIN ANG LOGIN/LOGOUT LOGS ---
       ]);
       
       if (results[0].status === 'fulfilled') setAllBookings(results[0].value.data.data || []);
       if (results[1].status === 'fulfilled') setStats(results[1].value.data);
       if (results[2].status === 'fulfilled') setVendors(results[2].value.data.data || []);
       if (results[3].status === 'fulfilled') setVendorPermits(results[3].value.data.data || []);
+      if (results[4].status === 'fulfilled') setActivityLogs(results[4].value.data.data || results[4].value.data || []);
 
     } catch (error) {
       console.error("Admin fetch failed:", error);
@@ -74,18 +79,33 @@ const AdminDashboard = () => {
     }
   };
 
-  // --- SORTING LOGIC PARA SA CATEGORY DISTRIBUTION ---
+  // Bilang ng mga pending permits para sa notification badge sa tab
+  const pendingPermitsCount = useMemo(() => {
+    return vendorPermits.filter(v => !v.verification_status || v.verification_status === 'pending').length;
+  }, [vendorPermits]);
+
+  // Filtered vendor permits gamit ang search query
+  const filteredVendorPermits = useMemo(() => {
+    if (!searchQuery) return vendorPermits;
+    return vendorPermits.filter(v => 
+      (v.business_name || v.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (v.owner_email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (v.category || '').toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [vendorPermits, searchQuery]);
+
+  // Sorting logic para sa Category Distribution
   const sortedCategories = useMemo(() => {
     if (!stats?.category_data) return [];
     const categoriesCopy = [...stats.category_data];
 
     return categoriesCopy.sort((a, b) => {
       if (categorySortOrder === 'highest') {
-        return b.total - a.total; // Pinakamarami papuntang kaunti
+        return b.total - a.total;
       } else if (categorySortOrder === 'lowest') {
-        return a.total - b.total; // Pinakakaunti papuntang marami
+        return a.total - b.total;
       } else if (categorySortOrder === 'alphabetical') {
-        return a.category.localeCompare(b.category); // A-Z
+        return a.category.localeCompare(b.category);
       }
       return 0;
     });
@@ -123,12 +143,22 @@ const AdminDashboard = () => {
     <div style={{ padding: isMobile ? '20px 16px' : '40px', backgroundColor: '#fcfcfd', minHeight: '100vh', fontFamily: "'Inter', sans-serif" }}>
       <h1 style={{ fontWeight: '900', fontSize: isMobile ? '1.8rem' : '2.5rem', marginBottom: '20px', wordBreak: 'break-word' }}>System Overview</h1>
       
+      {/* Navigation Tabs */}
       <div style={{ display: 'flex', gap: '5px', marginBottom: '30px', borderBottom: '1px solid #eee', overflowX: 'auto', width: '100%' }}>
         <div style={tabStyle('analytics')} onClick={() => setActiveTab('analytics')}><LayoutDashboard size={18}/> Analytics</div>
         <div style={tabStyle('schedule')} onClick={() => setActiveTab('schedule')}><CalendarIcon size={18}/> Live Schedule</div>
-        <div style={tabStyle('vendors')} onClick={() => setActiveTab('vendors')}><UserCheck size={18}/> Vendor Moderation</div>
+        <div style={tabStyle('vendors')} onClick={() => setActiveTab('vendors')}>
+          <UserCheck size={18}/> Vendor Moderation 
+          {pendingPermitsCount > 0 && (
+            <span style={{ backgroundColor: '#ef4444', color: '#fff', fontSize: '0.7rem', padding: '2px 6px', borderRadius: '10px', fontWeight: '900' }}>
+              {pendingPermitsCount}
+            </span>
+          )}
+        </div>
+        <div style={tabStyle('logs')} onClick={() => setActiveTab('logs')}><History size={18}/> Login/Logout Logs</div>
       </div>
 
+      {/* Analytics Tab */}
       {activeTab === 'analytics' && (
         <div>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '16px', marginBottom: '30px' }}>
@@ -141,7 +171,7 @@ const AdminDashboard = () => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
               <h3 style={{ fontWeight: '800', fontSize: isMobile ? '1.1rem' : '1.3rem', margin: 0 }}>Category Distribution</h3>
               
-              {/* --- PANELISTS RECOMMENDATION: SORTING BUTTONS --- */}
+              {/* Category Sorting Controls */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#f8fafc', padding: '6px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                 <ArrowUpDown size={14} color="#64748b" style={{ marginLeft: '4px' }} />
                 <span style={{ fontSize: '0.75rem', fontWeight: '800', color: '#64748b', marginRight: '4px' }}>Sort:</span>
@@ -186,6 +216,7 @@ const AdminDashboard = () => {
         </div>
       )}
 
+      {/* Live Schedule Tab */}
       {activeTab === 'schedule' && (
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1.2fr 1fr', gap: '20px' }}>
           <div style={{ background: '#fff', padding: isMobile ? '20px' : '30px', borderRadius: '24px', border: '1px solid #eee', overflowX: 'auto' }}>
@@ -248,16 +279,30 @@ const AdminDashboard = () => {
         </div>
       )}
 
+      {/* Vendor Moderation Tab */}
       {activeTab === 'vendors' && (
         <div style={{ background: '#fff', padding: isMobile ? '20px' : '30px', borderRadius: '24px', border: '1px solid #eee' }}>
-          <h2 style={{ fontWeight: '800', marginBottom: '20px', fontSize: isMobile ? '1.2rem' : '1.5rem', wordBreak: 'break-word' }}>Vendor Permit Moderation & Status Directory</h2>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '15px' }}>
+            <h2 style={{ fontWeight: '800', margin: 0, fontSize: isMobile ? '1.2rem' : '1.5rem', wordBreak: 'break-word' }}>Vendor Permit Moderation & Status Directory</h2>
+            
+            {/* Search Input para sa Vendor Permits */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#f8fafc', padding: '8px 12px', borderRadius: '12px', border: '1px solid #e2e8f0', width: isMobile ? '100%' : '280px' }}>
+              <Search size={16} color="#64748b" />
+              <input 
+                type="text" 
+                placeholder="Search vendor name or email..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: '0.85rem', width: '100%', fontWeight: '600' }}
+              />
+            </div>
+          </div>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-            {vendorPermits && vendorPermits.length > 0 ? vendorPermits.map(v => {
+            {filteredVendorPermits && filteredVendorPermits.length > 0 ? filteredVendorPermits.map(v => {
               const permitUrl = v.permit_path 
                 ? (v.permit_path.startsWith('http') ? v.permit_path : `https://eventease-backend-v9za.onrender.com/storage/${v.permit_path}`)
                 : null;
-              const isImage = permitUrl && /\.(jpg|jpeg|png|webp)$/i.test(permitUrl);
 
               return (
                 <div key={v.id} style={{ background: '#f9f9fb', padding: isMobile ? '16px' : '20px', borderRadius: '16px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'stretch' : 'center', gap: '15px' }}>
@@ -271,19 +316,13 @@ const AdminDashboard = () => {
                       </span>
 
                       {permitUrl ? (
-                        isImage ? (
-                          <button 
-                            type="button"
-                            onClick={() => setPreviewImage(permitUrl)}
-                            style={{ background: 'none', border: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.78rem', fontWeight: '700', color: '#2563eb', cursor: 'pointer', padding: 0 }}
-                          >
-                            <FileText size={14} /> View Permit Document 🔍
-                          </button>
-                        ) : (
-                          <a href={permitUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.78rem', fontWeight: '700', color: '#2563eb', textDecoration: 'none' }}>
-                            <FileText size={14} /> View PDF Document ↗
-                          </a>
-                        )
+                        <button 
+                          type="button"
+                          onClick={() => setPreviewDocument(permitUrl)}
+                          style={{ background: 'none', border: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.78rem', fontWeight: '700', color: '#2563eb', cursor: 'pointer', padding: 0 }}
+                        >
+                          <FileText size={14} /> View Permit Document 🔍
+                        </button>
                       ) : (
                         <span style={{ fontSize: '0.78rem', color: '#94a3b8', fontStyle: 'italic' }}>No permit uploaded</span>
                       )}
@@ -316,14 +355,58 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* LIGHTBOX MODAL PREVIEW FOR ADMIN */}
-      {previewImage && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0, 0, 0, 0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: '15px' }} onClick={() => setPreviewImage(null)}>
-          <div style={{ position: 'relative', maxWidth: '95%', maxHeight: '90%', backgroundColor: '#fff', padding: '20px', borderRadius: '16px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.3)', boxSizing: 'border-box' }} onClick={(e) => e.stopPropagation()}>
-            <button style={{ position: 'absolute', top: '10px', right: '10px', background: '#1a1a1a', color: '#fff', border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 1010 }} onClick={() => setPreviewImage(null)}>
-              <X size={20} />
-            </button>
-            <img src={previewImage} alt="Enlarged Permit Preview" style={{ maxWidth: '100%', maxHeight: '75vh', display: 'block', borderRadius: '8px', objectFit: 'contain', margin: '0 auto' }} />
+      {/* Login / Logout Activity Logs Tab */}
+      {activeTab === 'logs' && (
+        <div style={{ background: '#fff', padding: isMobile ? '20px' : '30px', borderRadius: '24px', border: '1px solid #eee' }}>
+          <h2 style={{ fontWeight: '800', marginBottom: '8px', fontSize: isMobile ? '1.2rem' : '1.5rem' }}>Account Login & Logout History</h2>
+          <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '20px' }}>Subaybayan ang kasaysayan ng pag-login at pag-logout ng mga user at vendor sa sistema.</p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {activityLogs && activityLogs.length > 0 ? activityLogs.map((log, index) => (
+              <div key={log.id || index} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 18px', background: '#f8fafc', borderRadius: '14px', border: '1px solid #e2e8f0', flexWrap: 'wrap', gap: '10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: log.action === 'LOGIN' ? '#dcfce7' : '#fee2e2', color: log.action === 'LOGIN' ? '#166534' : '#991b1b', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '900', fontSize: '0.75rem' }}>
+                    {log.action === 'LOGIN' ? 'IN' : 'OUT'}
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: '800', fontSize: '0.95rem', color: '#0f172a' }}>{log.user_name || log.email || 'Unknown User'}</div>
+                    <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Role: <strong>{log.role || 'User'}</strong> | IP: {log.ip_address || 'N/A'}</div>
+                  </div>
+                </div>
+                <div style={{ textAlign: isMobile ? 'left' : 'right' }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: '800', padding: '4px 8px', borderRadius: '6px', background: log.action === 'LOGIN' ? '#dcfce7' : '#fee2e2', color: log.action === 'LOGIN' ? '#166534' : '#991b1b', marginRight: '8px' }}>
+                    {log.action || 'ACTIVITY'}
+                  </span>
+                  <span style={{ fontSize: '0.8rem', color: '#475569', fontWeight: '600' }}>{log.created_at ? new Date(log.created_at).toLocaleString() : 'Just now'}</span>
+                </div>
+              </div>
+            )) : (
+              <div style={{ textAlign: 'center', padding: '40px 0', color: '#94a3b8', fontWeight: '600' }}>
+                Wala pang naitalang login o logout activity sa kasalukuyan.
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* --- POPUP MODAL LIGHTBOX PARA SA PERMIT DOCUMENT (IMAGE & PDF) --- */}
+      {previewDocument && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0, 0, 0, 0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: '15px' }} onClick={() => setPreviewDocument(null)}>
+          <div style={{ position: 'relative', width: '100%', maxWidth: '850px', height: '85vh', backgroundColor: '#fff', padding: '20px', borderRadius: '20px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.3)', boxSizing: 'border-box', display: 'flex', flexDirection: 'column' }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px' }}>
+              <h3 style={{ margin: 0, fontWeight: '900', fontSize: '1.2rem', color: '#0f172a' }}>Vendor Permit Document Preview</h3>
+              <button style={{ background: '#f1f5f9', color: '#64748b', border: 'none', borderRadius: '50%', width: '38px', height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }} onClick={() => setPreviewDocument(null)}>
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div style={{ flex: 1, overflow: 'hidden', borderRadius: '12px', border: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {/\.(jpg|jpeg|png|webp)$/i.test(previewDocument) ? (
+                <img src={previewDocument} alt="Permit Preview" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', display: 'block' }} />
+              ) : (
+                <iframe src={previewDocument} title="PDF Permit Preview" style={{ width: '100%', height: '100%', border: 'none' }} />
+              )}
+            </div>
           </div>
         </div>
       )}
