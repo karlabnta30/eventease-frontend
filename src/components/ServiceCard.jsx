@@ -26,7 +26,7 @@ const ServiceCard = ({ service, onToggle, onBook, budgetStatus }) => {
   const isAvailable = service.is_available === true || service.is_available === 1 || service.is_available === "1";
 
   let cloudStyle = { backgroundColor: 'rgba(15, 23, 42, 0.85)', color: '#fff', border: '1px solid rgba(255,255,255,0.15)' };
-  let cloudText = '☁️ Set Budget';
+  let cloudText = '☁️ Available';
   if (budgetStatus === 'affordable') {
     cloudStyle = { backgroundColor: '#059669', color: '#fff', boxShadow: '0 4px 6px -1px rgba(5, 150, 105, 0.3)' };
     cloudText = '☁️ Within Budget';
@@ -139,17 +139,14 @@ const ServiceCard = ({ service, onToggle, onBook, budgetStatus }) => {
           ) : (
             <button 
               onClick={handleCardAction}
-              disabled={budgetStatus === 'set_budget' || budgetStatus === 'exceeded'}
               style={{
-                color: '#fff', border: 'none', padding: '9px 18px', borderRadius: '12px', fontSize: '12px', fontWeight: '700', cursor: (budgetStatus === 'set_budget' || budgetStatus === 'exceeded') ? 'not-allowed' : 'pointer',
-                backgroundColor: (budgetStatus === 'set_budget' || budgetStatus === 'exceeded') 
-                  ? '#cbd5e1' 
-                  : (isBundle ? '#059669' : '#0f172a'),
-                boxShadow: (budgetStatus === 'set_budget' || budgetStatus === 'exceeded') ? 'none' : '0 4px 6px -1px rgba(0,0,0,0.1)',
+                color: '#fff', border: 'none', padding: '9px 18px', borderRadius: '12px', fontSize: '12px', fontWeight: '700', cursor: 'pointer',
+                backgroundColor: isBundle ? '#059669' : '#0f172a',
+                boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)',
                 transition: 'background-color 0.2s'
               }}
             >
-              {isBundle ? 'Book Bundle' : 'View Details'}
+              {isBundle ? 'View Bundle' : 'View Details'}
             </button>
           )}
         </div>

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import api from '../api';
@@ -17,34 +17,19 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-// --- MAP CLICK HANDLER & REVERSE GEOCODER COMPONENT ---
-const LocationMarker = ({ position, setPosition, onLocationSelected }) => {
-  useMapEvents({
-    async click(e) {
-      const lat = e.latlng.lat;
-      const lng = e.latlng.lng;
-      setPosition(e.latlng);
-      
-      // Kunin ang address gamit ang reverse geocoding mula sa pinindot na lat/lng
-      try {
-        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
-        const data = await response.json();
-        const addressName = data && data.display_name ? data.display_name : `Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`;
-        onLocationSelected(lat, lng, addressName);
-      } catch (error) {
-        console.error("Error fetching address:", error);
-        onLocationSelected(lat, lng, `Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`);
-      }
-    },
-  });
-
-  return position === null ? null : (
-    <Marker position={position}></Marker>
-  );
+// --- MAP PAN CONTROLLER COMPONENT ---
+const MapViewController = ({ center }) => {
+  const map = useMap();
+  useEffect(() => {
+    if (center) {
+      map.setView(center, 16, { animate: true });
+    }
+  }, [center, map]);
+  return null;
 };
 
 // --- SUCCESS MODAL ---
-const SuccessModal = ({ isOpen, onClose, eventId, currentBudget }) => {
+const SuccessModal = ({ isOpen, eventId, currentBudget }) => {
   if (!isOpen) return null;
   const navigate = useNavigate();
 
@@ -76,12 +61,6 @@ const SuccessModal = ({ isOpen, onClose, eventId, currentBudget }) => {
             }}
           >
             BROWSE VENDORS
-          </button>
-          <button 
-            onClick={onClose}
-            style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontWeight: '800', fontSize: '0.9rem', padding: '8px' }}
-          >
-            View Event Summary
           </button>
         </div>
       </div>
@@ -170,10 +149,46 @@ const getRecommendedBudget = (pax, category) => {
   return pax ? Number(pax) * rate : 0;
 };
 
-// --- AI BUDGET OPTIMIZER SUB-COMPONENT ---
+// --- AI BUDGET OPTIMIZER SUB-COMPONENT (Category-tailored) ---
 const BudgetOptimizerWidget = ({ category, pax, budget }) => {
   const [loading, setLoading] = useState(false);
   const [optimizationResult, setOptimizationResult] = useState(null);
+
+  const categoryBreakdownTemplates = {
+    Wedding: [
+      { item: 'Catering & Food', percentage: '40%' },
+      { item: 'Venue Rental', percentage: '20%' },
+      { item: 'Photography & Videography', percentage: '15%' },
+      { item: 'Attire & Styling', percentage: '15%' },
+      { item: 'Lights, Sounds & Others', percentage: '10%' }
+    ],
+    Birthday: [
+      { item: 'Catering & Food', percentage: '45%' },
+      { item: 'Venue / Party Space', percentage: '20%' },
+      { item: 'Decoration & Theme', percentage: '15%' },
+      { item: 'Entertainment & Program', percentage: '10%' },
+      { item: 'Party Favors & Others', percentage: '10%' }
+    ],
+    Corporate: [
+      { item: 'Venue & Seating', percentage: '35%' },
+      { item: 'Catering / Meals & Snacks', percentage: '30%' },
+      { item: 'AV Equipment, Lights & Sounds', percentage: '20%' },
+      { item: 'Speaker / Host & Materials', percentage: '15%' }
+    ],
+    Workshop: [
+      { item: 'Venue / Training Room', percentage: '40%' },
+      { item: 'Participant Kits & Materials', percentage: '25%' },
+      { item: 'Meals & Coffee Breaks', percentage: '25%' },
+      { item: 'Speaker / Facilitator Fee', percentage: '10%' }
+    ],
+    Debut: [
+      { item: 'Catering & Food', percentage: '40%' },
+      { item: 'Venue Rental', percentage: '20%' },
+      { item: 'Gown, Styling & Makeup', percentage: '15%' },
+      { item: 'Photo & Video', percentage: '15%' },
+      { item: 'Program & Sounds', percentage: '10%' }
+    ]
+  };
 
   const handleOptimize = async () => {
     if (!category || !pax || !budget) {
@@ -191,8 +206,31 @@ const BudgetOptimizerWidget = ({ category, pax, budget }) => {
 
       setOptimizationResult(response.data);
     } catch (error) {
-      console.error("Optimization error:", error);
-      alert("Failed to generate budget optimization.");
+      console.warn("Backend AI endpoint offline, using smart category template fallback...");
+      
+      const totalBudgetNum = parseFloat(budget) || 0;
+      const template = categoryBreakdownTemplates[category] || categoryBreakdownTemplates['Wedding'];
+      
+      const breakdown = template.map(row => {
+        const pct = parseInt(row.percentage.replace('%', '')) / 100;
+        return {
+          item: row.item,
+          percentage: row.percentage,
+          recommended_amount: Math.round(totalBudgetNum * pct)
+        };
+      });
+
+      const recommendedMin = getRecommendedBudget(pax, category);
+      const status = totalBudgetNum >= recommendedMin ? 'Optimal' : 'Tight Budget';
+      const message = status === 'Optimal' 
+        ? `Your budget is sufficient for a ${category} event with ${pax} guests.` 
+        : `Your budget is slightly lower than the standard rate for a ${category}. We recommend following this breakdown.`;
+
+      setOptimizationResult({
+        status,
+        message,
+        breakdown
+      });
     } finally {
       setLoading(false);
     }
@@ -202,7 +240,7 @@ const BudgetOptimizerWidget = ({ category, pax, budget }) => {
     <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', padding: '20px', borderRadius: '24px', marginBottom: '24px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
         <h4 style={{ margin: 0, fontWeight: '900', display: 'flex', alignItems: 'center', gap: '8px', color: '#0f172a', fontSize: '0.8rem', textTransform: 'uppercase' }}>
-          <Sparkles size={16} color="#3b82f6" /> AI Budget Optimizer
+          <Sparkles size={16} color="#3b82f6" /> AI Budget Optimizer ({category || 'General'})
         </h4>
         <button 
           type="button"
@@ -248,7 +286,9 @@ const CreateEvent = () => {
   const [vendorTerms, setVendorTerms] = useState("");
   const [formError, setFormError] = useState("");
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 900);
-  const [mapPosition, setMapPosition] = useState(null);
+  
+  const [mapCenter, setMapCenter] = useState([14.5995, 120.9842]);
+  const [markerPosition, setMarkerPosition] = useState(null);
 
   const [eventData, setEventData] = useState({
     name: '',
@@ -291,17 +331,60 @@ const CreateEvent = () => {
     if (formError) setFormError("");
   };
 
-  // Two-way handler kapag pumili o nag-click sa mapa
-  const handleMapLocationSelected = (lat, lng, addressName) => {
-    setEventData(prev => ({
-      ...prev,
-      latitude: lat.toFixed(6),
-      longitude: lng.toFixed(6),
-      address: addressName
-    }));
+  const handleMapClick = async (e) => {
+    const lat = e.latlng.lat;
+    const lng = e.latlng.lng;
+    setMarkerPosition([lat, lng]);
+    setMapCenter([lat, lng]);
+
+    try {
+      const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+      const data = await response.json();
+      const addressName = data && data.display_name ? data.display_name : `Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`;
+      setEventData(prev => ({
+        ...prev,
+        latitude: lat.toFixed(6),
+        longitude: lng.toFixed(6),
+        address: addressName
+      }));
+    } catch (error) {
+      console.error("Error fetching address:", error);
+      setEventData(prev => ({
+        ...prev,
+        latitude: lat.toFixed(6),
+        longitude: lng.toFixed(6),
+        address: `Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`
+      }));
+    }
   };
 
-  // GPS Location Handler
+  const handleAddressBlur = async () => {
+    const query = eventData.address;
+    if (!query || query.trim() === '') return;
+
+    try {
+      const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=ph&limit=1`);
+      const results = await response.json();
+
+      if (results && results.length > 0) {
+        const lat = parseFloat(results[0].lat);
+        const lng = parseFloat(results[0].lon);
+        const displayName = results[0].display_name;
+
+        setMarkerPosition([lat, lng]);
+        setMapCenter([lat, lng]);
+        setEventData(prev => ({
+          ...prev,
+          latitude: lat.toFixed(6),
+          longitude: lng.toFixed(6),
+          address: displayName
+        }));
+      }
+    } catch (error) {
+      console.error("Forward geocoding error:", error);
+    }
+  };
+
   const handleGetCurrentLocation = () => {
     if (!navigator.geolocation) {
       alert("Geolocation is not supported by your browser");
@@ -312,7 +395,8 @@ const CreateEvent = () => {
       async (position) => {
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
-        setMapPosition({ lat, lng });
+        setMarkerPosition([lat, lng]);
+        setMapCenter([lat, lng]);
 
         let resolvedAddress = '';
         try {
@@ -333,7 +417,7 @@ const CreateEvent = () => {
         }));
       },
       (error) => {
-        alert("Unable to retrieve your location. Please enter manually.");
+        alert("Unable to retrieve your location. Please check your permissions.");
       }
     );
   };
@@ -349,13 +433,19 @@ const CreateEvent = () => {
     const token = localStorage.getItem('token');
     if (!token) { navigate('/login'); return; }
     
-    if (!eventData.name || !eventData.address || !eventData.category || !eventData.pax) {
-        setFormError("Please fill in all required event fields including guest count.");
+    if (!eventData.name || !eventData.address || !eventData.category || !eventData.pax || !eventData.budget) {
+        setFormError("Please fill in all required event fields including guest count and budget.");
         return;
     }
 
-    if (parseInt(eventData.pax) > 150) {
-        setFormError("Guest limit exceeded! Maximum allowed capacity is 150 guests.");
+    const paxNum = parseInt(eventData.pax);
+    if (paxNum <= 0 || paxNum > 150) {
+        setFormError("Guest count must be between 1 and 150 guests.");
+        return;
+    }
+
+    if (parseFloat(eventData.budget) <= 0) {
+        setFormError("Budget must be greater than zero.");
         return;
     }
 
@@ -504,7 +594,6 @@ const CreateEvent = () => {
         isOpen={isSuccessOpen} 
         eventId={newEventId} 
         currentBudget={eventData.budget}
-        onClose={() => { setIsSuccessOpen(false); setNewEventId(null); }} 
       />
 
       <ContractModal 
@@ -543,52 +632,43 @@ const CreateEvent = () => {
           </div>
 
           <div style={styles.card}>
-            <div style={styles.sectionHeader}><MapPin size={20} color="#3b82f6"/><h3 style={{fontWeight: '900', margin: 0, fontSize: '1.1rem'}}>Location & Interactive Map Pin</h3></div>
-            <div style={styles.venueToggle}><CheckCircle2 size={16}/> PHYSICAL VENUE</div>
+            <div style={styles.sectionHeader}><MapPin size={20} color="#3b82f6"/><h3 style={{fontWeight: '900', margin: 0, fontSize: '1.1rem'}}>Location & Philippine Map</h3></div>
+            <div style={styles.venueToggle}><CheckCircle2 size={16}/> PHYSICAL VENUE (PHILIPPINES)</div>
             
             <label style={styles.label}>Street Address / Landmark</label>
             <input 
               type="text" 
-              placeholder="Click on the map or type address here" 
+              placeholder="Type landmark/address or click directly on the map" 
               style={styles.input} 
               value={eventData.address} 
-              onChange={(e) => handleChange('address', e.target.value)} 
+              onChange={(e) => handleChange('address', e.target.value)}
+              onBlur={handleAddressBlur} 
             />
             
-            {/* INTERACTIVE LEAFLET MAP */}
+            {/* INTERACTIVE LEAFLET MAP LOCKED TO PHILIPPINES */}
             <div style={{ margin: '16px 0', height: '260px', borderRadius: '16px', overflow: 'hidden', border: '2px solid #f1f5f9', zIndex: 1, position: 'relative' }}>
               <MapContainer 
-                center={[14.5995, 120.9842]} 
-                zoom={13} 
+                center={[12.8797, 121.7740]} 
+                zoom={6} 
+                minZoom={5}
+                maxBounds={[[4.5, 116.0], [21.5, 127.0]]}
                 style={{ height: '100%', width: '100%' }}
+                whenReady={(mapInstance) => {
+                  mapInstance.target.on('click', handleMapClick);
+                }}
               >
                 <TileLayer
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                   attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 />
-                <LocationMarker 
-                  position={mapPosition} 
-                  setPosition={setMapPosition} 
-                  onLocationSelected={handleMapLocationSelected} 
-                />
+                <MapViewController center={mapCenter} />
+                {markerPosition && <Marker position={markerPosition} />}
               </MapContainer>
             </div>
-            <p style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '16px', fontWeight: '600' }}>💡 Click anywhere on the map to drop a pin. The exact address will automatically populate the text box above!</p>
-
-            {/* GPS Pin Location Fields */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-              <div>
-                <label style={styles.label}>Latitude</label>
-                <input type="text" readOnly placeholder="Auto-filled from map" style={styles.input} value={eventData.latitude} />
-              </div>
-              <div>
-                <label style={styles.label}>Longitude</label>
-                <input type="text" readOnly placeholder="Auto-filled from map" style={styles.input} value={eventData.longitude} />
-              </div>
-            </div>
+            <p style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '16px', fontWeight: '600' }}>💡 Type a place in the address box or click the map to automatically center the pin within the Philippines!</p>
 
             <button type="button" onClick={handleGetCurrentLocation} style={styles.gpsBtn}>
-              <Navigation size={14} /> Use Current GPS Location
+              <Navigation size={14} /> Use My Current GPS Location
             </button>
           </div>
         </div>
