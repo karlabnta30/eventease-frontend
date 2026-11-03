@@ -37,14 +37,17 @@ const AdminDashboard = () => {
         api.get('/admin/stats', { headers }),
         api.get('/admin/vendors', { headers }),
         api.get('/admin/vendor-permits', { headers }),
-        api.get('/admin/activity-logs', { headers })
+        api.get('/activity-logs', { headers }) // Endpoint para makuha ang mga login/logout logs
       ]);
       
       if (results[0].status === 'fulfilled') setAllBookings(results[0].value.data.data || []);
       if (results[1].status === 'fulfilled') setStats(results[1].value.data);
       if (results[2].status === 'fulfilled') setVendors(results[2].value.data.data || []);
       if (results[3].status === 'fulfilled') setVendorPermits(results[3].value.data.data || []);
-      if (results[4].status === 'fulfilled') setActivityLogs(results[4].value.data.data || results[4].value.data || []);
+      if (results[4].status === 'fulfilled') {
+        const logsData = results[4].value.data.data || results[4].value.data || [];
+        setActivityLogs(Array.isArray(logsData) ? logsData : []);
+      }
 
     } catch (error) {
       console.error("Admin fetch failed:", error);
@@ -337,7 +340,7 @@ const AdminDashboard = () => {
           <h2 style={{ fontWeight: '800', marginBottom: '6px', fontSize: isMobile ? '1.1rem' : '1.5rem' }}>Account Login & Logout History</h2>
           <p style={{ fontSize: '0.8rem', color: '#64748b', marginBottom: '16px' }}>Subaybayan ang kasaysayan ng pag-login at pag-logout ng mga user at vendor sa sistema.</p>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '500px', overflowY: 'auto' }}>
             {activityLogs && activityLogs.length > 0 ? activityLogs.map((log, index) => (
               <div key={log.id || index} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 14px', background: '#f8fafc', borderRadius: '14px', border: '1px solid #e2e8f0', flexWrap: 'wrap', gap: '8px', boxSizing: 'border-box' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, minWidth: '200px' }}>

@@ -287,6 +287,9 @@ const CreateEvent = () => {
   const [formError, setFormError] = useState("");
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 900);
   
+  // State for Schedule Conflict Management
+  const [bookedDates, setBookedDates] = useState([]);
+
   const [mapCenter, setMapCenter] = useState([14.5995, 120.9842]);
   const [markerPosition, setMarkerPosition] = useState(null);
 
@@ -307,6 +310,23 @@ const CreateEvent = () => {
     const handleResize = () => setIsMobile(window.innerWidth <= 900);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Fetch existing bookings to check for schedule conflicts and exclude booked dates
+  useEffect(() => {
+    const fetchExistingBookings = async () => {
+      try {
+        const res = await api.get('/bookings');
+        const bookingsList = res.data.data || res.data;
+        if (Array.isArray(bookingsList)) {
+          const dates = bookingsList.map(b => new Date(b.event_date));
+          setBookedDates(dates);
+        }
+      } catch (err) {
+        console.error("Failed to fetch existing bookings for conflict checking:", err);
+      }
+    };
+    fetchExistingBookings();
   }, []);
 
   useEffect(() => {
@@ -683,6 +703,7 @@ const CreateEvent = () => {
               showTimeSelect 
               dateFormat="MMMM d, yyyy h:mm aa" 
               minDate={new Date()}
+              excludeDates={bookedDates} 
               customInput={<input style={styles.input} />} 
             />
             <div style={{marginTop: '16px'}}>
@@ -693,6 +714,7 @@ const CreateEvent = () => {
                   showTimeSelect 
                   dateFormat="MMMM d, yyyy h:mm aa" 
                   minDate={eventData.startDate || new Date()} 
+                  excludeDates={bookedDates}
                   customInput={<input style={styles.input} />} 
                 />
             </div>
