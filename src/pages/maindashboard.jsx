@@ -4,7 +4,7 @@ import api from '../api';
 import './dashboard.css'; 
 import ServiceCard from '../components/ServiceCard';
 import { notifyNewBooking } from '../toastUtils.jsx'; 
-import { AlertTriangle, CheckCircle, ShoppingBag, Trash2, Plus, ArrowRight, Calendar, Tag, Building, Clock, CheckSquare } from 'lucide-react';
+import { AlertTriangle, Building, Clock, CheckSquare, Calendar, Tag } from 'lucide-react';
 
 const MainDashboard = () => {
   const navigate = useNavigate();
@@ -17,11 +17,6 @@ const MainDashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   
   const [activeCategory, setActiveCategory] = useState('All');
-
-  const [architectItems, setArchitectItems] = useState([]);
-  const [bundleName, setBundleName] = useState('My Custom Event Blueprint');
-  const [isSavingBundle, setIsSavingBundle] = useState(false);
-
   const [bookingToCancel, setBookingToCancel] = useState(null);
 
   const fetchData = async () => {
@@ -114,7 +109,6 @@ const MainDashboard = () => {
           const bookingsRes = results[bookingsIndex].value;
           const rawBookings = bookingsRes.data.data || (Array.isArray(bookingsRes.data) ? bookingsRes.data : []);
           
-          // Naayos ang pag-filter upang masalo ang lahat ng active bookings na may event_name o ID
           const assignedBookings = rawBookings.filter(item => item.id || item.event_name || item.vendor_id || item.vendor || item.service_id);
           setMyBookings(assignedBookings);
         }
@@ -154,71 +148,6 @@ const MainDashboard = () => {
       fetchData(); 
     } catch (error) { 
       console.error("Toggle failed", error); 
-    }
-  };
-
-  const handleAddToArchitect = (service) => {
-    if (architectItems.some(item => item.id === service.id)) {
-      alert("This service is already added to your blueprint.");
-      return;
-    }
-    setArchitectItems([...architectItems, service]);
-  };
-
-  const handleRemoveFromArchitect = (id) => {
-    setArchitectItems(architectItems.filter(item => item.id !== id));
-  };
-
-  const architectTotalCost = useMemo(() => {
-    return architectItems.reduce((sum, item) => sum + Number(item.price || 0), 0);
-  }, [architectItems]);
-
-  const handleDeployCustomBundle = async () => {
-    if (architectItems.length === 0) {
-      alert("Your Bundle Architect canvas is empty! Add services first.");
-      return;
-    }
-    setIsSavingBundle(true);
-    try {
-      const primaryServiceId = architectItems.length > 0 ? architectItems[0].id : null;
-      const cleanServiceId = primaryServiceId && String(primaryServiceId).startsWith('bundle_') 
-        ? null 
-        : Number(primaryServiceId);
-
-      const customBundlePayload = {
-        event_name: bundleName,
-        location: 'Custom Architect Location',
-        category: 'Custom Bundle Package',
-        event_date: new Date().toISOString().slice(0, 10),
-        budget: architectTotalCost,
-        guest_count: 50,
-        service_id: cleanServiceId,
-        contract_agreed: true
-      };
-      
-      const res = await api.post('/bookings', customBundlePayload);
-      
-      if (res.status === 201 || res.status === 200) {
-        notifyNewBooking(`Custom Bundle "${bundleName}" deployed and added to Live Events successfully!`);
-        
-        const createdBookingId = res.data.data?.id || res.data.id;
-        if (createdBookingId && architectItems.length > 0) {
-          const serviceIds = architectItems
-            .map(item => String(item.id).startsWith('bundle_') ? null : Number(item.id))
-            .filter(Boolean);
-            
-          if (serviceIds.length > 0) {
-            await api.post(`/bookings/${createdBookingId}/services`, { services: serviceIds }).catch(() => {});
-          }
-        }
-
-        navigate('/live-events');
-      }
-    } catch (err) {
-      console.error("Failed to deploy bundle:", err);
-      alert("Error saving custom bundle architecture to database.");
-    } finally {
-      setIsSavingBundle(false);
     }
   };
 
@@ -267,18 +196,6 @@ const MainDashboard = () => {
     borderRadius: '20px', 
     border: '1px solid #e2e8f0', 
     boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.01)'
-  };
-
-  const inputStyle = { 
-    width: '100%', 
-    padding: '12px 16px', 
-    marginTop: '6px', 
-    borderRadius: '12px', 
-    border: '1px solid #cbd5e1', 
-    boxSizing: 'border-box', 
-    fontSize: '0.9rem', 
-    outline: 'none', 
-    backgroundColor: '#ffffff'
   };
 
   return (
@@ -340,8 +257,8 @@ const MainDashboard = () => {
                   <CheckSquare size={20} />
                 </div>
                 <div>
-                  <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: '700', textTransform: 'uppercase' }}>Blueprint Items</div>
-                  <div style={{ fontSize: '1.1rem', fontWeight: '800', color: '#0f172a' }}>{architectItems.length} Services</div>
+                  <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: '700', textTransform: 'uppercase' }}>Catalog Items</div>
+                  <div style={{ fontSize: '1.1rem', fontWeight: '800', color: '#0f172a' }}>{services.length} Available</div>
                 </div>
               </div>
               <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', padding: '16px 20px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '14px' }}>
@@ -360,18 +277,12 @@ const MainDashboard = () => {
         <div className="dashboard-header-container" style={{ marginTop: '0', paddingTop: '0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <div>
             <h1 className="dashboard-main-title" style={{ fontSize: '1.25rem', fontWeight: '800', color: '#0f172a', margin: 0 }}>
-              {userRole === 'vendor' ? 'Manage Business & Services' : 'Service Catalog & Bundle Architect'}
+              {userRole === 'vendor' ? 'Manage Business & Services' : 'Service Catalog Directory'}
             </h1>
             <p className="dashboard-main-subtitle" style={{ fontSize: '0.85rem', color: '#64748b', margin: '4px 0 0 0' }}>
-              {userRole === 'vendor' ? 'Control your listed service status and business offerings.' : 'Browse verified supplier services and build your custom event package.'}
+              {userRole === 'vendor' ? 'Control your listed service status and business offerings.' : 'Browse verified supplier service information and details.'}
             </p>
           </div>
-          
-          {userRole !== 'admin' && (
-            <button onClick={() => navigate('/create-event')} className="new-event-btn" style={{ background: '#0f172a', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '10px', fontWeight: '700', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
-              <Plus size={16} /> New Event Plan
-            </button>
-          )}
         </div>
 
         {bookingToCancel && (
@@ -396,64 +307,6 @@ const MainDashboard = () => {
           
           <aside className="dashboard-sidebar" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             
-            {/* --- BUNDLE ARCHITECT CANVAS --- */}
-            <div style={{ ...cardStyle, border: '1px solid #cbd5e1', background: '#ffffff' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                <h4 style={{ margin: 0, fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px', color: '#0f172a', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
-                  <ShoppingBag size={16} /> Bundle Architect
-                </h4>
-                <span style={{ background: '#0f172a', color: '#fff', fontSize: '0.7rem', fontWeight: '800', padding: '2px 8px', borderRadius: '999px' }}>
-                  {architectItems.length} Items
-                </span>
-              </div>
-
-              <label style={{ fontSize: '0.75rem', fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>Custom Blueprint Name</label>
-              <input 
-                type="text" 
-                style={{ ...inputStyle, fontWeight: '700', color: '#0f172a' }} 
-                value={bundleName} 
-                onChange={(e) => setBundleName(e.target.value)} 
-                placeholder="e.g. Dream Wedding Package" 
-              />
-
-              <div style={{ marginTop: '12px', maxHeight: '180px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', paddingRight: '4px' }}>
-                {architectItems.length > 0 ? architectItems.map(item => (
-                  <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc', padding: '10px 12px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
-                    <div>
-                      <div style={{ fontWeight: '700', color: '#0f172a', fontSize: '0.8rem' }}>{item.name || item.title}</div>
-                      <div style={{ color: '#16a34a', fontSize: '0.75rem', fontWeight: '700' }}>₱{Number(item.price || 0).toLocaleString()}</div>
-                    </div>
-                    <button onClick={() => handleRemoveFromArchitect(item.id)} style={{ background: '#fee2e2', border: 'none', cursor: 'pointer', color: '#ef4444', padding: '6px', borderRadius: '6px', display: 'flex' }}>
-                      <Trash2 size={13} />
-                    </button>
-                  </div>
-                )) : (
-                  <div style={{ background: '#f8fafc', border: '1px dashed #cbd5e1', padding: '16px', borderRadius: '12px', textAlign: 'center' }}>
-                    <p style={{ fontSize: '0.75rem', color: '#64748b', fontStyle: 'italic', margin: 0 }}>
-                      Blueprint is empty. Add services from the catalog.
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {architectItems.length > 0 && (
-                <div style={{ marginTop: '14px', borderTop: '1px solid #e2e8f0', paddingTop: '12px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '800', fontSize: '0.9rem', color: '#0f172a', marginBottom: '10px' }}>
-                    <span>Total Cost:</span>
-                    <span style={{ color: '#16a34a' }}>₱{architectTotalCost.toLocaleString()}</span>
-                  </div>
-
-                  <button 
-                    onClick={handleDeployCustomBundle}
-                    disabled={isSavingBundle}
-                    style={{ width: '100%', background: '#0f172a', color: '#fff', border: 'none', padding: '12px', borderRadius: '10px', fontWeight: '800', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}
-                  >
-                    {isSavingBundle ? 'DEPLOYING...' : 'DEPLOY OPTIMIZED BUNDLE'} <ArrowRight size={15} />
-                  </button>
-                </div>
-              )}
-            </div>
-
             {/* --- MY SCHEDULED EVENTS --- */}
             <div style={{ ...cardStyle, background: '#ffffff', border: '1px solid #e2e8f0' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', borderBottom: '1px solid #f1f5f9', paddingBottom: '10px' }}>
@@ -468,7 +321,7 @@ const MainDashboard = () => {
                 </span>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '220px', overflowY: 'auto', paddingRight: '2px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '300px', overflowY: 'auto', paddingRight: '2px' }}>
                 {myBookings.length > 0 ? myBookings.map((booking) => (
                   <div key={booking.id} style={{ backgroundColor: '#f8fafc', padding: '12px', borderRadius: '12px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -500,7 +353,7 @@ const MainDashboard = () => {
             <div style={{ marginBottom: '16px' }}>
               <input 
                 type="text" 
-                placeholder="Search catalog by service name, vendor, category, or location..." 
+                placeholder="Search directory by service name, vendor, category, or location..." 
                 style={{ width: '100%', padding: '14px 18px', borderRadius: '12px', border: '1px solid #cbd5e1', backgroundColor: '#fff', outline: 'none', fontSize: '0.9rem', fontWeight: '500', boxSizing: 'border-box', boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }} 
                 value={searchTerm} 
                 onChange={(e) => setSearchTerm(e.target.value)} 
@@ -522,7 +375,7 @@ const MainDashboard = () => {
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
               <h2 style={{ fontSize: '1.05rem', fontWeight: '800', color: '#0f172a', margin: 0 }}>
-                {activeCategory === 'All' ? 'All Available Services & Bundles' : `${activeCategory} Services`}
+                {activeCategory === 'All' ? 'All Listed Services & Bundles' : `${activeCategory} Services`}
               </h2>
               <span style={{ fontSize: '0.75rem', fontWeight: '700', color: '#64748b', background: '#fff', padding: '6px 12px', borderRadius: '999px', border: '1px solid #e2e8f0' }}>
                 {filteredServices.length} Results
@@ -531,53 +384,28 @@ const MainDashboard = () => {
             
             {filteredServices.length > 0 ? (
               <div className="dashboard-services-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '16px' }}>
-                {filteredServices.map(s => {
-                  const isAlreadyAdded = architectItems.some(item => item.id === s.id);
-
-                  return (
-                    <div key={s.id} style={{ backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #e2e8f0', overflow: 'hidden', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
-                      <div style={{ flex: 1 }}>
-                        <ServiceCard 
-                          service={s} 
-                          budgetStatus="set_budget"
-                          onToggle={handleToggleStatus} 
-                          onBook={(serviceData) => {
-                            const isBundle = String(serviceData.id).startsWith('bundle_');
-                            const rawId = isBundle ? String(serviceData.id).replace('bundle_', '') : serviceData.id;
-                            
-                            navigate(isBundle ? `/bundle-details/${rawId}` : `/service-details/${rawId}`, { 
-                              state: { service: serviceData, type: isBundle ? 'bundle' : 'service' } 
-                            });
-                          }} 
-                        />
-                      </div>
-                      <div style={{ padding: '14px 16px 16px 16px', background: '#fff', borderTop: '1px solid #f1f5f9' }}>
-                        <button 
-                          onClick={() => handleAddToArchitect(s)}
-                          disabled={isAlreadyAdded}
-                          style={{
-                            width: '100%',
-                            backgroundColor: isAlreadyAdded ? '#16a34a' : '#0f172a',
-                            color: '#fff',
-                            border: 'none',
-                            padding: '10px',
-                            borderRadius: '10px',
-                            fontWeight: '700',
-                            fontSize: '0.8rem',
-                            cursor: isAlreadyAdded ? 'default' : 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '6px'
-                          }}
-                        >
-                          {isAlreadyAdded ? <CheckCircle size={15} /> : <Plus size={15} />}
-                          {isAlreadyAdded ? 'Added to Blueprint' : 'Add to Blueprint'}
-                        </button>
-                      </div>
+                {filteredServices.map(s => (
+                  <div key={s.id} style={{ backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #e2e8f0', overflow: 'hidden', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+                    <div style={{ flex: 1 }}>
+                      {/* ServiceCard na ginawang Info/Read-only mode (walang booking action kundi info lamang) */}
+                      <ServiceCard 
+                        service={s} 
+                        budgetStatus="set_budget"
+                        onToggle={handleToggleStatus} 
+                        onBook={() => {
+                          // Ginawa nang info notification o walang gagawin dahil read-only na ito
+                          alert(`Viewing information for: ${s.title || s.name || 'Service'}`);
+                        }} 
+                      />
                     </div>
-                  );
-                })}
+                    {/* Impormasyon badge sa ilalim */}
+                    <div style={{ padding: '12px 16px', background: '#f8fafc', borderTop: '1px solid #f1f5f9', textAlign: 'center' }}>
+                      <span style={{ fontSize: '0.75rem', fontWeight: '700', color: '#64748b' }}>
+                        ℹ️ Informational Catalog Entry
+                      </span>
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : (
               <div style={{ background: '#fff', padding: '40px', borderRadius: '16px', textAlign: 'center', border: '1px solid #e2e8f0' }}>

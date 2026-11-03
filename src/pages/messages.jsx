@@ -44,7 +44,7 @@ const Messages = () => {
     fetchContacts();
   }, []);
 
-  // 2. Kunin ang Messages at gamitin ang Polling (setInterval) para sa stable real-time update
+  // 2. Kunin ang Messages at gamitin ang Polling (setInterval) - Pabilisin sa 2 segundo para mas real-time
   useEffect(() => {
     if (!activeContact?.id) return;
 
@@ -61,8 +61,8 @@ const Messages = () => {
     // Kunin agad ang initial data
     fetchConversationData();
 
-    // Mag-poll kada 3 segundo para sa bagong messages nang walang WebSocket errors
-    const interval = setInterval(fetchConversationData, 3000);
+    // Mas mabilis na polling (kada 2 segundo)
+    const interval = setInterval(fetchConversationData, 2000);
 
     return () => clearInterval(interval);
   }, [activeContact?.id]);
@@ -71,17 +71,33 @@ const Messages = () => {
     e.preventDefault();
     if (!newMessage.trim() || userRole === 'admin' || !activeContact?.id) return;
 
+    const textToSend = newMessage;
+    setNewMessage(''); // I-clear agad ang input para sa mabilis na karanasan
+
+    // OPTIMISTIC UPDATE: Idagdag agad sa UI nang hindi naghihintay sa server response
+    const tempMessage = {
+      id: 'temp-' + Date.now(),
+      sender_id: 'me', // Pansamantalang tatak para sa local view
+      message: textToSend,
+      created_at: new Date().toISOString()
+    };
+
+    setMessages((prev) => [...prev, tempMessage]);
+
     try {
       const res = await api.post('/messages', {
         receiver_id: activeContact.id,
-        message: newMessage
+        message: textToSend
       });
       
+      // Palitan ang temp message ng tunay na galing sa server kung mayroon man
       if (res.data && res.data.message) {
-        setMessages((prev) => [...prev, res.data.message]);
+        setMessages((prev) => prev.map(msg => msg.id === tempMessage.id ? res.data.message : msg));
       }
-      setNewMessage('');
     } catch (err) {
+      // Kung nag-fail, tanggalin ang temp message at ibalik ang text sa input
+      setMessages((prev) => prev.filter(msg => msg.id !== tempMessage.id));
+      setNewMessage(textToSend);
       toast.error(err.response?.data?.error || "Failed to send message. You must have an active booking with this user.");
     }
   };
@@ -122,14 +138,12 @@ const Messages = () => {
     try {
       let fileUrl = '';
 
-      // Direktang gamitin ang /messages/upload para maiwasan ang 500 error sa attach-document kung walang active booking or service binding
       try {
         const res = await api.post('/messages/upload', formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
         fileUrl = res.data.file_url || res.data.url;
       } catch (generalUploadErr) {
-        // Fallback sa booking attach kung sakaling may active booking ID
         if (activeBooking?.id) {
           const res = await api.post(`/bookings/${activeBooking.id}/attach-document`, formData, {
             headers: { 'Content-Type': 'multipart/form-data' }
@@ -278,7 +292,7 @@ const Messages = () => {
                       Inquiry for "{activeBooking.event_name}" ({activeBooking.event_date})
                     </div>
                     <div style={{ fontSize: isMobile ? '0.75rem' : '0.8rem', color: '#64748b', fontWeight: '600', marginTop: '2px' }}>
-                      Budget: ₱{parseFloat(activeBooking.budget || 0).toLocaleString()} • Status: <strong style={{ textTransform: 'uppercase', color: activeBooking.status === 'accepted' ? '#047857' : '#d97706' }}>{activeBooking.status}</strong>
+                      Budget: ₱{parseFloat(activeBooking.budget || 0).toLocaleString()} | Status: <strong style={{ textTransform: 'uppercase', color: activeBooking.status === 'accepted' ? '#047857' : '#d97706' }}>{activeBooking.status}</strong>
                     </div>
                   </div>
                 </div>
