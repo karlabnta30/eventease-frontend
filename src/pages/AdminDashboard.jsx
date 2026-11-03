@@ -37,16 +37,19 @@ const AdminDashboard = () => {
         api.get('/admin/stats', { headers }),
         api.get('/admin/vendors', { headers }),
         api.get('/admin/vendor-permits', { headers }),
-        api.get('/admin/activity-logs', { headers }) // Endpoint para makuha ang mga login/logout logs
+        api.get('/admin/activity-logs', { headers })
       ]);
       
       if (results[0].status === 'fulfilled') setAllBookings(results[0].value.data.data || []);
       if (results[1].status === 'fulfilled') setStats(results[1].value.data);
       if (results[2].status === 'fulfilled') setVendors(results[2].value.data.data || []);
       if (results[3].status === 'fulfilled') setVendorPermits(results[3].value.data.data || []);
+      
+      // Updated log parsing para sa { data: [...] } format
       if (results[4].status === 'fulfilled') {
-        const logsData = results[4].value.data.data || results[4].value.data || [];
-        setActivityLogs(Array.isArray(logsData) ? logsData : []);
+        const resData = results[4].value.data;
+        const logsArray = Array.isArray(resData) ? resData : (resData.data || []);
+        setActivityLogs(logsArray);
       }
 
     } catch (error) {
