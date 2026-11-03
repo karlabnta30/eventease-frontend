@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
 import { notifyServiceCreated } from '../toastUtils.jsx'; 
-import { AlertCircle, ShieldCheck, Sparkles, Briefcase, Layers, UploadCloud, CheckCircle2 } from 'lucide-react';
+import { AlertCircle, ShieldCheck, Briefcase, Layers, UserCheck } from 'lucide-react';
 import CreateBundleForm from '../components/CreateBundleForm';
 
 const AddService = () => {
@@ -11,10 +11,6 @@ const AddService = () => {
   const [checkingStatus, setCheckingStatus] = useState(true);
   const [isVerified, setIsVerified] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 960);
-  
-  // States para sa pag-upload ng ID
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [uploadingId, setUploadingId] = useState(false);
 
   const [serviceData, setServiceData] = useState({
     business_name: '',
@@ -33,58 +29,25 @@ const AddService = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const checkVerification = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await api.get('/user', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      if (response.data.verification_status === 'verified') {
-        setIsVerified(true);
-      }
-    } catch (error) {
-      console.error("Failed to check verification status:", error);
-    } finally {
-      setCheckingStatus(false);
-    }
-  };
-
   useEffect(() => {
+    const checkVerification = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await api.get('/user', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        if (response.data.verification_status === 'verified') {
+          setIsVerified(true);
+        }
+      } catch (error) {
+        console.error("Failed to check verification status:", error);
+      } finally {
+        setCheckingStatus(false);
+      }
+    };
     checkVerification();
   }, []);
-
-  // Handler para sa pag-upload ng ID permit document
-  const handleIdUpload = async (e) => {
-    e.preventDefault();
-    if (!selectedFile) {
-      alert("Please select an ID or permit document first.");
-      return;
-    }
-
-    setUploadingId(true);
-    const token = localStorage.getItem('token');
-    const formData = new FormData();
-    formData.append('permit', selectedFile); // Umaangkop sa endpoint ng backend para sa permit/ID upload
-
-    try {
-      await api.post('/vendor/upload-permit', formData, {
-        headers: { 
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data'
-        }
-      });
-      
-      alert("ID/Permit uploaded successfully! Waiting for admin verification approval.");
-      setSelectedFile(null);
-      checkVerification(); // Re-check status
-    } catch (error) {
-      console.error("Upload error:", error);
-      alert(error.response?.data?.message || "Failed to upload ID document.");
-    } finally {
-      setUploadingId(false);
-    }
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -148,7 +111,7 @@ const AddService = () => {
             </div>
           </div>
           
-          {/* Enhanced Verification Warning & Direct ID Upload Component */}
+          {/* Verification Warning Banner with Profile Redirect Button */}
           {!isVerified && (
             <div style={{ 
               backgroundColor: '#fffbeb', 
@@ -161,49 +124,33 @@ const AddService = () => {
               lineHeight: '1.5',
               boxSizing: 'border-box'
             }}>
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '12px' }}>
-                <AlertCircle size={20} style={{ flexShrink: 0, marginTop: '2px', color: '#d97706' }} />
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '14px' }}>
+                <AlertCircle size={20} style={{ flexShrink: '0', marginTop: '2px', color: '#d97706' }} />
                 <div>
-                  <strong>Verification Required:</strong> You must upload a valid ID or business permit to publish services and unlock bundle creation.
+                  <strong>Verification Required:</strong> You must submit a valid identification document or business permit through your profile to publish services and unlock bundle creation.
                 </div>
               </div>
-
-              {/* Quick ID Upload Form inside Add Service Page */}
-              <form onSubmit={handleIdUpload} style={{ marginTop: '12px', borderTop: '1px dashed #fcd34d', paddingTop: '12px' }}>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '800', textTransform: 'uppercase', marginBottom: '6px', color: '#78350f' }}>
-                  Upload Valid ID / Permit Document:
-                </label>
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                  <input 
-                    type="file" 
-                    accept="image/*,.pdf" 
-                    onChange={(e) => setSelectedFile(e.target.files[0])}
-                    style={{ fontSize: '0.8rem', flex: 1, minWidth: '180px' }}
-                  />
-                  <button 
-                    type="submit" 
-                    disabled={uploadingId || !selectedFile}
-                    style={{ 
-                      background: '#d97706', 
-                      color: '#fff', 
-                      border: 'none', 
-                      padding: '8px 14px', 
-                      borderRadius: '8px', 
-                      fontWeight: '700', 
-                      fontSize: '0.78rem',
-                      cursor: uploadingId || !selectedFile ? 'not-allowed' : 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px'
-                    }}
-                  >
-                    <UploadCloud size={14} /> {uploadingId ? 'Uploading...' : 'Submit ID'}
-                  </button>
-                </div>
-                <div style={{ fontSize: '0.72rem', color: '#a16207', marginTop: '6px' }}>
-                  *You can also submit this directly via your <span style={{ textDecoration: 'underline', cursor: 'pointer', fontWeight: '700' }} onClick={() => navigate('/profile')}>Profile Page</span>.
-                </div>
-              </form>
+              <button 
+                onClick={() => navigate('/profile')}
+                style={{ 
+                  background: '#d97706', 
+                  color: '#fff', 
+                  border: 'none', 
+                  padding: '10px 16px', 
+                  borderRadius: '10px', 
+                  fontWeight: '800', 
+                  fontSize: '0.8rem', 
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  width: '100%',
+                  justifyContent: 'center',
+                  boxSizing: 'border-box'
+                }}
+              >
+                <UserCheck size={16} /> Go to Profile to Submit ID / Permit
+              </button>
             </div>
           )}
 
@@ -344,7 +291,7 @@ const AddService = () => {
               </div>
               <h3 style={{ fontSize: '1.15rem', fontWeight: '900', color: '#0f172a', margin: '0 0 8px 0' }}>Bundle Creator Locked</h3>
               <p style={{ fontSize: '0.85rem', color: '#64748b', lineHeight: '1.5', margin: 0 }}>
-                You must achieve <strong>Verified Status</strong> by uploading a valid identification document (using the form on the left or via your profile) to unlock service bundle creation and packaging.
+                You must achieve <strong>Verified Status</strong> by submitting a valid identification document via your profile to unlock service bundle creation and packaging.
               </p>
             </div>
           )}
