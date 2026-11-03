@@ -37,7 +37,7 @@ const AdminDashboard = () => {
         api.get('/admin/stats', { headers }),
         api.get('/admin/vendors', { headers }),
         api.get('/admin/vendor-permits', { headers }),
-        api.get('/activity-logs', { headers }) // Endpoint para makuha ang mga login/logout logs
+        api.get('/admin/activity-logs', { headers }) // Endpoint para makuha ang mga login/logout logs
       ]);
       
       if (results[0].status === 'fulfilled') setAllBookings(results[0].value.data.data || []);
