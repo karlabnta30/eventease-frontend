@@ -17,6 +17,8 @@ const AddService = () => {
     category: '',
     location: '',
     starting_price: '',
+    min_pax: '',
+    max_pax: '',
     description: '',
     bio: '',
     terms_and_conditions: '', 
@@ -201,17 +203,41 @@ const AddService = () => {
               </div>
             </div>
 
-            <div>
-              <label style={labelStyle}>Starting Price (₱)</label>
-              <input 
-                style={inputStyle} 
-                type="number" 
-                placeholder="e.g., 15000" 
-                value={serviceData.starting_price}
-                onChange={(e) => setServiceData({...serviceData, starting_price: e.target.value})} 
-                disabled={!isVerified}
-                required 
-              />
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: '15px' }}>
+              <div>
+                <label style={labelStyle}>Starting Price (₱)</label>
+                <input 
+                  style={inputStyle} 
+                  type="number" 
+                  placeholder="e.g., 15000" 
+                  value={serviceData.starting_price}
+                  onChange={(e) => setServiceData({...serviceData, starting_price: e.target.value})} 
+                  disabled={!isVerified}
+                  required 
+                />
+              </div>
+              <div>
+                <label style={labelStyle}>Min Pax</label>
+                <input 
+                  style={inputStyle} 
+                  type="number" 
+                  placeholder="e.g., 50" 
+                  value={serviceData.min_pax}
+                  onChange={(e) => setServiceData({...serviceData, min_pax: e.target.value})} 
+                  disabled={!isVerified}
+                />
+              </div>
+              <div>
+                <label style={labelStyle}>Max Pax</label>
+                <input 
+                  style={inputStyle} 
+                  type="number" 
+                  placeholder="e.g., 300" 
+                  value={serviceData.max_pax}
+                  onChange={(e) => setServiceData({...serviceData, max_pax: e.target.value})} 
+                  disabled={!isVerified}
+                />
+              </div>
             </div>
 
             <div>
