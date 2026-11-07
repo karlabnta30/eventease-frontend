@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import api from '../api';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { MapPin, Lock, AlertCircle, Power, Star, Check, Plus, Trash2, ShieldAlert, ChevronRight, ArrowLeft, Sparkles, Sliders, ShoppingBag, X, Info, Users, CheckCircle2, AlertTriangle, XCircle, MessageSquare, Search, ExternalLink, Columns, Ban } from 'lucide-react';
+import { MapPin, Lock, AlertCircle, Power, Star, Check, Plus, Trash2, ShieldAlert, ChevronRight, ArrowLeft, Sparkles, Sliders, ShoppingBag, X, Info, Users, CheckCircle2, AlertTriangle, XCircle, MessageSquare, Search, ExternalLink, Columns, Ban, Layers } from 'lucide-react';
 import { notifyNewBooking } from '../toastUtils.jsx';
 import { toast } from 'react-hot-toast';
 
@@ -51,6 +51,7 @@ const VendorList = () => {
     }, [searchParams]);
     
     const [vendors, setVendors] = useState([]);
+    const [bundles, setBundles] = useState([]);
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
     
     const [selectedServices, setSelectedServices] = useState(() => {
@@ -157,10 +158,12 @@ const VendorList = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    const categories = useMemo(() => ['Catering', 'Photography', 'Venue', 'Entertainment', 'Decoration', 'Hosting', 'Random Stuff / Miscellaneous'], []);
+    // Idinagdag ang 'Bundle Packages' sa mga kategorya
+    const categories = useMemo(() => ['Bundle Packages', 'Catering', 'Photography', 'Venue', 'Entertainment', 'Decoration', 'Hosting', 'Random Stuff / Miscellaneous'], []);
 
     const getCategoryPhoto = useCallback((category) => {
         const photos = {
+            'Bundle Packages': 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=800&auto=format&fit=crop',
             'Catering': 'https://images.unsplash.com/photo-1555244162-803834f70033?q=80&w=800&auto=format&fit=crop',
             'Photography': 'https://images.unsplash.com/photo-1520854221256-17451cc331bf?q=80&w=800&auto=format&fit=crop',
             'Venue': 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?q=80&w=800&auto=format&fit=crop',
@@ -172,13 +175,22 @@ const VendorList = () => {
         return photos[category] || 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=800&auto=format&fit=crop';
     }, []);
 
-    const fetchVendors = useCallback(async () => {
+    const fetchVendorsAndBundles = useCallback(async () => {
         try {
             const endpoint = userRole === 'vendor' ? '/vendor/services' : '/vendors';
             const res = await api.get(endpoint);
             const rawData = res.data?.data || res.data || [];
             const uniqueData = Array.from(new Map(rawData.map(item => [item.id, item])).values());
             setVendors(uniqueData);
+
+            // Kunin rin ang mga bundles mula sa API
+            try {
+                const bundleRes = await api.get('/bundles');
+                const rawBundles = bundleRes.data?.data || bundleRes.data || [];
+                setBundles(rawBundles);
+            } catch (bundleErr) {
+                console.warn("Could not fetch bundles:", bundleErr);
+            }
         } catch (err) { 
             console.error("Fetch Error:", err); 
         } finally { 
@@ -187,8 +199,8 @@ const VendorList = () => {
     }, [userRole]);
 
     useEffect(() => {
-        fetchVendors();
-    }, [fetchVendors]);
+        fetchVendorsAndBundles();
+    }, [fetchVendorsAndBundles]);
 
     useEffect(() => {
         localStorage.setItem('eventease_pending_cart', JSON.stringify(selectedServices));
@@ -205,10 +217,10 @@ const VendorList = () => {
             await api.post(`/vendors/toggle/${id}`);
         } catch (error) { 
             console.error("Toggle failed", error);
-            fetchVendors();
+            fetchVendorsAndBundles();
             toast.error("Failed to update status.");
         }
-    }, [fetchVendors]);
+    }, [fetchVendorsAndBundles]);
 
     const confirmDeleteService = useCallback(async () => {
         if (!serviceToDelete) return;
@@ -217,12 +229,12 @@ const VendorList = () => {
             await api.delete(`/vendors/${serviceToDelete.id}`);
             toast.success("Service deleted successfully.");
             setServiceToDelete(null);
-            fetchVendors();
+            fetchVendorsAndBundles();
         } catch (error) {
             console.error("Delete failed:", error);
             toast.error(error.response?.data?.message || "Failed to delete service.");
         }
-    }, [serviceToDelete, fetchVendors]);
+    }, [serviceToDelete, fetchVendorsAndBundles]);
 
     const calculateDynamicPrice = useCallback((vendor) => {
         if (!vendor) return 0;
@@ -256,7 +268,6 @@ const VendorList = () => {
         });
     }, []);
 
-    // Feature 1: Compare Toggle Handler
     const toggleCompareVendor = useCallback((vendorId) => {
         setComparedVendorIds(prev => {
             if (prev.includes(vendorId)) {
@@ -335,7 +346,6 @@ const VendorList = () => {
     const isCartOverBudget = userBudget > 0 && totalSelectedCost > userBudget;
     const overBudgetAmount = totalSelectedCost - userBudget;
 
-    // Feature 2: Burn-down Percentage Calculation
     const budgetBurnPercentage = useMemo(() => {
         if (!userBudget || userBudget <= 0) return 0;
         return Math.min(100, Math.round((totalSelectedCost / userBudget) * 100));
@@ -400,9 +410,20 @@ const VendorList = () => {
         }
     };
 
-    const filteredVendors = useMemo(() => {
+    // Salain ang mga items kung Bundle Packages ba o Standalone Services ang tinitingnan
+    const filteredItems = useMemo(() => {
+        if (!activeCategoryView) return [];
+
+        if (activeCategoryView === 'Bundle Packages') {
+            return bundles.map(b => ({
+                ...b,
+                category: 'Bundle Packages',
+                business_name: b.bundle_name || b.name,
+                starting_price: b.price || b.starting_price
+            }));
+        }
+
         const matching = vendors.filter(v => {
-            if (!activeCategoryView) return true;
             const vCat = (v.category || '').toLowerCase();
             const active = activeCategoryView.toLowerCase();
             
@@ -413,9 +434,8 @@ const VendorList = () => {
         });
 
         return Array.from(new Map(matching.map(item => [item.id, item])).values());
-    }, [vendors, activeCategoryView]);
+    }, [vendors, bundles, activeCategoryView]);
 
-    // Feature 3: Smart Category Recommendation Helper
     const recommendedCategories = useMemo(() => {
         const cartCategories = selectedServices.map(s => (s.category || '').toLowerCase());
         if (cartCategories.some(c => c.includes('venue'))) {
@@ -444,7 +464,7 @@ const VendorList = () => {
                         </button>
                     )}
                     <h1 style={{ fontSize: isMobile ? '1.8rem' : '2.5rem', fontWeight: '900', letterSpacing: '-1.5px', color: '#000', margin: 0, wordBreak: 'break-word' }}>
-                        {activeCategoryView ? `${activeCategoryView} Services` : (userRole === 'vendor' ? 'My Listed Services' : 'Browse Service Categories')}
+                        {activeCategoryView ? `${activeCategoryView} Listings` : (userRole === 'vendor' ? 'My Listed Services' : 'Browse Service Categories')}
                     </h1>
                 </div>
 
@@ -497,7 +517,7 @@ const VendorList = () => {
                                     </div>
                                 </div>
                                 <div style={{ padding: '18px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <span style={{ fontWeight: '800', fontSize: '0.9rem', color: '#0f172a' }}>View Listed Services</span>
+                                    <span style={{ fontWeight: '800', fontSize: '0.9rem', color: '#0f172a' }}>{cat === 'Bundle Packages' ? 'View Available Bundles' : 'View Listed Services'}</span>
                                     <ChevronRight size={18} color="#0f172a" />
                                 </div>
                             </div>
@@ -506,23 +526,23 @@ const VendorList = () => {
                 </div>
             ) : (
                 <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(320px, 1fr))', gap: '25px', marginTop: '30px' }}>
-                    {filteredVendors.length > 0 ? filteredVendors.map(vendor => {
-                        const dynamicPrice = calculateDynamicPrice(vendor);
+                    {filteredItems.length > 0 ? filteredItems.map(item => {
+                        const dynamicPrice = calculateDynamicPrice(item);
                         const isTooExpensive = userBudget > 0 && dynamicPrice > userBudget;
-                        const isOffline = vendor.is_available === 0;
+                        const isOffline = item.is_available === 0;
                         
-                        const minP = vendor.min_pax ? Number(vendor.min_pax) : 15;
-                        const maxP = vendor.max_pax ? Number(vendor.max_pax) : 100;
+                        const minP = item.min_pax ? Number(item.min_pax) : 15;
+                        const maxP = item.max_pax ? Number(item.max_pax) : 100;
                         const isPaxUnsuitable = guestCount < minP || guestCount > maxP;
 
                         const isDisabled = (isTooExpensive || isOffline || isPaxUnsuitable) && userRole !== 'vendor';
-                        const isSelected = selectedServices.some(s => s.id === vendor.id);
-                        const isCompared = comparedVendorIds.includes(vendor.id);
+                        const isSelected = selectedServices.some(s => s.id === item.id);
+                        const isCompared = comparedVendorIds.includes(item.id);
 
-                        const serviceDescription = vendor.description || vendor.details || vendor.inclusions || vendor.notes || "No additional description provided by the vendor.";
+                        const itemDescription = item.description || item.details || item.inclusions || item.notes || "No additional description provided.";
 
                         return (
-                            <div key={vendor.id} style={{
+                            <div key={item.id} style={{
                                 background: '#fff', borderRadius: '28px', overflow: 'hidden', 
                                 border: isSelected ? '2px solid #000' : '1px solid #f0f0f0', 
                                 position: 'relative', opacity: isDisabled ? 0.7 : 1, 
@@ -530,13 +550,13 @@ const VendorList = () => {
                                 display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
                             }}>
                                 <div>
-                                    <div style={{ height: '180px', backgroundImage: `url(${getCategoryPhoto(vendor.category)})`, backgroundSize: 'cover', backgroundPosition: 'center', position: 'relative' }}>
+                                    <div style={{ height: '180px', backgroundImage: `url(${getCategoryPhoto(activeCategoryView)})`, backgroundSize: 'cover', backgroundPosition: 'center', position: 'relative' }}>
                                         <div style={{ position: 'absolute', top: '15px', left: '15px', background: '#fff', padding: '5px 12px', borderRadius: '8px', fontSize: '0.7rem', fontWeight: '800' }}>
-                                            {vendor.category || 'General'}
+                                            {activeCategoryView}
                                         </div>
 
-                                        {userRole !== 'vendor' && (
-                                            <div style={{ position: 'absolute', top: '15px', right: '15px', background: isCompared ? '#000' : 'rgba(255,255,255,0.9)', color: isCompared ? '#fff' : '#0f172a', padding: '6px 10px', borderRadius: '8px', fontSize: '0.7rem', fontWeight: '800', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }} onClick={() => toggleCompareVendor(vendor.id)}>
+                                        {activeCategoryView !== 'Bundle Packages' && userRole !== 'vendor' && (
+                                            <div style={{ position: 'absolute', top: '15px', right: '15px', background: isCompared ? '#000' : 'rgba(255,255,255,0.9)', color: isCompared ? '#fff' : '#0f172a', padding: '6px 10px', borderRadius: '8px', fontSize: '0.7rem', fontWeight: '800', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }} onClick={() => toggleCompareVendor(item.id)}>
                                                 <input type="checkbox" checked={isCompared} onChange={() => {}} style={{ cursor: 'pointer' }} /> Compare
                                             </div>
                                         )}
@@ -552,10 +572,10 @@ const VendorList = () => {
 
                                     <div style={{ padding: '20px' }}>
                                         <h3 style={{ fontWeight: '900', fontSize: '1.2rem', margin: '0 0 4px 0', wordBreak: 'break-word' }}>
-                                            {vendor.business_name || vendor.name}
+                                            {item.business_name || item.name}
                                         </h3>
                                         
-                                        <StarRating rating={vendor.rating || 5.0} totalReviews={vendor.total_reviews || 12} />
+                                        <StarRating rating={item.rating || 5.0} totalReviews={item.total_reviews || 12} />
 
                                         <div style={{ 
                                             background: isPaxUnsuitable ? '#fef2f2' : '#f0fdf4', 
@@ -570,24 +590,26 @@ const VendorList = () => {
 
                                         <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', padding: '12px 14px', borderRadius: '12px', marginBottom: '14px' }}>
                                             <div style={{ fontSize: '0.72rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                <Info size={13} /> Service Information & Details:
+                                                <Info size={13} /> {activeCategoryView === 'Bundle Packages' ? 'Bundle Package Inclusions:' : 'Service Information & Details:'}
                                             </div>
                                             <p style={{ margin: 0, fontSize: '0.85rem', color: '#334155', lineHeight: '1.4', wordBreak: 'break-word' }}>
-                                                {serviceDescription}
+                                                {itemDescription}
                                             </p>
                                         </div>
 
-                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', color: '#666', fontSize: '0.85rem', marginBottom: '16px', wordBreak: 'break-word' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: 1 }}>
-                                                <MapPin size={15} style={{ flexShrink: 0 }} /> {vendor.location || 'Metro Manila'}
+                                        {activeCategoryView !== 'Bundle Packages' && (
+                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', color: '#666', fontSize: '0.85rem', marginBottom: '16px', wordBreak: 'break-word' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: 1 }}>
+                                                    <MapPin size={15} style={{ flexShrink: 0 }} /> {item.location || 'Metro Manila'}
+                                                </div>
+                                                <button 
+                                                    onClick={() => setMapModalUrl(`https://maps.google.com/?q=${encodeURIComponent(item.location || eventLocation)}`)}
+                                                    style={{ background: '#f1f5f9', border: 'none', color: '#2563eb', padding: '4px 8px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: '800', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                                                >
+                                                    <ExternalLink size={12} /> Map
+                                                </button>
                                             </div>
-                                            <button 
-                                                onClick={() => setMapModalUrl(`https://maps.google.com/?q=${encodeURIComponent(vendor.location || eventLocation)}`)}
-                                                style={{ background: '#f1f5f9', border: 'none', color: '#2563eb', padding: '4px 8px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: '800', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
-                                            >
-                                                <ExternalLink size={12} /> Map
-                                            </button>
-                                        </div>
+                                        )}
                                     </div>
                                 </div>
 
@@ -603,16 +625,16 @@ const VendorList = () => {
                                         <div style={{ width: isMobile ? '100%' : '190px' }}>
                                             {userRole === 'vendor' ? (
                                                 <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
-                                                    <button onClick={() => handleToggleStatus(vendor.id)} style={{
-                                                        background: vendor.is_available ? '#000' : '#f0f0f0',
-                                                        color: vendor.is_available ? '#fff' : '#aaa',
+                                                    <button onClick={() => handleToggleStatus(item.id)} style={{
+                                                        background: item.is_available ? '#000' : '#f0f0f0',
+                                                        color: item.is_available ? '#fff' : '#aaa',
                                                         padding: '12px 10px', borderRadius: '12px', border: 'none', fontWeight: '800', cursor: 'pointer', flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '0.75rem'
                                                     }}>
                                                         <Power size={14} />
-                                                        {vendor.is_available ? 'ONLINE' : 'OFFLINE'}
+                                                        {item.is_available ? 'ONLINE' : 'OFFLINE'}
                                                     </button>
 
-                                                    <button onClick={() => setServiceToDelete(vendor)} style={{
+                                                    <button onClick={() => setServiceToDelete(item)} style={{
                                                         background: '#fee2e2', color: '#991b1b', padding: '12px 14px', borderRadius: '12px', border: 'none', fontWeight: '800', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
                                                     }} title="Delete Service">
                                                         <Trash2 size={16} />
@@ -624,7 +646,7 @@ const VendorList = () => {
                                                         background: isSelected ? '#10b981' : '#000', 
                                                         color: '#fff', border: 'none', padding: '12px 16px', borderRadius: '12px', fontWeight: '800', cursor: 'pointer', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '0.85rem'
                                                     }} 
-                                                    onClick={() => toggleSelectService(vendor)}
+                                                    onClick={() => toggleSelectService(item)}
                                                 >
                                                     {isSelected ? <><Check size={16} /> IN CART</> : <><Plus size={16} /> ADD TO CART</>}
                                                 </button>
@@ -636,7 +658,7 @@ const VendorList = () => {
                         );
                     }) : (
                         <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '60px 20px', color: '#64748b', fontWeight: '700' }}>
-                            No services found in this category.
+                            No items found in this category.
                         </div>
                     )}
                 </div>
@@ -672,47 +694,7 @@ const VendorList = () => {
                 </div>
             )}
 
-            {/* Feature 1: Side-by-Side Comparison Floating Trigger & Drawer */}
-            {comparedVendorIds.length > 0 && userRole !== 'vendor' && (
-                <div style={{ position: 'fixed', top: '20px', right: '20px', zIndex: 950, background: '#0f172a', color: '#fff', padding: '12px 20px', borderRadius: '16px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <Columns size={18} />
-                    <span style={{ fontWeight: '800', fontSize: '0.85rem' }}>Comparing ({comparedVendorIds.length}/3)</span>
-                    <button onClick={() => setIsCompareDrawerOpen(true)} style={{ background: '#2563eb', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: '800', cursor: 'pointer' }}>
-                        View Side-by-Side
-                    </button>
-                </div>
-            )}
-
-            {isCompareDrawerOpen && (
-                <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1250, padding: '16px' }}>
-                    <div style={{ background: '#fff', borderRadius: '28px', width: '100%', maxWidth: '900px', maxHeight: '90vh', overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #f1f5f9', paddingBottom: '12px' }}>
-                            <h3 style={{ margin: 0, fontWeight: '900', fontSize: '1.3rem' }}>Vendor Comparison Mode</h3>
-                            <button onClick={() => setIsCompareDrawerOpen(false)} style={{ background: '#f1f5f9', border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><X size={18} /></button>
-                        </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${comparedVendorIds.length}, 1fr)`, gap: '16px' }}>
-                            {comparedVendorIds.map(id => {
-                                const v = vendors.find(item => item.id === id);
-                                if (!v) return null;
-                                const p = calculateDynamicPrice(v);
-                                return (
-                                    <div key={v.id} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '20px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                        <div style={{ fontWeight: '900', fontSize: '1.1rem' }}>{v.business_name || v.name}</div>
-                                        <div style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: '700' }}>Category: {v.category}</div>
-                                        <div style={{ fontSize: '1.1rem', fontWeight: '900', color: '#16a34a' }}>₱{p.toLocaleString()}</div>
-                                        <div style={{ fontSize: '0.8rem', fontWeight: '700' }}>Rating: {v.rating || 5.0} ⭐</div>
-                                        <div style={{ fontSize: '0.8rem', fontWeight: '700' }}>Capacity: {v.min_pax || 15} - {v.max_pax || 100} Pax</div>
-                                        <div style={{ fontSize: '0.8rem', color: '#334155', background: '#fff', padding: '8px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>{v.description || 'No description'}</div>
-                                        <button onClick={() => setComparedVendorIds(prev => prev.filter(item => item !== id))} style={{ background: '#fee2e2', color: '#991b1b', border: 'none', padding: '6px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: '800', cursor: 'pointer' }}>Remove from Compare</button>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Exact Original Floating Bottom Bar Design */}
+            {/* Floating Bottom Bar */}
             {selectedServices.length > 0 && userRole !== 'vendor' && (
                 <div style={{
                     position: 'fixed', bottom: '20px', left: '50%', transform: 'translateX(-50%)',
@@ -769,7 +751,7 @@ const VendorList = () => {
                 </div>
             )}
 
-            {/* Cart Modal - Two Column Layout (Left: AI Sliders, Right: Selected Services) */}
+            {/* Cart Modal */}
             {isCartModalOpen && (
                 <div style={{
                     position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)',
@@ -780,7 +762,6 @@ const VendorList = () => {
                         maxHeight: '90vh', overflowY: 'auto', display: 'flex', flexDirection: 'column',
                         boxShadow: '0 25px 50px -12px rgba(0,0,0,0.3)'
                     }}>
-                        {/* Modal Header */}
                         <div style={{ padding: '20px 24px', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, background: '#fff', zIndex: 10 }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                 <ShoppingBag size={22} color="#0f172a" />
@@ -796,7 +777,6 @@ const VendorList = () => {
                             </button>
                         </div>
 
-                        {/* Feature 2: Live Budget Burn-Down Progress Bar */}
                         {userBudget > 0 && (
                             <div style={{ padding: '16px 24px 0 24px' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', fontWeight: '800', marginBottom: '6px' }}>
@@ -809,10 +789,7 @@ const VendorList = () => {
                             </div>
                         )}
 
-                        {/* Modal Body: Two Column Layout */}
                         <div style={{ padding: '24px', display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '24px', alignItems: 'start' }}>
-                            
-                            {/* LEFT COLUMN: AI Budget Optimizer & Sliders */}
                             <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '20px', padding: '20px' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -884,7 +861,6 @@ const VendorList = () => {
                                 </div>
                             </div>
 
-                            {/* RIGHT COLUMN: Selected Services List */}
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                                 <h4 style={{ margin: 0, fontWeight: '900', fontSize: '1rem', color: '#0f172a' }}>Selected Services ({selectedServices.length})</h4>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '400px', overflowY: 'auto' }}>
@@ -934,7 +910,6 @@ const VendorList = () => {
                             </div>
                         </div>
 
-                        {/* Modal Footer */}
                         <div style={{ padding: '20px 24px', borderTop: '1px solid #f1f5f9', background: '#fafafa', display: 'flex', flexDirection: 'column', gap: '12px', position: 'sticky', bottom: 0, zIndex: 10 }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <span style={{ fontWeight: '800', color: '#64748b', fontSize: '0.9rem' }}>Total Amount</span>
