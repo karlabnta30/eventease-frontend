@@ -16,7 +16,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-// Helper component para makuha ang eksaktong address gamit ang Reverse Geocoding kapag nag-click sa mapa
+// Helper component para makuha ang eksaktong street/landmark address kapag nag-click sa Leaflet map
 const LocationSelector = ({ position, setPosition, setLocation }) => {
   useMapEvents({
     async click(e) {
@@ -24,18 +24,24 @@ const LocationSelector = ({ position, setPosition, setLocation }) => {
       setPosition([lat, lng]);
       
       try {
-        // Kunin ang eksaktong pangalan ng lugar mula sa OpenStreetMap Nominatim API base sa lat/lng
+        // Gumamit ng mas detalyadong zoom level (zoom=18) para makuha ang mismong kalye o landmark
         const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
         const data = await res.json();
         
-        if (data && data.display_name) {
-          // Kunin ang maikli at eksaktong pangalan ng lugar (hal. Barangay, Lungsod)
-          const address = data.address;
-          const specificPlace = address.suburb || address.neighbourhood || address.city_district || address.town || address.city || 'Eksaktong Posisyon';
-          const cityOrState = address.city || address.province || address.state || '';
-          const exactText = cityOrState ? `${specificPlace}, ${cityOrState}` : specificPlace;
+        if (data && data.address) {
+          const addr = data.address;
+          // Kunin ang eksaktong kalye, landmark, o gusali kung saan nag-click
+          const streetOrBuilding = addr.road || addr.pedestrian || addr.commercial || addr.suburb || addr.neighbourhood || '';
+          const districtOrCity = addr.city_district || addr.city || addr.town || addr.municipality || '';
           
-          setLocation(exactText);
+          let exactAddress = '';
+          if (streetOrBuilding && districtOrCity) {
+            exactAddress = `${streetOrBuilding}, ${districtOrCity}`;
+          } else {
+            exactAddress = data.display_name.split(',')[0] + (districtOrCity ? `, ${districtOrCity}` : '');
+          }
+          
+          setLocation(exactAddress);
         } else {
           setLocation(`Pin (${lat.toFixed(4)}, ${lng.toFixed(4)})`);
         }
@@ -98,7 +104,7 @@ const AddService = () => {
     checkVerification();
   }, []);
 
-  // Kapag nag-type sa Text Box: Awtomatikong i-search at igagalaw ang pin sa tamang pwesto sa mapa
+  // Kapag nag-type sa Text Box: Awtomatikong hanapin at ilipat ang pin sa tamang pwesto sa mapa
   const handleLocationTextChange = async (e) => {
     const val = e.target.value;
     setServiceData(prev => ({ ...prev, location: val }));
@@ -302,7 +308,7 @@ const AddService = () => {
                 <input 
                   style={inputStyle} 
                   type="text" 
-                  placeholder="e.g., BGC, Taguig o Makati City" 
+                  placeholder="e.g., P. Paterno St, Quiapo" 
                   value={serviceData.location}
                   onChange={handleLocationTextChange} 
                   disabled={!isVerified}
@@ -311,19 +317,19 @@ const AddService = () => {
               </div>
             </div>
 
-            {/* Totoong Leaflet Interactive Map Section na may Reverse Geocoding */}
+            {/* Interactive Leaflet Map Section */}
             <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <span style={{ fontSize: '0.78rem', fontWeight: '800', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                   📍 Interactive Map (Philippines / Luzon Locked)
                 </span>
-                <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: '600' }}>I-click ang mapa para makuha ang eksaktong address</span>
+                <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: '600' }}>I-click ang eksaktong kalye o gusali sa mapa</span>
               </div>
 
               <div style={{ height: '220px', borderRadius: '12px', overflow: 'hidden', border: '1px solid #cbd5e1', zIndex: 1 }}>
                 <MapContainer 
                   center={mapPosition} 
-                  zoom={13} 
+                  zoom={16} 
                   style={{ height: '100%', width: '100%' }}
                   dragging={isVerified}
                   scrollWheelZoom={false}
