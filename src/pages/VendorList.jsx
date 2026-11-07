@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import api from '../api';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { MapPin, Lock, AlertCircle, Power, Star, Check, Plus, Trash2, ShieldAlert, ChevronRight, ArrowLeft, Sparkles, Sliders, ShoppingBag, X, Info, Users, CheckCircle2, AlertTriangle, XCircle } from 'lucide-react';
+import { MapPin, Lock, AlertCircle, Power, Star, Check, Plus, Trash2, ShieldAlert, ChevronRight, ArrowLeft, Sparkles, Sliders, ShoppingBag, X, Info, Users, CheckCircle2, AlertTriangle, XCircle, MessageSquare } from 'lucide-react';
 import { notifyNewBooking } from '../toastUtils.jsx';
 import { toast } from 'react-hot-toast';
 
@@ -92,7 +92,6 @@ const VendorList = () => {
         }));
     };
 
-    // Pagtanggal ng category mula sa sliders
     const handleRemoveSliderCategory = (itemKey) => {
         setCustomAllocations(prev => {
             const copy = { ...prev };
@@ -101,11 +100,10 @@ const VendorList = () => {
         });
     };
 
-    // Pagbabalik ng tinanggal na category
     const handleAddSliderCategory = (itemKey) => {
         setCustomAllocations(prev => ({
             ...prev,
-            [itemKey]: 10 // default 10% pag binalik
+            [itemKey]: 10
         }));
     };
 
@@ -557,40 +555,64 @@ const VendorList = () => {
                 </div>
             )}
 
-            {/* Classic Black Floating Bottom Bar */}
+            {/* Exact Original Floating Bottom Bar Design */}
             {selectedServices.length > 0 && userRole !== 'vendor' && (
                 <div style={{
                     position: 'fixed', bottom: '20px', left: '50%', transform: 'translateX(-50%)',
-                    width: isMobile ? '92%' : '85%', maxWidth: '900px', background: '#0f172a', borderRadius: '24px',
-                    padding: '16px 24px', boxShadow: '0 20px 40px rgba(0,0,0,0.25)', border: '1px solid #334155',
+                    width: isMobile ? '92%' : '82%', maxWidth: '850px', background: '#334155', borderRadius: '30px',
+                    padding: '12px 24px', boxShadow: '0 15px 35px rgba(0,0,0,0.3)', border: '1px solid #475569',
                     display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 900, color: '#fff', flexWrap: 'wrap', gap: '12px'
                 }}>
-                    <div onClick={() => setIsCartModalOpen(true)} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <div style={{ background: '#334155', padding: '10px', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <ShoppingBag size={20} color="#fff" />
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <div 
+                            onClick={() => setIsCartModalOpen(true)}
+                            style={{ fontSize: '0.8rem', color: '#cbd5e1', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                        >
+                            <ShoppingBag size={14} /> {selectedServices.length} Service(s) in Cart (Click to View / Edit) <Search size={12} />
                         </div>
-                        <div>
-                            <div style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: '700' }}>
-                                {selectedServices.length} Service(s) in Cart
-                            </div>
-                            <div style={{ fontSize: '1.2rem', fontWeight: '900', color: isCartOverBudget ? '#f87171' : '#fff' }}>
-                                ₱{totalSelectedCost.toLocaleString()} {isCartOverBudget && '(Over Budget)'}
-                            </div>
+                        <div style={{ fontSize: '1.25rem', fontWeight: '900', color: isCartOverBudget ? '#f87171' : '#fff' }}>
+                            Total: ₱{totalSelectedCost.toLocaleString()} {isCartOverBudget && '(Over Budget)'}
                         </div>
                     </div>
 
-                    <div style={{ display: 'flex', gap: '10px' }}>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
                         <button 
                             onClick={() => setIsCartModalOpen(true)}
-                            style={{ background: '#ffffff', color: '#0f172a', border: 'none', padding: '12px 20px', borderRadius: '14px', fontWeight: '900', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+                            style={{ background: '#f1f5f9', color: '#0f172a', border: 'none', padding: '10px 16px', borderRadius: '12px', fontWeight: '800', cursor: 'pointer', fontSize: '0.8rem' }}
                         >
-                            <Sliders size={16} /> VIEW CART & AI BUDGET SLIDERS
+                            View Cart
+                        </button>
+
+                        <button 
+                            onClick={() => navigate('/chat')}
+                            style={{ background: '#f1f5f9', color: '#0f172a', border: 'none', padding: '10px 16px', borderRadius: '12px', fontWeight: '800', cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '4px' }}
+                        >
+                            <MessageSquare size={14} /> Chat Vendors
+                        </button>
+
+                        <button 
+                            onClick={() => {
+                                setSelectedServices([]);
+                                localStorage.removeItem('eventease_pending_cart');
+                                toast.success("Cart cleared.");
+                            }}
+                            style={{ background: '#fee2e2', color: '#991b1b', border: 'none', padding: '10px 14px', borderRadius: '12px', fontWeight: '800', cursor: 'pointer', fontSize: '0.8rem' }}
+                        >
+                            Clear
+                        </button>
+
+                        <button 
+                            onClick={handleMultiServiceCheckout}
+                            disabled={hiringLoading}
+                            style={{ background: '#000000', color: '#ffffff', border: 'none', padding: '12px 20px', borderRadius: '12px', fontWeight: '900', cursor: 'pointer', fontSize: '0.82rem', letterSpacing: '0.5px' }}
+                        >
+                            {hiringLoading ? 'PROCESSING...' : 'BOOK CART SERVICES'}
                         </button>
                     </div>
                 </div>
             )}
 
-            {/* Cart Modal - Original Classic Look with Removable/Addable Sliders */}
+            {/* Cart Modal - Two Column Layout (Left: AI Sliders, Right: Selected Services) */}
             {isCartModalOpen && (
                 <div style={{
                     position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)',
@@ -675,7 +697,6 @@ const VendorList = () => {
                                         </div>
                                     ))}
 
-                                    {/* Pagbabalik ng tinanggal na kategorya */}
                                     {availableCategoriesToRestore.length > 0 && (
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px', flexWrap: 'wrap' }}>
                                             <span style={{ fontSize: '0.75rem', fontWeight: '700', color: '#64748b' }}>Add category:</span>
