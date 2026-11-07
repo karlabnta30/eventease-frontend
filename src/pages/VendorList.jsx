@@ -69,8 +69,8 @@ const VendorList = () => {
     const [isCartModalOpen, setIsCartModalOpen] = useState(false);
     const [serviceToDelete, setServiceToDelete] = useState(null);
 
-    // Custom Allocations para sa Sliders sa loob ng Cart Modal
-    const [customAllocations, setCustomAllocations] = useState(() => {
+    // Default full allocations
+    const defaultAllocations = useMemo(() => {
         const lowerType = eventType.toLowerCase();
         if (lowerType.includes('birthday')) {
             return { 'Catering & Food': 50, 'Venue Rental': 20, 'Decoration': 15, 'Entertainment': 10, 'Photography': 5 };
@@ -80,13 +80,32 @@ const VendorList = () => {
             return { 'Catering & Food': 35, 'Venue Rental': 30, 'Decoration': 15, 'Photography': 10, 'Entertainment': 10 };
         }
         return { 'Catering & Food': 40, 'Venue Rental': 25, 'Decoration': 15, 'Photography': 10, 'Entertainment': 10 };
-    });
+    }, [eventType]);
+
+    const [customAllocations, setCustomAllocations] = useState(defaultAllocations);
 
     const handleSliderChange = (itemKey, newVal) => {
         const val = parseInt(newVal, 10) || 0;
         setCustomAllocations(prev => ({
             ...prev,
             [itemKey]: val
+        }));
+    };
+
+    // Pagtanggal ng category mula sa sliders
+    const handleRemoveSliderCategory = (itemKey) => {
+        setCustomAllocations(prev => {
+            const copy = { ...prev };
+            delete copy[itemKey];
+            return copy;
+        });
+    };
+
+    // Pagbabalik ng tinanggal na category
+    const handleAddSliderCategory = (itemKey) => {
+        setCustomAllocations(prev => ({
+            ...prev,
+            [itemKey]: 10 // default 10% pag binalik
         }));
     };
 
@@ -107,19 +126,13 @@ const VendorList = () => {
 
         if (userBudget > 0 && userBudget < recommendedMinTotal) {
             status = 'Not Optimal';
-            message = `Your budget is lower than the recommended baseline (₱${recommendedMinTotal.toLocaleString()}) for ${guestCount} guests.`;
+            message = `Your budget is lower than recommended baseline (₱${recommendedMinTotal.toLocaleString()}) for ${guestCount} guests.`;
             statusColor = '#dc2626';
             statusBg = '#fef2f2';
             StatusIcon = XCircle;
         } else if (totalPercentage !== 100) {
             status = 'Not Optimal';
-            message = `Total scale is at ${totalPercentage}%. It should equal 100%.`;
-            statusColor = '#d97706';
-            statusBg = '#fffbeb';
-            StatusIcon = AlertTriangle;
-        } else if (userBudget > 0 && userBudget >= recommendedMinTotal && userBudget < recommendedMinTotal * 1.2) {
-            status = 'Slightly Optimal';
-            message = 'Your budget meets the minimum baseline with a minimal contingency buffer.';
+            message = `Total scale is at ${totalPercentage}%. It must equal exactly 100% to be optimal.`;
             statusColor = '#d97706';
             statusBg = '#fffbeb';
             StatusIcon = AlertTriangle;
@@ -362,6 +375,7 @@ const VendorList = () => {
     if (loading) return <div style={{ padding: '100px', textAlign: 'center', fontWeight: '800', fontSize: '1.2rem' }}>Loading Services...</div>;
 
     const StatusIconComp = aiOptimizerAnalysis.StatusIcon;
+    const availableCategoriesToRestore = Object.keys(defaultAllocations).filter(k => !(k in customAllocations));
 
     return (
         <div style={{ backgroundColor: '#ffffff', minHeight: '100vh', padding: isMobile ? '20px 16px 140px' : '40px 60px 140px', fontFamily: "'Inter', sans-serif" }}>
@@ -576,7 +590,7 @@ const VendorList = () => {
                 </div>
             )}
 
-            {/* Cart Modal na may Two-Column Layout (Left: AI Sliders, Right: Selected Services) */}
+            {/* Cart Modal - Original Classic Look with Removable/Addable Sliders */}
             {isCartModalOpen && (
                 <div style={{
                     position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)',
@@ -621,7 +635,7 @@ const VendorList = () => {
                                     </button>
                                 </div>
 
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', flexWrap: 'wrap' }}>
                                     <div style={{ background: aiOptimizerAnalysis.statusBg, color: aiOptimizerAnalysis.statusColor, padding: '4px 10px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                         <StatusIconComp size={13} /> {aiOptimizerAnalysis.status} Status
                                     </div>
@@ -635,11 +649,20 @@ const VendorList = () => {
                                 </p>
 
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                    {aiOptimizerAnalysis.breakdown.map((b, idx) => (
-                                        <div key={idx} style={{ background: '#fff', border: '1px solid #e2e8f0', padding: '10px 12px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                    {aiOptimizerAnalysis.breakdown.map((b) => (
+                                        <div key={b.item} style={{ background: '#fff', border: '1px solid #e2e8f0', padding: '10px 12px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '4px', position: 'relative' }}>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                                 <span style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: '700' }}>{b.item} ({b.percentage}%)</span>
-                                                <span style={{ fontSize: '0.85rem', fontWeight: '900', color: '#0f172a' }}>₱{b.amount.toLocaleString()}</span>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                    <span style={{ fontSize: '0.85rem', fontWeight: '900', color: '#0f172a' }}>₱{b.amount.toLocaleString()}</span>
+                                                    <button 
+                                                        onClick={() => handleRemoveSliderCategory(b.item)}
+                                                        style={{ background: '#fee2e2', color: '#991b1b', border: 'none', borderRadius: '6px', padding: '2px 6px', fontSize: '0.65rem', fontWeight: '800', cursor: 'pointer' }}
+                                                        title="Remove category slider"
+                                                    >
+                                                        <Trash2 size={12} />
+                                                    </button>
+                                                </div>
                                             </div>
                                             <input 
                                                 type="range" 
@@ -651,6 +674,22 @@ const VendorList = () => {
                                             />
                                         </div>
                                     ))}
+
+                                    {/* Pagbabalik ng tinanggal na kategorya */}
+                                    {availableCategoriesToRestore.length > 0 && (
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px', flexWrap: 'wrap' }}>
+                                            <span style={{ fontSize: '0.75rem', fontWeight: '700', color: '#64748b' }}>Add category:</span>
+                                            {availableCategoriesToRestore.map(cat => (
+                                                <button
+                                                    key={cat}
+                                                    onClick={() => handleAddSliderCategory(cat)}
+                                                    style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#0f172a', padding: '4px 8px', borderRadius: '8px', fontSize: '0.7rem', fontWeight: '800', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                                                >
+                                                    <Plus size={12} /> {cat}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 

@@ -149,130 +149,19 @@ const getRecommendedBudget = (pax, category) => {
   return pax ? Number(pax) * rate : 0;
 };
 
-// --- AI BUDGET OPTIMIZER SUB-COMPONENT (Category-tailored) ---
-const BudgetOptimizerWidget = ({ category, pax, budget }) => {
-  const [loading, setLoading] = useState(false);
-  const [optimizationResult, setOptimizationResult] = useState(null);
-
-  const categoryBreakdownTemplates = {
-    Wedding: [
-      { item: 'Catering & Food', percentage: '40%' },
-      { item: 'Venue Rental', percentage: '20%' },
-      { item: 'Photography & Videography', percentage: '15%' },
-      { item: 'Attire & Styling', percentage: '15%' },
-      { item: 'Lights, Sounds & Others', percentage: '10%' }
-    ],
-    Birthday: [
-      { item: 'Catering & Food', percentage: '45%' },
-      { item: 'Venue / Party Space', percentage: '20%' },
-      { item: 'Decoration & Theme', percentage: '15%' },
-      { item: 'Entertainment & Program', percentage: '10%' },
-      { item: 'Party Favors & Others', percentage: '10%' }
-    ],
-    Corporate: [
-      { item: 'Venue & Seating', percentage: '35%' },
-      { item: 'Catering / Meals & Snacks', percentage: '30%' },
-      { item: 'AV Equipment, Lights & Sounds', percentage: '20%' },
-      { item: 'Speaker / Host & Materials', percentage: '15%' }
-    ],
-    Workshop: [
-      { item: 'Venue / Training Room', percentage: '40%' },
-      { item: 'Participant Kits & Materials', percentage: '25%' },
-      { item: 'Meals & Coffee Breaks', percentage: '25%' },
-      { item: 'Speaker / Facilitator Fee', percentage: '10%' }
-    ],
-    Debut: [
-      { item: 'Catering & Food', percentage: '40%' },
-      { item: 'Venue Rental', percentage: '20%' },
-      { item: 'Gown, Styling & Makeup', percentage: '15%' },
-      { item: 'Photo & Video', percentage: '15%' },
-      { item: 'Program & Sounds', percentage: '10%' }
-    ]
-  };
-
-  const handleOptimize = async () => {
-    if (!category || !pax || !budget) {
-      alert("Please fill in Category, Guests, and Budget first.");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const response = await api.post('/ai/optimize', {
-        category,
-        guest_count: pax,
-        total_budget: budget
-      });
-
-      setOptimizationResult(response.data);
-    } catch (error) {
-      console.warn("Backend AI endpoint offline, using smart category template fallback...");
-      
-      const totalBudgetNum = parseFloat(budget) || 0;
-      const template = categoryBreakdownTemplates[category] || categoryBreakdownTemplates['Wedding'];
-      
-      const breakdown = template.map(row => {
-        const pct = parseInt(row.percentage.replace('%', '')) / 100;
-        return {
-          item: row.item,
-          percentage: row.percentage,
-          recommended_amount: Math.round(totalBudgetNum * pct)
-        };
-      });
-
-      const recommendedMin = getRecommendedBudget(pax, category);
-      const status = totalBudgetNum >= recommendedMin ? 'Optimal' : 'Tight Budget';
-      const message = status === 'Optimal' 
-        ? `Your budget is sufficient for a ${category} event with ${pax} guests.` 
-        : `Your budget is slightly lower than the standard rate for a ${category}. We recommend following this breakdown.`;
-
-      setOptimizationResult({
-        status,
-        message,
-        breakdown
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', padding: '20px', borderRadius: '24px', marginBottom: '24px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
-        <h4 style={{ margin: 0, fontWeight: '900', display: 'flex', alignItems: 'center', gap: '8px', color: '#0f172a', fontSize: '0.8rem', textTransform: 'uppercase' }}>
-          <Sparkles size={16} color="#3b82f6" /> AI Budget Optimizer ({category || 'General'})
-        </h4>
-        <button 
-          type="button"
-          onClick={handleOptimize} 
-          disabled={loading}
-          style={{ background: '#0f172a', color: '#fff', border: 'none', padding: '8px 14px', borderRadius: '10px', fontWeight: '800', cursor: 'pointer', fontSize: '0.75rem', boxShadow: '0 2px 8px rgba(15, 23, 42, 0.2)' }}
-        >
-          {loading ? 'ANALYZING...' : 'RUN AI OPTIMIZER'}
-        </button>
-      </div>
-
-      {optimizationResult && (
-        <div style={{ marginTop: '14px', background: '#fff', padding: '14px', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px', fontWeight: '900', fontSize: '0.82rem', color: optimizationResult.status === 'Optimal' ? '#166534' : '#991b1b' }}>
-            {optimizationResult.status === 'Optimal' ? <CheckCircle size={14} /> : <AlertTriangle size={14} />}
-            <span>{optimizationResult.status} Status</span>
-          </div>
-          <p style={{ fontSize: '0.8rem', color: '#64748b', marginBottom: '12px', lineHeight: '1.5' }}>{optimizationResult.message}</p>
-          
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            {optimizationResult.breakdown.map((row, index) => (
-              <div key={index} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', padding: '4px 0', borderBottom: '1px solid #f1f5f9', gap: '10px' }}>
-                <span style={{ fontWeight: '700', color: '#475569' }}>{row.item} ({row.percentage})</span>
-                <span style={{ fontWeight: '900', color: '#0f172a', whiteSpace: 'nowrap' }}>₱{row.recommended_amount.toLocaleString()}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
+// --- MODERN CUSTOM DATEPICKER INPUT COMPONENT ---
+const CustomDateInput = React.forwardRef(({ value, onClick, placeholder }, ref) => (
+  <div onClick={onClick} ref={ref} style={{
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    width: '100%', padding: '14px 16px', border: '2px solid #f1f5f9',
+    borderRadius: '14px', fontSize: '0.95rem', fontWeight: '700',
+    backgroundColor: '#f8fafc', color: '#0f172a', cursor: 'pointer',
+    boxSizing: 'border-box', transition: 'all 0.2s'
+  }}>
+    <span>{value || placeholder}</span>
+    <Calendar size={18} color="#3b82f6" />
+  </div>
+));
 
 const CreateEvent = () => {
   const navigate = useNavigate();
@@ -663,6 +552,12 @@ const CreateEvent = () => {
               value={eventData.address} 
               onChange={(e) => handleChange('address', e.target.value)}
               onBlur={handleAddressBlur} 
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleAddressBlur();
+                }
+              }}
             />
             
             {/* INTERACTIVE LEAFLET MAP LOCKED TO PHILIPPINES */}
@@ -685,7 +580,7 @@ const CreateEvent = () => {
                 {markerPosition && <Marker position={markerPosition} />}
               </MapContainer>
             </div>
-            <p style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '16px', fontWeight: '600' }}>💡 Type a place in the address box or click the map to automatically center the pin within the Philippines!</p>
+            <p style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '16px', fontWeight: '600' }}>💡 Type a place in the address box and press Enter (or click outside), or click the map to automatically center the pin within the Philippines!</p>
 
             <button type="button" onClick={handleGetCurrentLocation} style={styles.gpsBtn}>
               <Navigation size={14} /> Use My Current GPS Location
@@ -704,7 +599,7 @@ const CreateEvent = () => {
               dateFormat="MMMM d, yyyy h:mm aa" 
               minDate={new Date()}
               excludeDates={bookedDates} 
-              customInput={<input style={styles.input} />} 
+              customInput={<CustomDateInput placeholder="Select start date & time" />} 
             />
             <div style={{marginTop: '16px'}}>
                 <label style={styles.label}>Ends</label>
@@ -715,7 +610,7 @@ const CreateEvent = () => {
                   dateFormat="MMMM d, yyyy h:mm aa" 
                   minDate={eventData.startDate || new Date()} 
                   excludeDates={bookedDates}
-                  customInput={<input style={styles.input} />} 
+                  customInput={<CustomDateInput placeholder="Select end date & time" />} 
                 />
             </div>
           </div>
@@ -796,12 +691,6 @@ const CreateEvent = () => {
               </button>
             )}
           </div>
-
-          <BudgetOptimizerWidget 
-            category={eventData.category}
-            pax={eventData.pax}
-            budget={eventData.budget}
-          />
 
           <div style={{ display: 'flex', gap: '12px', flexDirection: isMobile ? 'column' : 'row' }}>
             <button type="button" onClick={() => navigate('/live-events')} style={styles.btnSecondary}>Cancel</button>
