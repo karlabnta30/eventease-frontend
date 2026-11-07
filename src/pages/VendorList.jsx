@@ -220,7 +220,6 @@ const VendorList = () => {
         }
     }, [fetchVendorsAndBundles]);
 
-    // Naayos na handleDelete / confirmDeleteService function para sa Bundles at Vendors
     const confirmDeleteService = useCallback(async () => {
         if (!serviceToDelete) return;
 
