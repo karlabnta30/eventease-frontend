@@ -288,26 +288,18 @@ const AddService = () => {
 
             <div>
               <label style={labelStyle}>Terms & Conditions / Contract Agreement</label>
-              <select 
-                style={inputStyle} 
-                value={serviceData.terms_and_conditions}
-                onChange={(e) => setServiceData({...serviceData, terms_and_conditions: e.target.value})} 
-                disabled={!isVerified}
-                required
-              >
-                <option value="50% downpayment required upon booking confirmation; remaining balance due on the event day.">
-                  50% Downpayment Required (Balance due on event day)
-                </option>
-                <option value="Full payment required upon booking confirmation. Non-refundable.">
-                  Full Payment Required (Non-refundable)
-                </option>
-                <option value="30% downpayment upon booking, 40% two weeks before event, 30% on the day.">
-                  Staggered Payment (30% Down, 40% Mid, 30% Final)
-                </option>
-                <option value="Standard EventEase Vendor Agreement: 50% deposit, rescheduling allowed up to 14 days prior.">
-                  Standard EventEase Vendor Agreement (50% Deposit + Reschedule Option)
-                </option>
-              </select>
+              <div style={{
+                ...inputStyle, 
+                backgroundColor: '#f8fafc', 
+                color: '#475569', 
+                cursor: 'not-allowed',
+                display: 'flex',
+                alignItems: 'center',
+                fontWeight: '600',
+                fontSize: '0.9rem'
+              }}>
+                50% downpayment required upon booking confirmation; remaining balance due on the event day. (Fixed Policy)
+              </div>
             </div>
 
             <button 
