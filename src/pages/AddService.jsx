@@ -2,13 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
 import { notifyServiceCreated } from '../toastUtils.jsx'; 
-import { AlertCircle, ShieldCheck, Briefcase, Layers, UserCheck } from 'lucide-react';
+import { AlertCircle, ShieldCheck, Briefcase, Layers, UserCheck, MapPin } from 'lucide-react';
 import CreateBundleForm from '../components/CreateBundleForm';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
-// Ayusin ang default icon issue ng Leaflet sa React
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
@@ -16,7 +15,6 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-// Helper component para makuha ang eksaktong street/landmark address kapag nag-click sa Leaflet map
 const LocationSelector = ({ position, setPosition, setLocation }) => {
   useMapEvents({
     async click(e) {
@@ -24,13 +22,11 @@ const LocationSelector = ({ position, setPosition, setLocation }) => {
       setPosition([lat, lng]);
       
       try {
-        // Gumamit ng mas detalyadong zoom level (zoom=18) para makuha ang mismong kalye o landmark
         const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
         const data = await res.json();
         
         if (data && data.address) {
           const addr = data.address;
-          // Kunin ang eksaktong kalye, landmark, o gusali kung saan nag-click
           const streetOrBuilding = addr.road || addr.pedestrian || addr.commercial || addr.suburb || addr.neighbourhood || '';
           const districtOrCity = addr.city_district || addr.city || addr.town || addr.municipality || '';
           
@@ -62,7 +58,6 @@ const AddService = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 960);
   const [paxError, setPaxError] = useState('');
 
-  // Default center sa Metro Manila
   const [mapPosition, setMapPosition] = useState([14.5995, 120.9842]);
 
   const [serviceData, setServiceData] = useState({
@@ -104,7 +99,44 @@ const AddService = () => {
     checkVerification();
   }, []);
 
-  // Kapag nag-type sa Text Box: Awtomatikong hanapin at ilipat ang pin sa tamang pwesto sa mapa
+  // Check kung ang kategorya ay nangangailangan ng Pax (Catering o Venue lamang)
+  const isPaxRequired = serviceData.category === 'Catering' || serviceData.category === 'Venue';
+
+  // Feature: Pin My Exact Location (Geolocation)
+  const handlePinMyExactLocation = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        setMapPosition([lat, lng]);
+
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
+          const data = await res.json();
+          if (data && data.address) {
+            const addr = data.address;
+            const streetOrBuilding = addr.road || addr.pedestrian || addr.commercial || addr.suburb || addr.neighbourhood || '';
+            const districtOrCity = addr.city_district || addr.city || addr.town || addr.municipality || '';
+            const exactAddress = streetOrBuilding && districtOrCity ? `${streetOrBuilding}, ${districtOrCity}` : (data.display_name.split(',')[0] || 'Exact Location');
+            
+            setServiceData(prev => ({ ...prev, location: exactAddress }));
+          }
+        } catch (err) {
+          console.error("Geolocation reverse coding error:", err);
+        }
+      },
+      (error) => {
+        alert("Unable to retrieve your location. Please check browser permissions.");
+        console.error(error);
+      }
+    );
+  };
+
   const handleLocationTextChange = async (e) => {
     const val = e.target.value;
     setServiceData(prev => ({ ...prev, location: val }));
@@ -132,34 +164,45 @@ const AddService = () => {
     }
 
     setPaxError('');
-    const min = parseInt(serviceData.min_pax, 10);
-    const max = parseInt(serviceData.max_pax, 10);
 
-    if (isNaN(min) || isNaN(max)) {
-      setPaxError("Error: Please provide valid numbers for both Minimum and Maximum Pax.");
-      return;
-    }
+    // I-validate lamang ang Pax kung Catering o Venue ang kategorya
+    if (isPaxRequired) {
+      const min = parseInt(serviceData.min_pax, 10);
+      const max = parseInt(serviceData.max_pax, 10);
 
-    if (min > max) {
-      setPaxError("Error: Minimum Pax cannot be greater than Maximum Pax.");
-      return;
-    }
+      if (isNaN(min) || isNaN(max)) {
+        setPaxError("Error: Please provide valid numbers for both Minimum and Maximum Pax for Catering/Venue.");
+        return;
+      }
 
-    if (min < 15) {
-      setPaxError("Error: Minimum Pax cannot be lower than 15.");
-      return;
-    }
+      if (min > max) {
+        setPaxError("Error: Minimum Pax cannot be greater than Maximum Pax.");
+        return;
+      }
 
-    if (max > 100) {
-      setPaxError("Error: Maximum Pax cannot exceed 100.");
-      return;
+      if (min < 15) {
+        setPaxError("Error: Minimum Pax cannot be lower than 15.");
+        return;
+      }
+
+      if (max > 100) {
+        setPaxError("Error: Maximum Pax cannot exceed 100.");
+        return;
+      }
     }
 
     setLoading(true);
     const token = localStorage.getItem('token');
 
+    // Kung hindi pax-required, linisin o gawing null ang min_pax/max_pax kung kinakailangan ng DB
+    const payload = {
+      ...serviceData,
+      min_pax: isPaxRequired ? serviceData.min_pax : null,
+      max_pax: isPaxRequired ? serviceData.max_pax : null
+    };
+
     try {
-      await api.post('/vendors', serviceData, {
+      await api.post('/vendors', payload, {
         headers: { 
           'Authorization': `Bearer ${token}`,
           'Accept': 'application/json'
@@ -185,7 +228,6 @@ const AddService = () => {
   return (
     <div style={{ padding: isMobile ? '20px 16px' : '50px 20px', maxWidth: '1400px', margin: '0 auto', fontFamily: "'Inter', sans-serif", background: '#f8fafc', minHeight: '100vh' }}>
       
-      {/* Top Banner Header */}
       <div style={{ marginBottom: '35px', textAlign: 'center' }}>
         <h1 style={{ fontSize: isMobile ? '1.8rem' : '2.5rem', fontWeight: '900', color: '#0f172a', letterSpacing: '-1px', margin: '0 0 10px 0', wordBreak: 'break-word' }}>
           Vendor Operations Hub
@@ -197,7 +239,6 @@ const AddService = () => {
 
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '30px', alignItems: 'start' }}>
         
-        {/* Left Column: Service Creator Form */}
         <div style={{ background: '#fff', padding: isMobile ? '24px 20px' : '40px', borderRadius: '28px', border: '1px solid #e2e8f0', boxShadow: '0 10px 25px rgba(0,0,0,0.03)', boxSizing: 'border-box' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '25px' }}>
             <div style={{ background: '#0f172a', padding: '12px', borderRadius: '16px', color: '#fff', flexShrink: 0 }}>
@@ -317,13 +358,20 @@ const AddService = () => {
               </div>
             </div>
 
-            {/* Interactive Leaflet Map Section */}
+            {/* Interactive Leaflet Map Section with Pin My Exact Location Button */}
             <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
                 <span style={{ fontSize: '0.78rem', fontWeight: '800', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  📍 Interactive Map (Philippines / Luzon Locked)
+                  📍 Interactive Map Pin
                 </span>
-                <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: '600' }}>I-click ang eksaktong kalye o gusali sa mapa</span>
+                <button
+                  type="button"
+                  onClick={handlePinMyExactLocation}
+                  disabled={!isVerified}
+                  style={{ background: '#2563eb', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '8px', fontSize: '0.72rem', fontWeight: '800', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                >
+                  <MapPin size={13} /> Pin My Exact Location
+                </button>
               </div>
 
               <div style={{ height: '220px', borderRadius: '12px', overflow: 'hidden', border: '1px solid #cbd5e1', zIndex: 1 }}>
@@ -347,7 +395,8 @@ const AddService = () => {
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: '15px' }}>
+            {/* Conditional Pricing & Pax Fields */}
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : (isPaxRequired ? '1fr 1fr 1fr' : '1fr'), gap: '15px' }}>
               <div>
                 <label style={labelStyle}>Starting Price (₱)</label>
                 <input 
@@ -360,35 +409,46 @@ const AddService = () => {
                   required 
                 />
               </div>
-              <div>
-                <label style={labelStyle}>Min Pax (Min: 15)</label>
-                <input 
-                  style={inputStyle} 
-                  type="number" 
-                  min="15"
-                  max="100"
-                  placeholder="15" 
-                  value={serviceData.min_pax}
-                  onChange={(e) => setServiceData({...serviceData, min_pax: e.target.value})} 
-                  disabled={!isVerified}
-                  required
-                />
-              </div>
-              <div>
-                <label style={labelStyle}>Max Pax (Max: 100)</label>
-                <input 
-                  style={inputStyle} 
-                  type="number" 
-                  min="15"
-                  max="100"
-                  placeholder="100" 
-                  value={serviceData.max_pax}
-                  onChange={(e) => setServiceData({...serviceData, max_pax: e.target.value})} 
-                  disabled={!isVerified}
-                  required
-                />
-              </div>
+
+              {isPaxRequired && (
+                <>
+                  <div>
+                    <label style={labelStyle}>Min Pax (Min: 15)</label>
+                    <input 
+                      style={inputStyle} 
+                      type="number" 
+                      min="15"
+                      max="100"
+                      placeholder="15" 
+                      value={serviceData.min_pax}
+                      onChange={(e) => setServiceData({...serviceData, min_pax: e.target.value})} 
+                      disabled={!isVerified}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label style={labelStyle}>Max Pax (Max: 100)</label>
+                    <input 
+                      style={inputStyle} 
+                      type="number" 
+                      min="15"
+                      max="100"
+                      placeholder="100" 
+                      value={serviceData.max_pax}
+                      onChange={(e) => setServiceData({...serviceData, max_pax: e.target.value})} 
+                      disabled={!isVerified}
+                      required
+                    />
+                  </div>
+                </>
+              )}
             </div>
+
+            {!isPaxRequired && serviceData.category && (
+              <div style={{ fontSize: '0.78rem', color: '#64748b', fontStyle: 'italic', background: '#f1f5f9', padding: '8px 12px', borderRadius: '8px' }}>
+                ℹ️ Note: Minimum and Maximum Pax are not required for {serviceData.category}. You can publish this service directly.
+              </div>
+            )}
 
             <div>
               <label style={labelStyle}>Brief Description</label>
@@ -441,7 +501,6 @@ const AddService = () => {
           </form>
         </div>
 
-        {/* Right Column: Bundle Creator Form (Conditional on Verification) */}
         <div style={{ 
           background: '#fff', 
           padding: isMobile ? '24px 20px' : '40px', 
