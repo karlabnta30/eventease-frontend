@@ -6,8 +6,8 @@ const VendorEventsPage = () => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('monitor'); // 'monitor', 'history', 'all'
-  const [selectedEventDetails, setSelectedEventDetails] = useState(null); // Para sa View Details Modal
-  const [confirmModalData, setConfirmModalData] = useState(null); // Para sa Custom Confirmation Modal
+  const [selectedEventDetails, setSelectedEventDetails] = useState(null); // For View Details Modal
+  const [confirmModalData, setConfirmModalData] = useState(null); // For Custom Confirmation Modal
 
   useEffect(() => {
     fetchVendorBookings();
@@ -26,7 +26,7 @@ const VendorEventsPage = () => {
       });
   };
 
-  // Function para markahan ang booking bilang Paid Fully at ilipat sa Booking History
+  // Function to mark booking as Paid Fully and move to Booking History
   const handleMarkAsPaidFully = async (bookingId) => {
     try {
       await api.patch(`/bookings/${bookingId}/status`, { payment_status: 'fully_paid', status: 'completed' }, {
@@ -55,7 +55,7 @@ const VendorEventsPage = () => {
     }
   };
 
-  // Function para mag-delete ng event/booking record
+  // Function to delete event/booking record
   const handleDeleteEvent = async (bookingId) => {
     try {
       await api.delete(`/bookings/${bookingId}`);
@@ -86,7 +86,7 @@ const VendorEventsPage = () => {
             Vendor Event & Payment Monitor
           </h1>
           <p style={{ color: '#64748b', fontSize: '0.95rem', margin: 0 }}>
-            Subaybayan ang mga kaganapan, tingnan ang buong impormasyon, at pamahalaan ang mga transaksiyon.
+            Monitor your events, view complete information, and manage financial transactions seamlessly.
           </p>
         </div>
 
@@ -117,7 +117,7 @@ const VendorEventsPage = () => {
         <div style={{ textAlign: 'center', padding: '50px', color: '#64748b', fontWeight: '600' }}>Loading events...</div>
       ) : filteredEvents.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '50px', backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #e2e8f0', color: '#64748b', fontWeight: '600' }}>
-          Wala pang makikitang mga kaganapan sa kategoryang ito[cite: 7].
+          No events found in this category.
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -231,14 +231,14 @@ const VendorEventsPage = () => {
         </div>
       )}
 
-      {/* --- MODAL PARA SA VIEW DETAILS --- */}
+      {/* --- MODAL FOR VIEW DETAILS --- */}
       {selectedEventDetails && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0, 0, 0, 0.6)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: '15px', boxSizing: 'border-box' }} onClick={() => setSelectedEventDetails(null)}>
           <div style={{ position: 'relative', width: '100%', maxWidth: '600px', backgroundColor: '#fff', padding: '30px', borderRadius: '24px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', boxSizing: 'border-box', maxHeight: '90vh', overflowY: 'auto' }} onClick={(e) => e.stopPropagation()}>
             
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>
               <h2 style={{ margin: 0, fontWeight: '900', fontSize: '1.4rem', color: '#0f172a' }}>
-                Buong Impormasyon ng Event (#{selectedEventDetails.id || selectedEventDetails.booking_id})
+                Event Details (#{selectedEventDetails.id || selectedEventDetails.booking_id})
               </h2>
               <button style={{ background: '#f1f5f9', color: '#64748b', border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }} onClick={() => setSelectedEventDetails(null)}>
                 <X size={18} />
@@ -247,35 +247,44 @@ const VendorEventsPage = () => {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', fontSize: '0.92rem', color: '#334155' }}>
               <div style={{ backgroundColor: '#f8fafc', padding: '16px', borderRadius: '14px', border: '1px solid #e2e8f0' }}>
-                <h4 style={{ margin: '0 0 8px 0', fontSize: '1rem', fontWeight: '800', color: '#0f172a' }}>Pangkalahatang Detalye</h4>
-                <p style={{ margin: '4px 0' }}>🏷️ <strong>Pangalan ng Event:</strong> {selectedEventDetails.event_name || 'N/A'}</p>
-                <p style={{ margin: '4px 0' }}>📂 <strong>Kategorya:</strong> {selectedEventDetails.category || 'General'}</p>
-                <p style={{ margin: '4px 0' }}>📍 <strong>Lokasyon:</strong> {selectedEventDetails.location || 'N/A'}</p>
-                <p style={{ margin: '4px 0' }}>📅 <strong>Petsa at Oras:</strong> {selectedEventDetails.event_date || 'N/A'}</p>
-                <p style={{ margin: '4px 0' }}>👥 <strong>Bilang ng Bisita:</strong> {selectedEventDetails.guest_count || 1} pax</p>
+                <h4 style={{ margin: '0 0 8px 0', fontSize: '1rem', fontWeight: '800', color: '#0f172a' }}>General Information</h4>
+                <p style={{ margin: '4px 0' }}>🏷️ <strong>Event Name:</strong> {selectedEventDetails.event_name || 'N/A'}</p>
+                <p style={{ margin: '4px 0' }}>📂 <strong>Category:</strong> {selectedEventDetails.category || 'General'}</p>
+                <p style={{ margin: '4px 0' }}>📍 <strong>Location:</strong> {selectedEventDetails.location || 'N/A'}</p>
+                <p style={{ margin: '4px 0' }}>📅 <strong>Event Date:</strong> {selectedEventDetails.event_date || 'N/A'}</p>
+                <p style={{ margin: '4px 0' }}>👥 <strong>Guest Count:</strong> {selectedEventDetails.guest_count || 1} pax</p>
               </div>
 
               <div style={{ backgroundColor: '#f8fafc', padding: '16px', borderRadius: '14px', border: '1px solid #e2e8f0' }}>
-                <h4 style={{ margin: '0 0 8px 0', fontSize: '1rem', fontWeight: '800', color: '#0f172a' }}>Impormasyon ng Kliyente</h4>
-                <p style={{ margin: '4px 0' }}>👤 <strong>Pangalan:</strong> {selectedEventDetails.user?.name || selectedEventDetails.client_name || 'N/A'}</p>
+                <h4 style={{ margin: '0 0 8px 0', fontSize: '1rem', fontWeight: '800', color: '#0f172a' }}>Client Information</h4>
+                <p style={{ margin: '4px 0' }}>👤 <strong>Name:</strong> {selectedEventDetails.user?.name || selectedEventDetails.client_name || 'N/A'}</p>
                 <p style={{ margin: '4px 0' }}>📧 <strong>Email:</strong> {selectedEventDetails.user?.email || selectedEventDetails.client_email || 'N/A'}</p>
                 <p style={{ margin: '4px 0' }}>📞 <strong>Contact Number:</strong> {selectedEventDetails.user?.contact_number || selectedEventDetails.client_contact || 'N/A'}</p>
               </div>
 
               <div style={{ backgroundColor: '#f8fafc', padding: '16px', borderRadius: '14px', border: '1px solid #e2e8f0' }}>
-                <h4 style={{ margin: '0 0 8px 0', fontSize: '1rem', fontWeight: '800', color: '#0f172a' }}>Pinansyal at Bayarin</h4>
-                <p style={{ margin: '4px 0' }}>💰 <strong>Kabuuang Presyo (Budget):</strong> ₱{Number(selectedEventDetails.budget || selectedEventDetails.total_price || 0).toLocaleString()}</p>
+                <h4 style={{ margin: '0 0 8px 0', fontSize: '1rem', fontWeight: '800', color: '#0f172a' }}>Financials & Payment</h4>
+                <p style={{ margin: '4px 0' }}>💰 <strong>Total Price (Budget):</strong> ₱{Number(selectedEventDetails.budget || selectedEventDetails.total_price || 0).toLocaleString()}</p>
                 <p style={{ margin: '4px 0' }}>⚡ <strong>50% Down Payment:</strong> ₱{(Number(selectedEventDetails.budget || selectedEventDetails.total_price || 0) * 0.50).toLocaleString()}</p>
-                <p style={{ margin: '4px 0' }}>📌 <strong>Status ng Pagbabayad:</strong> <span style={{ textTransform: 'uppercase', fontWeight: '800', color: '#059669' }}>{selectedEventDetails.payment_status || 'Pending'}</span></p>
+                <p style={{ margin: '4px 0' }}>📌 <strong>Payment Status:</strong> <span style={{ textTransform: 'uppercase', fontWeight: '800', color: '#059669' }}>{selectedEventDetails.payment_status || 'Pending'}</span></p>
               </div>
 
-              {selectedEventDetails.services && selectedEventDetails.services.length > 0 && (
+              {/* Booked Services / Items Section */}
+              {((selectedEventDetails.services && selectedEventDetails.services.length > 0) || 
+                (selectedEventDetails.items && selectedEventDetails.items.length > 0) || 
+                (selectedEventDetails.booking_items && selectedEventDetails.booking_items.length > 0)) && (
                 <div style={{ backgroundColor: '#f8fafc', padding: '16px', borderRadius: '14px', border: '1px solid #e2e8f0' }}>
-                  <h4 style={{ margin: '0 0 8px 0', fontSize: '1rem', fontWeight: '800', color: '#0f172a' }}>Mga Nakakabit na Serbisyo</h4>
+                  <h4 style={{ margin: '0 0 8px 0', fontSize: '1rem', fontWeight: '800', color: '#0f172a' }}>Booked Services / Items</h4>
                   <ul style={{ margin: 0, paddingLeft: '20px' }}>
-                    {selectedEventDetails.services.map((srv, idx) => (
-                      <li key={idx}><strong>{srv.business_name || srv.title}</strong> (₱{Number(srv.starting_price || 0).toLocaleString()})</li>
-                    ))}
+                    {(selectedEventDetails.services || selectedEventDetails.items || selectedEventDetails.booking_items).map((srv, idx) => {
+                      const serviceName = srv.business_name || srv.service_name || srv.title || srv.name || `Service #${idx + 1}`;
+                      const servicePrice = Number(srv.starting_price || srv.price || srv.pivot?.price || 0);
+                      return (
+                        <li key={idx} style={{ marginBottom: '6px' }}>
+                          <strong>{serviceName}</strong> {servicePrice > 0 ? `(₱${servicePrice.toLocaleString()})` : ''}
+                        </li>
+                      );
+                    })}
                   </ul>
                 </div>
               )}
@@ -286,7 +295,7 @@ const VendorEventsPage = () => {
                 onClick={() => setSelectedEventDetails(null)}
                 style={{ backgroundColor: '#0f172a', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '12px', fontWeight: '800', fontSize: '0.9rem', cursor: 'pointer' }}
               >
-                Isara
+                Close
               </button>
             </div>
 
@@ -294,7 +303,7 @@ const VendorEventsPage = () => {
         </div>
       )}
 
-      {/* --- CUSTOM ALERT / CONFIRMATION MODAL (Inalis ang lumang browser alert) --- */}
+      {/* --- CUSTOM CONFIRMATION MODAL --- */}
       {confirmModalData && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0, 0, 0, 0.6)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1100, padding: '15px', boxSizing: 'border-box' }} onClick={() => setConfirmModalData(null)}>
           <div style={{ backgroundColor: '#fff', padding: '30px', borderRadius: '20px', maxWidth: '400px', width: '100%', textAlign: 'center', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.2)', boxSizing: 'border-box' }} onClick={(e) => e.stopPropagation()}>
@@ -303,21 +312,22 @@ const VendorEventsPage = () => {
             </div>
             
             <h3 style={{ margin: '0 0 8px 0', fontWeight: '900', fontSize: '1.2rem', color: '#0f172a' }}>
-              {confirmModalData.type === 'delete' ? 'Kumpirmahin ang Pagtanggal' : 'Kumpirmahin ang Fully Paid'}
+              {confirmModalData.type === 'delete' ? 'Confirm Deletion' : 'Confirm Full Payment'}
             </h3>
             
             <p style={{ margin: '0 0 24px 0', fontSize: '0.9rem', color: '#64748b', lineHeight: '1.5' }}>
               {confirmModalData.type === 'delete' 
-                ? `Sigurado ka bang nais mong tanggalin ang event na "${confirmModalData.name}"?` 
-                : `Gusto mo bang markahan ang "${confirmModalData.name}" bilang fully paid? Ililipat ito sa iyong Booking History.`}
+                ? `Are you sure you want to delete the event "${confirmModalData.name}"?` 
+                : `Are you sure you want to mark "${confirmModalData.name}" as fully paid? This will move it to your Booking History.`}
             </p>
 
             <div style={{ display: 'flex', gap: '10px' }}>
               <button 
                 onClick={() => setConfirmModalData(null)}
-                style={{ flex: 1, backgroundColor: '#f1f5f9', color: '#475569', border: 'none', padding: '12px', borderRadius: '12px', fontWeight: '800', cursor: 'pointer' }}
+                style={{ flex: 1, backgroundColor: '#f1f5f9', color: '#475569', border: 'none', padding: '12px', borderRadius: '12px', fontWeight: '800', cursor: 'pointer' 
+              }}
               >
-                Kanselahin
+                Cancel
               </button>
               
               <button 
@@ -330,7 +340,7 @@ const VendorEventsPage = () => {
                 }}
                 style={{ flex: 1, backgroundColor: confirmModalData.type === 'delete' ? '#dc2626' : '#10b981', color: '#fff', border: 'none', padding: '12px', borderRadius: '12px', fontWeight: '800', cursor: 'pointer' }}
               >
-                {confirmModalData.type === 'delete' ? 'Oo, Tanggalin' : 'Oo, Paid Fully'}
+                {confirmModalData.type === 'delete' ? 'Yes, Delete' : 'Yes, Paid Fully'}
               </button>
             </div>
           </div>

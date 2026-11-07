@@ -8,6 +8,7 @@ import {
 const Sidebar = ({ children }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [hoveredItem, setHoveredItem] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
   const userRole = localStorage.getItem('userRole');
@@ -70,18 +71,19 @@ const Sidebar = ({ children }) => {
       overflowX: 'hidden' 
     },
     sidebar: {
-      // Pinalaki ang expanded width mula 240px patungong 300px para mas maluwag ang content
-      width: isMobile ? '100%' : (isCollapsed ? '80px' : '300px'),
+      width: isMobile ? '100%' : (isCollapsed ? '80px' : '280px'),
       backgroundColor: '#ffffff',
-      borderRight: isMobile ? 'none' : '1px solid #eee',
-      borderBottom: isMobile ? '1px solid #eee' : 'none',
-      padding: '20px 16px', // Pinalaki nang konti ang padding para mas balanse
+      borderRight: isMobile ? 'none' : '1px solid #f1f5f9',
+      borderBottom: isMobile ? '1px solid #f1f5f9' : 'none',
+      padding: '24px 16px',
       display: 'flex',
       flexDirection: isMobile ? 'row' : 'column', 
       justifyContent: 'space-between',
       alignItems: isMobile ? 'center' : 'stretch',
-      transition: 'width 0.2s ease-in-out',
-      flexShrink: 0
+      transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+      flexShrink: 0,
+      boxShadow: isMobile ? '0 4px 6px -1px rgba(0,0,0,0.02)' : '4px 0 25px rgba(0,0,0,0.01)',
+      zIndex: 100
     },
     menuContainer: {
       display: 'flex',
@@ -89,9 +91,8 @@ const Sidebar = ({ children }) => {
       overflowX: isMobile ? 'auto' : 'hidden',
       overflowY: 'auto',
       flex: 1,
-      gap: isMobile ? '10px' : '4px',
+      gap: isMobile ? '10px' : '6px',
       alignItems: isMobile ? 'center' : 'stretch',
-      paddingRight: '4px',
       width: '100%'
     },
     profileSection: {
@@ -100,67 +101,75 @@ const Sidebar = ({ children }) => {
       justifyContent: isCollapsed ? 'center' : 'flex-start',
       gap: '12px',
       padding: '12px',
-      marginBottom: '15px',
-      borderRadius: '12px',
+      marginBottom: '18px',
+      borderRadius: '16px',
       cursor: 'pointer',
-      backgroundColor: location.pathname === '/profile' ? '#f4f1ea' : 'transparent',
+      backgroundColor: location.pathname === '/profile' ? '#f8fafc' : 'transparent',
+      transition: 'background-color 0.2s ease',
+      border: location.pathname === '/profile' ? '1px solid #e2e8f0' : '1px solid transparent'
     },
     avatar: {
-      width: '38px', // Pinalaki ang avatar para maging angkop sa bagong lapad
-      height: '38px',
+      width: '40px',
+      height: '40px',
       borderRadius: '50%',
-      backgroundColor: '#1a1a1a',
+      backgroundColor: '#0f172a',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       color: 'white',
-      fontWeight: 'bold',
+      fontWeight: '800',
       fontSize: '15px',
-      flexShrink: 0
+      flexShrink: 0,
+      boxShadow: '0 4px 12px rgba(15, 23, 42, 0.15)'
     },
     createBtn: {
       display: userRole === 'admin' ? 'none' : 'flex',
       alignItems: 'center', 
       gap: isCollapsed ? '0' : '10px',
-      padding: '12px 14px', 
-      borderRadius: '12px',
-      backgroundColor: '#1a1a1a', 
+      padding: '14px 16px', 
+      borderRadius: '14px',
+      backgroundColor: '#0f172a', 
       color: 'white', 
       cursor: 'pointer', 
       border: 'none',
-      marginBottom: isMobile ? '0' : '18px', 
-      fontWeight: '700', 
-      fontSize: '13px',
+      marginBottom: isMobile ? '0' : '20px', 
+      fontWeight: '800', 
+      fontSize: '0.82rem',
+      letterSpacing: '0.5px',
       justifyContent: 'center',
+      boxShadow: '0 4px 14px rgba(15, 23, 42, 0.2)',
+      transition: 'all 0.2s ease',
     },
     bottomSection: {
       display: isMobile ? 'none' : 'block', 
-      borderTop: '1px solid #eee',
-      paddingTop: '12px',
+      borderTop: '1px solid #f1f5f9',
+      paddingTop: '16px',
       marginTop: '10px'
     },
     mainContent: { 
       flex: 1, 
-      backgroundColor: '#fcfcfd', 
+      backgroundColor: '#f8fafc', 
       overflowY: 'auto', 
       minHeight: '100vh',
-      padding: '20px',
       width: '100%',
       boxSizing: 'border-box'
     },
-    navItem: (isActive) => ({
+    navItem: (isActive, isHovered) => ({
       display: 'flex', 
       alignItems: 'center', 
       justifyContent: isCollapsed && !isMobile ? 'center' : 'flex-start',
       gap: '12px', 
-      padding: '12px 14px', // Pinalaki ang padding para mas madaling i-click at lumawak tingnan
-      borderRadius: '10px',
+      padding: '12px 14px', 
+      borderRadius: '12px',
       cursor: 'pointer', 
-      backgroundColor: isActive ? '#f4f1ea' : 'transparent',
-      color: isActive ? '#1a1a1a' : '#555', 
-      fontWeight: isActive ? '700' : '400', 
-      fontSize: '14px', // Pinalaki nang konti ang font size para sa mas magandang readability
+      backgroundColor: isActive ? '#f1f5f9' : (isHovered ? '#f8fafc' : 'transparent'),
+      color: isActive ? '#0f172a' : (isHovered ? '#1e293b' : '#64748b'), 
+      fontWeight: isActive ? '800' : '600', 
+      fontSize: '0.9rem', 
       whiteSpace: 'nowrap',
+      transition: 'all 0.2s ease',
+      position: 'relative',
+      transform: isHovered && !isActive ? 'translateX(4px)' : 'none'
     })
   };
 
@@ -170,12 +179,16 @@ const Sidebar = ({ children }) => {
         
         <div style={styles.menuContainer}>
           {/* Profile Section */}
-          <div style={styles.profileSection} onClick={() => navigate('/profile')}>
+          <div 
+            style={styles.profileSection} 
+            onClick={() => navigate('/profile')}
+            title={isCollapsed ? userName : ''}
+          >
             <div style={styles.avatar}>{userName.charAt(0).toUpperCase()}</div>
             {!isCollapsed && (
               <div style={{ overflow: 'hidden' }}>
-                <p style={{ margin: 0, fontSize: '14px', fontWeight: '800', color: '#1a1a1a' }}>{userName}</p>
-                <p style={{ margin: 0, fontSize: '11px', color: '#888', textTransform: 'capitalize' }}>{userRole}</p>
+                <p style={{ margin: 0, fontSize: '0.9rem', fontWeight: '800', color: '#0f172a' }}>{userName}</p>
+                <p style={{ margin: 0, fontSize: '0.75rem', color: '#64748b', textTransform: 'capitalize', fontWeight: '600' }}>{userRole}</p>
               </div>
             )}
           </div>
@@ -185,6 +198,8 @@ const Sidebar = ({ children }) => {
             <button 
               style={styles.createBtn} 
               onClick={() => navigate(userRole === 'vendor' ? '/add-service' : '/create-event')}
+              onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+              onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
             >
               <PlusCircle size={18} />
               {!isCollapsed && !isMobile && <span>{userRole === 'vendor' ? 'ADD SERVICE' : 'CREATE EVENT'}</span>}
@@ -192,25 +207,36 @@ const Sidebar = ({ children }) => {
           )}
 
           {/* Menu Items */}
-          {menuItems.map((item) => (
-            <div 
-              key={item.name} 
-              style={styles.navItem(location.pathname === item.path)} 
-              onClick={() => navigate(item.path)}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '24px' }}>
-                {item.icon}
+          {menuItems.map((item) => {
+            const isActive = location.pathname === item.path;
+            const isHovered = hoveredItem === item.name;
+
+            return (
+              <div 
+                key={item.name} 
+                style={styles.navItem(isActive, isHovered)} 
+                onClick={() => navigate(item.path)}
+                onMouseEnter={() => setHoveredItem(item.name)}
+                onMouseLeave={() => setHoveredItem(null)}
+                title={isCollapsed ? item.name : ''}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '24px', color: isActive ? '#0f172a' : 'inherit' }}>
+                  {item.icon}
+                </div>
+                {(!isCollapsed || isMobile) && <span style={{ display: isMobile ? 'none' : 'inline' }}>{item.name}</span>}
               </div>
-              {(!isCollapsed || isMobile) && <span style={{ display: isMobile ? 'none' : 'inline' }}>{item.name}</span>}
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Bottom Section */}
         <div style={styles.bottomSection}>
           <div 
-            style={styles.navItem(false)} 
+            style={styles.navItem(false, hoveredItem === 'Collapse')} 
             onClick={() => setIsCollapsed(!isCollapsed)}
+            onMouseEnter={() => setHoveredItem('Collapse')}
+            onMouseLeave={() => setHoveredItem(null)}
+            title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '24px' }}>
                 {isCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
@@ -219,8 +245,11 @@ const Sidebar = ({ children }) => {
           </div>
           
           <div 
-            style={{ ...styles.navItem(false), color: '#ff4d4d' }} 
+            style={{ ...styles.navItem(false, hoveredItem === 'Sign Out'), color: '#dc2626' }} 
             onClick={handleLogout}
+            onMouseEnter={() => setHoveredItem('Sign Out')}
+            onMouseLeave={() => setHoveredItem(null)}
+            title="Sign Out"
           >
              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minWidth: '24px' }}>
                 <LogOut size={18} /> 
