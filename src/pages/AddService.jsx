@@ -11,6 +11,7 @@ const AddService = () => {
   const [checkingStatus, setCheckingStatus] = useState(true);
   const [isVerified, setIsVerified] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 960);
+  const [paxError, setPaxError] = useState('');
 
   const [serviceData, setServiceData] = useState({
     business_name: '',
@@ -21,7 +22,7 @@ const AddService = () => {
     max_pax: '',
     description: '',
     bio: '',
-    terms_and_conditions: '', 
+    terms_and_conditions: '50% downpayment required upon booking confirmation; remaining balance due on the event day.', 
     is_available: true 
   });
 
@@ -56,6 +57,21 @@ const AddService = () => {
     if (!isVerified) {
       alert("Only verified vendors are allowed to add a service.");
       return;
+    }
+
+    setPaxError('');
+    const min = parseInt(serviceData.min_pax, 10);
+    const max = parseInt(serviceData.max_pax, 10);
+
+    // Pax validation checks (Min: 50, Max: 150, and checking if swapped)
+    if (!isNaN(min) && !isNaN(max)) {
+      if (min > max) {
+        setPaxError("Error: Minimum Pax cannot be greater than Maximum Pax (looks like they were swapped).");
+        return;
+      }
+      if (min < 50 || max > 150) {
+        setPaxError("Note: Recommended guest capacity range is between 50 and 150 Pax.");
+      }
     }
 
     setLoading(true);
@@ -156,6 +172,25 @@ const AddService = () => {
             </div>
           )}
 
+          {paxError && (
+            <div style={{ 
+              backgroundColor: '#fef2f2', 
+              border: '1px solid #fecaca', 
+              padding: '12px 16px', 
+              borderRadius: '12px', 
+              marginBottom: '20px', 
+              color: '#991b1b', 
+              fontSize: '0.82rem',
+              fontWeight: '700',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              <AlertCircle size={16} style={{ flexShrink: 0 }} />
+              <span>{paxError}</span>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px', opacity: isVerified ? 1 : 0.65 }}>
             <div>
               <label style={labelStyle}>Business / Service Name</label>
@@ -217,22 +252,22 @@ const AddService = () => {
                 />
               </div>
               <div>
-                <label style={labelStyle}>Min Pax</label>
+                <label style={labelStyle}>Min Pax (e.g. 50)</label>
                 <input 
                   style={inputStyle} 
                   type="number" 
-                  placeholder="e.g., 50" 
+                  placeholder="50" 
                   value={serviceData.min_pax}
                   onChange={(e) => setServiceData({...serviceData, min_pax: e.target.value})} 
                   disabled={!isVerified}
                 />
               </div>
               <div>
-                <label style={labelStyle}>Max Pax</label>
+                <label style={labelStyle}>Max Pax (e.g. 150)</label>
                 <input 
                   style={inputStyle} 
                   type="number" 
-                  placeholder="e.g., 300" 
+                  placeholder="150" 
                   value={serviceData.max_pax}
                   onChange={(e) => setServiceData({...serviceData, max_pax: e.target.value})} 
                   disabled={!isVerified}
@@ -253,13 +288,26 @@ const AddService = () => {
 
             <div>
               <label style={labelStyle}>Terms & Conditions / Contract Agreement</label>
-              <textarea 
-                style={{...inputStyle, height: '100px', resize: 'vertical'}} 
-                placeholder="e.g., 50% downpayment required upon booking confirmation..." 
+              <select 
+                style={inputStyle} 
                 value={serviceData.terms_and_conditions}
                 onChange={(e) => setServiceData({...serviceData, terms_and_conditions: e.target.value})} 
                 disabled={!isVerified}
-              />
+                required
+              >
+                <option value="50% downpayment required upon booking confirmation; remaining balance due on the event day.">
+                  50% Downpayment Required (Balance due on event day)
+                </option>
+                <option value="Full payment required upon booking confirmation. Non-refundable.">
+                  Full Payment Required (Non-refundable)
+                </option>
+                <option value="30% downpayment upon booking, 40% two weeks before event, 30% on the day.">
+                  Staggered Payment (30% Down, 40% Mid, 30% Final)
+                </option>
+                <option value="Standard EventEase Vendor Agreement: 50% deposit, rescheduling allowed up to 14 days prior.">
+                  Standard EventEase Vendor Agreement (50% Deposit + Reschedule Option)
+                </option>
+              </select>
             </div>
 
             <button 
