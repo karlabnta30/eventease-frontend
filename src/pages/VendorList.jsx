@@ -486,7 +486,7 @@ const VendorList = () => {
                 </div>
             )}
 
-            {/* Minimalist Floating Bottom Bar (Malinis at hindi kumakain ng space) */}
+            {/* Original Classic Black Floating Bottom Bar */}
             {selectedServices.length > 0 && userRole !== 'vendor' && (
                 <div style={{
                     position: 'fixed', bottom: '20px', left: '50%', transform: 'translateX(-50%)',
@@ -495,7 +495,7 @@ const VendorList = () => {
                     display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 900, color: '#fff', flexWrap: 'wrap', gap: '12px'
                 }}>
                     <div onClick={() => setIsCartModalOpen(true)} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <div style={{ background: '#2563eb', padding: '10px', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <div style={{ background: '#334155', padding: '10px', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             <ShoppingBag size={20} color="#fff" />
                         </div>
                         <div>
