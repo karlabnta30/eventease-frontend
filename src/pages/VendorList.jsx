@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import api from '../api';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { MapPin, Lock, AlertCircle, Power, Star, Check, Plus, Trash2, ShieldAlert, ChevronRight, ArrowLeft, Sparkles, Sliders, ShoppingBag, X, Info, Users, CheckCircle2, AlertTriangle, XCircle, MessageSquare, Search, ExternalLink, Columns } from 'lucide-react';
+import { MapPin, Lock, AlertCircle, Power, Star, Check, Plus, Trash2, ShieldAlert, ChevronRight, ArrowLeft, Sparkles, Sliders, ShoppingBag, X, Info, Users, CheckCircle2, AlertTriangle, XCircle, MessageSquare, Search, ExternalLink, Columns, Ban } from 'lucide-react';
 import { notifyNewBooking } from '../toastUtils.jsx';
 import { toast } from 'react-hot-toast';
 
@@ -73,6 +73,8 @@ const VendorList = () => {
     const [comparedVendorIds, setComparedVendorIds] = useState([]);
     const [isCompareDrawerOpen, setIsCompareDrawerOpen] = useState(false);
     const [mapModalUrl, setMapModalUrl] = useState(null);
+    const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+    const [cancellingEvent, setCancellingEvent] = useState(false);
 
     const defaultAllocations = useMemo(() => {
         const lowerType = eventType.toLowerCase();
@@ -380,6 +382,24 @@ const VendorList = () => {
         }
     };
 
+    const handleConfirmCancelEvent = async () => {
+        setCancellingEvent(true);
+        try {
+            if (eventIdFromUrl) {
+                const cleanBookingId = String(eventIdFromUrl).split(':')[0].replace(/[^0-9]/g, '');
+                await api.patch(`/bookings/${cleanBookingId}/cancel`).catch(() => {});
+            }
+        } catch (err) {
+            console.error("Error cancelling booking:", err);
+        } finally {
+            localStorage.removeItem('eventease_pending_cart');
+            setCancellingEvent(false);
+            setIsCancelModalOpen(false);
+            toast.error("Event booking cancelled.");
+            navigate('/live-events');
+        }
+    };
+
     const filteredVendors = useMemo(() => {
         const matching = vendors.filter(v => {
             if (!activeCategoryView) return true;
@@ -428,17 +448,25 @@ const VendorList = () => {
                     </h1>
                 </div>
 
-                {userRole !== 'vendor' && !activeCategoryView && (
+                {userRole !== 'vendor' && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                        <div style={{ 
-                            background: isCartOverBudget ? '#ef4444' : '#000', 
-                            color: '#fff', padding: '10px 16px', borderRadius: '12px', display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: isMobile ? '0.8rem' : '0.9rem', boxSizing: 'border-box'
-                        }}>
-                            {isCartOverBudget ? <ShieldAlert size={18} style={{ flexShrink: 0 }} /> : <AlertCircle size={18} style={{ flexShrink: 0 }} />}
-                            <span style={{ fontWeight: '700', wordBreak: 'break-word' }}>
-                                BUDGET: ₱{userBudget > 0 ? userBudget.toLocaleString() : "NO LIMIT"} | GUESTS: {guestCount} PAX
-                            </span>
-                        </div>
+                        {!activeCategoryView && (
+                            <div style={{ 
+                                background: isCartOverBudget ? '#ef4444' : '#000', 
+                                color: '#fff', padding: '10px 16px', borderRadius: '12px', display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: isMobile ? '0.8rem' : '0.9rem', boxSizing: 'border-box'
+                            }}>
+                                {isCartOverBudget ? <ShieldAlert size={18} style={{ flexShrink: 0 }} /> : <AlertCircle size={18} style={{ flexShrink: 0 }} />}
+                                <span style={{ fontWeight: '700', wordBreak: 'break-word' }}>
+                                    BUDGET: ₱{userBudget > 0 ? userBudget.toLocaleString() : "NO LIMIT"} | GUESTS: {guestCount} PAX
+                                </span>
+                            </div>
+                        )}
+                        <button 
+                            onClick={() => setIsCancelModalOpen(true)}
+                            style={{ background: '#fee2e2', color: '#991b1b', border: 'none', padding: '10px 16px', borderRadius: '12px', fontWeight: '800', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem' }}
+                        >
+                            <Ban size={16} /> Cancel Event
+                        </button>
                     </div>
                 )}
             </div>
@@ -611,6 +639,36 @@ const VendorList = () => {
                             No services found in this category.
                         </div>
                     )}
+                </div>
+            )}
+
+            {/* Cancel Event Confirmation Modal */}
+            {isCancelModalOpen && (
+                <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1400, padding: '16px' }}>
+                    <div style={{ background: '#fff', borderRadius: '24px', width: '100%', maxWidth: '420px', padding: '24px', textAlign: 'center', boxShadow: '0 25px 50px rgba(0,0,0,0.25)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        <div style={{ width: '50px', height: '50px', background: '#fee2e2', color: '#991b1b', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto' }}>
+                            <Ban size={24} />
+                        </div>
+                        <h3 style={{ margin: 0, fontWeight: '900', fontSize: '1.2rem', color: '#0f172a' }}>Kanselahin ang Event?</h3>
+                        <p style={{ margin: 0, fontSize: '0.88rem', color: '#64748b', fontWeight: '600', lineHeight: '1.4' }}>
+                            Sigurado ka bang gusto mong kanselahin ang event na ito? Mabubura ang lahat ng napili mong serbisyo sa cart at mawawala ang kasalukuyang session.
+                        </p>
+                        <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
+                            <button 
+                                onClick={() => setIsCancelModalOpen(false)}
+                                style={{ flex: 1, background: '#f1f5f9', color: '#0f172a', border: 'none', padding: '12px', borderRadius: '12px', fontWeight: '800', cursor: 'pointer', fontSize: '0.85rem' }}
+                            >
+                                Huwag Muna
+                            </button>
+                            <button 
+                                onClick={handleConfirmCancelEvent}
+                                disabled={cancellingEvent}
+                                style={{ flex: 1, background: '#ef4444', color: '#fff', border: 'none', padding: '12px', borderRadius: '12px', fontWeight: '800', cursor: 'pointer', fontSize: '0.85rem' }}
+                            >
+                                {cancellingEvent ? 'Kinakansela...' : 'Oo, Kanselahin'}
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
 
