@@ -4,7 +4,7 @@ import api from '../api';
 import './dashboard.css'; 
 import ServiceCard from '../components/ServiceCard';
 import { notifyNewBooking } from '../toastUtils.jsx'; 
-import { AlertTriangle, Building, Clock, CheckSquare, Calendar, Tag } from 'lucide-react';
+import { AlertTriangle, Building, Clock, CheckSquare, Calendar, Tag, MapPin, X } from 'lucide-react';
 
 const MainDashboard = () => {
   const navigate = useNavigate();
@@ -18,6 +18,9 @@ const MainDashboard = () => {
   
   const [activeCategory, setActiveCategory] = useState('All');
   const [bookingToCancel, setBookingToCancel] = useState(null);
+
+  // --- STATE PARA SA VIEW DETAILS MODAL ---
+  const [selectedServiceDetail, setSelectedServiceDetail] = useState(null);
 
   const fetchData = async () => {
     try {
@@ -202,7 +205,6 @@ const MainDashboard = () => {
     <div className="main-dashboard-container" style={{ backgroundColor: '#f8fafc', minHeight: '100vh', fontFamily: "'Inter', sans-serif" }}>
       <div className="dashboard-wrapper" style={{ paddingTop: '24px', maxWidth: '1400px', margin: '0 auto', paddingLeft: '24px', paddingRight: '24px' }}>
 
-        {/* --- DYNAMIC CLIENT HEADER & CONDITIONAL EVENT STATUS --- */}
         {userRole !== 'vendor' && (
           <div style={{ marginBottom: '28px' }}>
             <div style={{ background: '#ffffff', borderRadius: '20px', padding: '24px 28px', border: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
@@ -239,7 +241,6 @@ const MainDashboard = () => {
               </div>
             </div>
 
-            {/* Metrics Row */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginTop: '16px' }}>
               <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', padding: '16px 20px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '14px' }}>
                 <div style={{ background: '#f0f9ff', color: '#0284c7', padding: '10px', borderRadius: '12px', display: 'flex' }}>
@@ -303,11 +304,94 @@ const MainDashboard = () => {
           </div>
         )}
 
+        {/* --- CUSTOM DETAILS MODAL PARA SA VIEW DETAILS --- */}
+        {selectedServiceDetail && (
+          <div style={{
+            position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)',
+            display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1300, padding: '16px'
+          }}>
+            <div style={{
+              background: '#ffffff', borderRadius: '28px', width: '100%', maxWidth: '550px',
+              maxHeight: '90vh', overflowY: 'auto', padding: '30px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
+              boxSizing: 'border-box', position: 'relative'
+            }}>
+              <button 
+                onClick={() => setSelectedServiceDetail(null)}
+                style={{ 
+                  position: 'absolute', top: '20px', right: '20px', background: '#f1f5f9', 
+                  border: 'none', borderRadius: '50%', width: '36px', height: '36px', 
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' 
+                }}
+              >
+                <X size={18} color="#64748b" />
+              </button>
+
+              <span style={{ 
+                background: '#0f172a', color: '#fff', padding: '6px 14px', 
+                borderRadius: '8px', fontSize: '0.75rem', fontWeight: '800', display: 'inline-block', marginBottom: '12px' 
+              }}>
+                {selectedServiceDetail.category || 'General Service'}
+              </span>
+
+              <h2 style={{ fontSize: '1.6rem', fontWeight: '900', color: '#0f172a', margin: '0 0 8px 0', wordBreak: 'break-word' }}>
+                {selectedServiceDetail.title || selectedServiceDetail.name || selectedServiceDetail.business_name}
+              </h2>
+
+              <div style={{ display: 'flex', gap: '15px', alignItems: 'center', marginBottom: '20px', color: '#64748b', fontSize: '0.9rem', fontWeight: '600' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <MapPin size={16} /> {selectedServiceDetail.location || 'Metro Manila'}
+                </div>
+                <div>•</div>
+                <div style={{ color: '#16a34a', fontWeight: '900', fontSize: '1.1rem' }}>
+                  ₱{Number(selectedServiceDetail.starting_price || selectedServiceDetail.price || 0).toLocaleString()}
+                </div>
+              </div>
+
+              {(selectedServiceDetail.min_pax || selectedServiceDetail.max_pax) && (
+                <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', color: '#166534', padding: '12px 16px', borderRadius: '12px', fontSize: '0.85rem', fontWeight: '700', marginBottom: '20px' }}>
+                  Capacity Range: {selectedServiceDetail.min_pax || 1} - {selectedServiceDetail.max_pax || 'Any'} Guests
+                </div>
+              )}
+
+              <div style={{ marginBottom: '25px' }}>
+                <h4 style={{ fontSize: '0.85rem', textTransform: 'uppercase', color: '#64748b', fontWeight: '800', marginBottom: '8px' }}>
+                  Service Description & Inclusions
+                </h4>
+                <p style={{ fontSize: '0.95rem', color: '#334155', lineHeight: '1.6', margin: 0, wordBreak: 'break-word', background: '#f8fafc', padding: '16px', borderRadius: '14px', border: '1px solid #e2e8f0' }}>
+                  {selectedServiceDetail.description || selectedServiceDetail.details || "No additional description provided."}
+                </p>
+              </div>
+
+              {selectedServiceDetail.terms_and_conditions && (
+                <div style={{ marginBottom: '25px' }}>
+                  <h4 style={{ fontSize: '0.85rem', textTransform: 'uppercase', color: '#64748b', fontWeight: '800', marginBottom: '8px' }}>
+                    Terms & Conditions
+                  </h4>
+                  <p style={{ fontSize: '0.85rem', color: '#64748b', lineHeight: '1.5', margin: 0, wordBreak: 'break-word', background: '#fef3c7', padding: '14px', borderRadius: '12px', border: '1px solid #fde68a' }}>
+                    {selectedServiceDetail.terms_and_conditions}
+                  </p>
+                </div>
+              )}
+
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button
+                  onClick={() => setSelectedServiceDetail(null)}
+                  style={{
+                    flex: 1, background: '#0f172a', color: '#fff', border: 'none',
+                    padding: '14px', borderRadius: '14px', fontWeight: '900', cursor: 'pointer', fontSize: '0.9rem'
+                  }}
+                >
+                  CLOSE DETAILS
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="dashboard-content-grid" style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: '24px', alignItems: 'start' }}>
           
           <aside className="dashboard-sidebar" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             
-            {/* --- MY SCHEDULED EVENTS --- */}
             <div style={{ ...cardStyle, background: '#ffffff', border: '1px solid #e2e8f0' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', borderBottom: '1px solid #f1f5f9', paddingBottom: '10px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -387,18 +471,16 @@ const MainDashboard = () => {
                 {filteredServices.map(s => (
                   <div key={s.id} style={{ backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #e2e8f0', overflow: 'hidden', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
                     <div style={{ flex: 1 }}>
-                      {/* ServiceCard na ginawang Info/Read-only mode (walang booking action kundi info lamang) */}
                       <ServiceCard 
                         service={s} 
                         budgetStatus="set_budget"
                         onToggle={handleToggleStatus} 
                         onBook={() => {
-                          // Ginawa nang info notification o walang gagawin dahil read-only na ito
-                          alert(`Viewing information for: ${s.title || s.name || 'Service'}`);
+                          // Pinalitan ang alert() ng pagbukas ng custom modal
+                          setSelectedServiceDetail(s);
                         }} 
                       />
                     </div>
-                    {/* Impormasyon badge sa ilalim */}
                     <div style={{ padding: '12px 16px', background: '#f8fafc', borderTop: '1px solid #f1f5f9', textAlign: 'center' }}>
                       <span style={{ fontSize: '0.75rem', fontWeight: '700', color: '#64748b' }}>
                         ℹ️ Informational Catalog Entry
