@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import api from '../api';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { MapPin, Lock, AlertCircle, Power, Star, Check, Plus, Trash2, ShieldAlert, ChevronRight, ArrowLeft, Sparkles, Sliders, ShoppingBag, X, Info } from 'lucide-react';
+import { MapPin, Lock, AlertCircle, Power, Star, Check, Plus, Trash2, ShieldAlert, ChevronRight, ArrowLeft, Sparkles, Sliders, ShoppingBag, X, Info, Users } from 'lucide-react';
 import { notifyNewBooking } from '../toastUtils.jsx';
 import { toast } from 'react-hot-toast';
 
@@ -69,7 +69,6 @@ const VendorList = () => {
 
     const [isCartModalOpen, setIsCartModalOpen] = useState(false);
     
-    // --- STATE PARA SA CUSTOM DELETE MODAL ---
     const [serviceToDelete, setServiceToDelete] = useState(null);
 
     useEffect(() => {
@@ -175,7 +174,7 @@ const VendorList = () => {
         }
     };
 
-    // --- AI SMART BUDGET ALLOCATION & OPTIMIZER ---
+    // --- AI SMART BUDGET ALLOCATION & OPTIMIZER (WITH MIN/MAX PAX VALIDATION) ---
     const handleRunAiSmartAllocation = async () => {
         if (userBudget <= 0) {
             toast.error("No budget limit has been set for this event.");
@@ -195,11 +194,13 @@ const VendorList = () => {
                     id: item.id,
                     business_name: item.name || item.title || 'AI Recommended Service',
                     category: item.category || 'General',
-                    price: Number(item.price || 0)
+                    price: Number(item.price || 0),
+                    min_pax: item.min_pax || null,
+                    max_pax: item.max_pax || null
                 }));
 
                 setSelectedServices(aiPicked);
-                setAiOptimizationSummary(response.data.message || `AI successfully found optimal services matching your budget.`);
+                setAiOptimizationSummary(response.data.message || `AI successfully found optimal services matching your budget and guest count (${guestCount} pax).[cite: 3]`);
                 toast.success("AI Budget Optimizer successfully allocated optimal services!");
                 setIsAiOptimizing(false);
                 return;
@@ -208,9 +209,18 @@ const VendorList = () => {
             console.warn("API Optimization Endpoint fallback executed:", error);
         }
 
+        // Local Smart Allocation checking Min/Max Pax and Budget constraints
         let accumulatedCost = 0;
         let smartPicked = [];
-        const sortedVendors = [...vendors].sort((a, b) => calculateDynamicPrice(a) - calculateDynamicPrice(b));
+        
+        const suitableVendors = vendors.filter(v => {
+            const min = v.min_pax ? Number(v.min_pax) : 0;
+            const max = v.max_pax ? Number(v.max_pax) : 99999;
+            return guestCount >= min && guestCount <= max;
+        });
+
+        const poolToProcess = suitableVendors.length > 0 ? suitableVendors : vendors;
+        const sortedVendors = [...poolToProcess].sort((a, b) => calculateDynamicPrice(a) - calculateDynamicPrice(b));
 
         for (let v of sortedVendors) {
             const p = calculateDynamicPrice(v);
@@ -221,7 +231,7 @@ const VendorList = () => {
         }
 
         setSelectedServices(smartPicked);
-        setAiOptimizationSummary(`Smart Allocation: AI automatically picked ${smartPicked.length} service(s) totaling ₱${accumulatedCost.toLocaleString()} to fit within your budget.`);
+        setAiOptimizationSummary(`Smart Allocation: AI automatically picked ${smartPicked.length} service(s) for ${guestCount} guests totaling ₱${accumulatedCost.toLocaleString()} to fit within your budget.[cite: 3]`);
         toast.success("Smart budget allocation applied successfully!");
         setIsAiOptimizing(false);
     };
@@ -320,7 +330,7 @@ const VendorList = () => {
                                 fontSize: '0.85rem', boxShadow: '0 4px 12px rgba(37, 99, 235, 0.2)'
                             }}
                         >
-                            <Sparkles size={16} /> {isAiOptimizing ? 'Optimizing Budget...' : 'AI Smart Allocate'}
+                            <Sparkles size={16} /> {isAiOptimizing ? 'Optimizing Budget & Pax...' : 'AI Smart Allocate'}
                         </button>
 
                         <div style={{ 
@@ -329,7 +339,7 @@ const VendorList = () => {
                         }}>
                             {isCartOverBudget ? <ShieldAlert size={18} style={{ flexShrink: 0 }} /> : <AlertCircle size={18} style={{ flexShrink: 0 }} />}
                             <span style={{ fontWeight: '700', wordBreak: 'break-word' }}>
-                                BUDGET LIMIT: ₱{userBudget > 0 ? userBudget.toLocaleString() : "NO LIMIT SET"} (Guests: {guestCount})
+                                BUDGET: ₱{userBudget > 0 ? userBudget.toLocaleString() : "NO LIMIT"} | GUESTS: {guestCount} PAX[cite: 3]
                             </span>
                         </div>
                     </div>
@@ -379,6 +389,11 @@ const VendorList = () => {
                         const dynamicPrice = calculateDynamicPrice(vendor);
                         const isTooExpensive = userBudget > 0 && dynamicPrice > userBudget;
                         const isOffline = vendor.is_available === 0;
+                        
+                        const minP = vendor.min_pax ? Number(vendor.min_pax) : null;
+                        const maxP = vendor.max_pax ? Number(vendor.max_pax) : null;
+                        const isPaxUnsuitable = (minP !== null && guestCount < minP) || (maxP !== null && guestCount > maxP);
+
                         const isDisabled = (isTooExpensive || isOffline) && userRole !== 'vendor';
                         const isSelected = selectedServices.some(s => s.id === vendor.id);
 
@@ -414,6 +429,22 @@ const VendorList = () => {
                                         
                                         <StarRating rating={vendor.rating || 5.0} totalReviews={vendor.total_reviews || 12} />
 
+                                        {/* --- PAX CAPACITY BADGE --- */}
+                                        <div style={{ 
+                                            background: isPaxUnsuitable ? '#fef2f2' : '#f0fdf4', 
+                                            border: `1px solid ${isPaxUnsuitable ? '#fecaca' : '#bbf7d0'}`, 
+                                            color: isPaxUnsuitable ? '#991b1b' : '#166534', 
+                                            padding: '8px 12px', borderRadius: '10px', fontSize: '0.78rem', fontWeight: '700', 
+                                            marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' 
+                                        }}>
+                                            <Users size={14} />
+                                            <span>
+                                                {minP !== null || maxP !== null 
+                                                    ? `Capacity: ${minP !== null ? minP : 1} - ${maxP !== null ? maxP : 'Any'} Pax (Event: ${guestCount} Guests)[cite: 3]`
+                                                    : `Capacity: Flexible Pax (Event: ${guestCount} Guests)[cite: 3]`}
+                                            </span>
+                                        </div>
+
                                         <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', padding: '12px 14px', borderRadius: '12px', marginBottom: '14px' }}>
                                             <div style={{ fontSize: '0.72rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                                 <Info size={13} /> Service Information & Details:
@@ -424,7 +455,7 @@ const VendorList = () => {
                                         </div>
 
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#666', fontSize: '0.85rem', marginBottom: '16px', wordBreak: 'break-word' }}>
-                                            <MapPin size={15} style={{ flexShrink: 0 }} /> {vendor.location || 'Metro Manila'}
+                                            <MapPin size={15} style={{ flexShrink: 0 }} /> {vendor.location || 'Metro Manila'}[cite: 1]
                                         </div>
                                     </div>
                                 </div>
@@ -565,7 +596,6 @@ const VendorList = () => {
                             </button>
                         </div>
 
-                        {/* --- OVER BUDGET WARNING BANNER INSIDE CART MODAL --- */}
                         {isCartOverBudget && (
                             <div style={{ background: '#fef2f2', borderBottom: '1px solid #fee2e2', padding: '12px 24px', display: 'flex', alignItems: 'center', gap: '10px', color: '#991b1b', fontSize: '0.85rem', fontWeight: '700' }}>
                                 <ShieldAlert size={18} style={{ flexShrink: 0 }} />
@@ -656,7 +686,6 @@ const VendorList = () => {
                 </div>
             )}
 
-            {/* --- CUSTOM DELETE CONFIRMATION MODAL --- */}
             {serviceToDelete && (
                 <div style={{
                     position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)',
