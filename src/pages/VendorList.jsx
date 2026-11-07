@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import api from '../api';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { MapPin, Lock, AlertCircle, Power, Star, Check, Plus, Trash2, ShieldAlert, ChevronRight, ArrowLeft, Sparkles, Sliders, ShoppingBag, X, Info, Users, CheckCircle2, AlertTriangle, XCircle, MessageSquare } from 'lucide-react';
+import { MapPin, Lock, AlertCircle, Power, Star, Check, Plus, Trash2, ShieldAlert, ChevronRight, ArrowLeft, Sparkles, Sliders, ShoppingBag, X, Info, Users, CheckCircle2, AlertTriangle, XCircle, MessageSquare, Search } from 'lucide-react';
 import { notifyNewBooking } from '../toastUtils.jsx';
 import { toast } from 'react-hot-toast';
 
@@ -69,7 +69,6 @@ const VendorList = () => {
     const [isCartModalOpen, setIsCartModalOpen] = useState(false);
     const [serviceToDelete, setServiceToDelete] = useState(null);
 
-    // Default full allocations
     const defaultAllocations = useMemo(() => {
         const lowerType = eventType.toLowerCase();
         if (lowerType.includes('birthday')) {
