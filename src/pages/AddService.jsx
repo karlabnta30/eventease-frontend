@@ -63,15 +63,25 @@ const AddService = () => {
     const min = parseInt(serviceData.min_pax, 10);
     const max = parseInt(serviceData.max_pax, 10);
 
-    // Pax validation checks (Min: 50, Max: 150, and checking if swapped)
-    if (!isNaN(min) && !isNaN(max)) {
-      if (min > max) {
-        setPaxError("Error: Minimum Pax cannot be greater than Maximum Pax (looks like they were swapped).");
-        return;
-      }
-      if (min < 50 || max > 150) {
-        setPaxError("Note: Recommended guest capacity range is between 50 and 150 Pax.");
-      }
+    // Mahigpit na Validation: Pinipigilan ang pag-submit kapag lumagpas sa limit o nabaliktad
+    if (isNaN(min) || isNaN(max)) {
+      setPaxError("Error: Please provide valid numbers for both Minimum and Maximum Pax.");
+      return;
+    }
+
+    if (min > max) {
+      setPaxError("Error: Minimum Pax cannot be greater than Maximum Pax (looks like they were swapped).");
+      return;
+    }
+
+    if (min < 15) {
+      setPaxError("Error: Minimum Pax cannot be lower than 15. Services below 15 guests are not allowed to be published or booked.");
+      return;
+    }
+
+    if (max > 100) {
+      setPaxError("Error: Maximum Pax cannot exceed 100. Services above 100 guests are not allowed to be published or booked.");
+      return;
     }
 
     setLoading(true);
@@ -252,25 +262,31 @@ const AddService = () => {
                 />
               </div>
               <div>
-                <label style={labelStyle}>Min Pax (e.g. 50)</label>
+                <label style={labelStyle}>Min Pax (Min: 15)</label>
                 <input 
                   style={inputStyle} 
                   type="number" 
-                  placeholder="50" 
+                  min="15"
+                  max="100"
+                  placeholder="15" 
                   value={serviceData.min_pax}
                   onChange={(e) => setServiceData({...serviceData, min_pax: e.target.value})} 
                   disabled={!isVerified}
+                  required
                 />
               </div>
               <div>
-                <label style={labelStyle}>Max Pax (e.g. 150)</label>
+                <label style={labelStyle}>Max Pax (Max: 100)</label>
                 <input 
                   style={inputStyle} 
                   type="number" 
-                  placeholder="150" 
+                  min="15"
+                  max="100"
+                  placeholder="100" 
                   value={serviceData.max_pax}
                   onChange={(e) => setServiceData({...serviceData, max_pax: e.target.value})} 
                   disabled={!isVerified}
+                  required
                 />
               </div>
             </div>
