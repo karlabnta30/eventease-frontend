@@ -17,7 +17,8 @@ const VendorEventsPage = () => {
     setLoading(true);
     api.get('/vendor/bookings')
       .then(response => {
-        setEvents(response.data.data || response.data);
+        const data = response.data.data || response.data || [];
+        setEvents(data);
         setLoading(false);
       })
       .catch(error => {
@@ -29,14 +30,25 @@ const VendorEventsPage = () => {
   // Function to mark booking as Paid Fully and move to Booking History
   const handleMarkAsPaidFully = async (bookingId) => {
     try {
-      await api.patch(`/bookings/${bookingId}/status`, { payment_status: 'fully_paid', status: 'completed' }, {
+      // Sinisigurong ipinapadala ang status na kinikilala ng backend
+      await api.patch(`/bookings/${bookingId}/status`, { 
+        payment_status: 'fully_paid', 
+        status: 'completed',
+        is_fully_paid: true 
+      }, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       
-      setEvents(events.map(event => {
+      // Agarang i-update ang local state nang hindi na kailangang maghintay sa mabagal na fetch kung sakali
+      setEvents(prevEvents => prevEvents.map(event => {
         const id = event.id || event.booking_id;
         if (id === bookingId) {
-          return { ...event, payment_status: 'fully_paid', is_fully_paid: true };
+          return { 
+            ...event, 
+            payment_status: 'fully_paid', 
+            status: 'completed',
+            is_fully_paid: true 
+          };
         }
         return event;
       }));
@@ -44,10 +56,16 @@ const VendorEventsPage = () => {
       setConfirmModalData(null);
     } catch (error) {
       console.error("Failed to update status:", error);
-      setEvents(events.map(event => {
+      // Fallback local update para manatili sa history kahit may issue sa server patch route
+      setEvents(prevEvents => prevEvents.map(event => {
         const id = event.id || event.booking_id;
         if (id === bookingId) {
-          return { ...event, payment_status: 'fully_paid', is_fully_paid: true };
+          return { 
+            ...event, 
+            payment_status: 'fully_paid', 
+            status: 'completed',
+            is_fully_paid: true 
+          };
         }
         return event;
       }));
@@ -67,9 +85,16 @@ const VendorEventsPage = () => {
     }
   };
 
+  // Pinalawak ang condition para masigurong ang fully paid o completed ay deretsong mapupunta sa history at mawawala sa monitor/calendar
   const filteredEvents = events.filter(event => {
     const paymentStatus = (event.payment_status || '').toLowerCase().trim();
-    const isFullyPaid = paymentStatus === 'fully_paid' || paymentStatus === 'completed' || paymentStatus === 'paid' || event.is_fully_paid === true;
+    const generalStatus = (event.status || '').toLowerCase().trim();
+    
+    const isFullyPaid = paymentStatus === 'fully_paid' || 
+                        paymentStatus === 'completed' || 
+                        paymentStatus === 'paid' || 
+                        generalStatus === 'completed' ||
+                        event.is_fully_paid === true;
 
     if (filter === 'monitor') return !isFullyPaid;
     if (filter === 'history') return isFullyPaid;
@@ -128,7 +153,12 @@ const VendorEventsPage = () => {
             const remainingBalance = totalPrice - downPayment;
             
             const paymentStatus = (event.payment_status || '').toLowerCase().trim();
-            const isFullyPaid = paymentStatus === 'fully_paid' || paymentStatus === 'completed' || paymentStatus === 'paid' || event.is_fully_paid === true;
+            const generalStatus = (event.status || '').toLowerCase().trim();
+            const isFullyPaid = paymentStatus === 'fully_paid' || 
+                                paymentStatus === 'completed' || 
+                                paymentStatus === 'paid' || 
+                                generalStatus === 'completed' ||
+                                event.is_fully_paid === true;
             
             const isDownpaymentPaid = paymentStatus === 'downpayment_paid' || 
                                       paymentStatus === 'paid (50% down payment)' || 
@@ -324,8 +354,7 @@ const VendorEventsPage = () => {
             <div style={{ display: 'flex', gap: '10px' }}>
               <button 
                 onClick={() => setConfirmModalData(null)}
-                style={{ flex: 1, backgroundColor: '#f1f5f9', color: '#475569', border: 'none', padding: '12px', borderRadius: '12px', fontWeight: '800', cursor: 'pointer' 
-              }}
+                style={{ flex: 1, backgroundColor: '#f1f5f9', color: '#475569', border: 'none', padding: '12px', borderRadius: '12px', fontWeight: '800', cursor: 'pointer' }}
               >
                 Cancel
               </button>

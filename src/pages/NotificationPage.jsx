@@ -4,8 +4,12 @@ import { Bell, Check, Trash2, ListChecks } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 const NotificationPage = () => {
-  const [notifications, setNotifications] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // Sinusubukang basahin muna ang nakatagong data sa localStorage para agad lumitaw ang disenyo at laman
+  const [notifications, setNotifications] = useState(() => {
+    const cached = localStorage.getItem('cached_notifications');
+    return cached ? JSON.parse(cached) : [];
+  });
+  const [loading, setLoading] = useState(notifications.length === 0);
   const lastNotifId = useRef(null); 
 
   // Mobile responsiveness state
@@ -26,8 +30,9 @@ const NotificationPage = () => {
       const res = await api.get('/notifications');
       const data = Array.isArray(res.data) ? res.data : res.data.data || [];
       
-      // Update state with fresh data
       setNotifications(data);
+      // I-save sa localStorage para sa susunod na bukas ay agad itong makita habang naghihintay sa API
+      localStorage.setItem('cached_notifications', JSON.stringify(data));
     } catch (err) {
       console.error("Fetch Notifs Error:", err);
     } finally {
@@ -49,10 +54,8 @@ const NotificationPage = () => {
   // --- EFFECT 3: Toast Trigger ---
   useEffect(() => {
     if (notifications.length > 0) {
-      // We look at the top-most (latest) notification
       const latest = notifications[0];
       
-      // Only toast if it's unread AND we haven't toasted this specific ID in this session
       if (latest && latest.is_read === 0 && latest.id !== lastNotifId.current) {
         lastNotifId.current = latest.id;
         
@@ -95,6 +98,7 @@ const NotificationPage = () => {
       try {
         await api.delete('/notifications/delete-all');
         setNotifications([]);
+        localStorage.removeItem('cached_notifications');
         toast.success("Notification inbox cleared");
       } catch (err) { 
         console.error(err); 
@@ -177,13 +181,12 @@ const NotificationPage = () => {
     emptyState: { textAlign: 'center', padding: '100px 0', color: '#aaa' }
   };
 
-  if (loading) return <div style={styles.container}>Synchronizing alerts...</div>;
-
   return (
     <div style={styles.container}>
       <h1 style={styles.header}>Notifications</h1>
       <p style={{ color: '#666', marginBottom: '25px', fontSize: isMobile ? '0.9rem' : '1rem' }}>Stay updated with your event schedules and service requests.</p>
       
+      {/* Ipinapakita agad ang bulk actions at container kahit naglo-load pa para seamless ang UI */}
       {notifications.length > 0 && (
         <div style={styles.bulkActions}>
             <button onClick={handleReadAll} style={styles.readAllBtn}><ListChecks size={16}/> Mark all as Read</button>
@@ -191,7 +194,9 @@ const NotificationPage = () => {
         </div>
       )}
       
-      {notifications.length === 0 ? (
+      {loading && notifications.length === 0 ? (
+        <div style={{ color: '#888', padding: '20px 0', fontSize: '0.9rem' }}>Synchronizing alerts...</div>
+      ) : notifications.length === 0 ? (
         <div style={styles.emptyState}>
           <Bell size={48} style={{ opacity: 0.1, marginBottom: '20px' }} />
           <p style={{ fontWeight: '600' }}>No new alerts.</p>
