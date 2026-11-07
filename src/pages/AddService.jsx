@@ -17,9 +17,9 @@ const AddService = () => {
   const [serviceData, setServiceData] = useState({
     business_name: '',
     category: '',
-    location: '',
-    pin_x: 50, // Pin position percentage X (0-100)
-    pin_y: 50, // Pin position percentage Y (0-100)
+    location: 'Makati City', // Default initial location
+    pin_x: 50, // Pin X percentage position (0-100)
+    pin_y: 50, // Pin Y percentage position (0-100)
     starting_price: '',
     min_pax: '',
     max_pax: '',
@@ -55,38 +55,42 @@ const AddService = () => {
     checkVerification();
   }, []);
 
-  // 2-Way Sync: Kapag nag-click sa mapa (Map to Text Box)
+  // 1. Kapag nag-click sa mapa: Awtomatikong alamin ang lugar base sa quadrant at i-sync sa text box[cite: 12]
   const handleMapClick = (e) => {
     if (!isVerified) return;
     const rect = mapRef.current.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
 
-    // I-simulate ang pag-convert ng coordinates sa readable city/location name o coordinates format
-    const simulatedLocation = `Pinned Area (${Math.round(x)}°E, ${Math.round(y)}°N)`;
+    // Tukuyin ang lugar o siyudad base sa kung saang bahagi ng mapa pinindot
+    let detectedLocation = 'Makati City';
+    if (x < 40 && y < 40) detectedLocation = 'Quezon City';
+    else if (x >= 40 && x <= 60 && y >= 40 && y <= 60) detectedLocation = 'Makati City';
+    else if (x > 60 && y > 50) detectedLocation = 'BGC Taguig';
+    else if (x < 50 && y > 50) detectedLocation = 'Pasay City';
+    else if (x > 50 && y < 50) detectedLocation = 'Pasig City';
 
     setServiceData(prev => ({
       ...prev,
       pin_x: x,
       pin_y: y,
-      location: simulatedLocation
+      location: detectedLocation
     }));
   };
 
-  // 2-Way Sync: Kapag nag-type sa Text Box (Text Box to Map Pin)
+  // 2. Kapag nag-type sa Text Box: Awtomatikong igagalaw ang pin sa tamang pwesto sa mapa[cite: 12]
   const handleLocationTextChange = (e) => {
     const val = e.target.value;
-    
-    // Halimbawa ng smart mapping para sa mga sikat na siyudad para gumalaw ang pin base sa tina-type
     let newX = serviceData.pin_x;
     let newY = serviceData.pin_y;
 
     const lowerVal = val.toLowerCase();
-    if (lowerVal.includes('makati')) { newX = 52; newY = 48; }
-    else if (lowerVal.includes('bgc') || lowerVal.includes('taguig')) { newX = 60; newY = 55; }
-    else if (lowerVal.includes('quezon')) { newX = 45; newY = 30; }
-    else if (lowerVal.includes('manila')) { newX = 40; newY = 45; }
-    else if (lowerVal.includes('pasay')) { newX = 48; newY = 58; }
+    if (lowerVal.includes('makati')) { newX = 50; newY = 50; }
+    else if (lowerVal.includes('bgc') || lowerVal.includes('taguig')) { newX = 70; newY = 65; }
+    else if (lowerVal.includes('quezon')) { newX = 30; newY = 25; }
+    else if (lowerVal.includes('manila')) { newX = 35; newY = 50; }
+    else if (lowerVal.includes('pasay')) { newX = 40; newY = 70; }
+    else if (lowerVal.includes('pasig')) { newX = 65; newY = 35; }
 
     setServiceData(prev => ({
       ...prev,
@@ -293,7 +297,7 @@ const AddService = () => {
             <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <span style={{ fontSize: '0.78rem', fontWeight: '800', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <MapPin size={15} color="#2563eb" /> Interactive Map Pin (Click to Sync)
+                  <MapPin size={15} color="#2563eb" /> Interactive Map Pin (Click to Sync)[cite: 12]
                 </span>
                 <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: '600' }}>2-Way Synced with Location Box</span>
               </div>
@@ -303,7 +307,7 @@ const AddService = () => {
                 ref={mapRef}
                 onClick={handleMapClick}
                 style={{ 
-                  height: '150px', 
+                  height: '160px', 
                   background: 'linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%)', 
                   borderRadius: '12px', 
                   position: 'relative', 
@@ -320,23 +324,23 @@ const AddService = () => {
                   left: `${serviceData.pin_x}%`, 
                   top: `${serviceData.pin_y}%`, 
                   transform: 'translate(-50%, -100%)',
-                  transition: 'left 0.2s ease, top 0.2s ease',
+                  transition: 'left 0.25s ease, top 0.25s ease',
                   pointerEvents: 'none',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   zIndex: 3
                 }}>
-                  <div style={{ background: '#ef4444', color: '#fff', padding: '4px', borderRadius: '50%', boxShadow: '0 4px 10px rgba(0,0,0,0.3)' }}>
-                    <Navigation size={14} />
+                  <div style={{ background: '#ef4444', color: '#fff', padding: '6px', borderRadius: '50%', boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
+                    <Navigation size={15} />
                   </div>
-                  <span style={{ background: '#0f172a', color: '#fff', fontSize: '0.65rem', fontWeight: '800', padding: '2px 6px', borderRadius: '4px', whiteSpace: 'nowrap', marginTop: '2px' }}>
-                    {serviceData.location ? serviceData.location.split(' ')[0] : 'Pin'}
+                  <span style={{ background: '#0f172a', color: '#fff', fontSize: '0.7rem', fontWeight: '800', padding: '2px 8px', borderRadius: '6px', whiteSpace: 'nowrap', marginTop: '2px', boxShadow: '0 2px 6px rgba(0,0,0,0.2)' }}>
+                    {serviceData.location || 'Selected Area'}
                   </span>
                 </div>
 
-                <div style={{ position: 'absolute', bottom: '8px', left: '8px', background: 'rgba(255,255,255,0.85)', padding: '4px 8px', borderRadius: '6px', fontSize: '0.7rem', fontWeight: '700', color: '#0f172a' }}>
-                  💡 I-click kahit saan sa mapa para ilipat ang pin
+                <div style={{ position: 'absolute', bottom: '8px', left: '8px', background: 'rgba(255,255,255,0.9)', padding: '4px 8px', borderRadius: '6px', fontSize: '0.7rem', fontWeight: '700', color: '#0f172a' }}>
+                  💡 I-click kahit saan sa mapa para ilipat ang pin at i-update ang location[cite: 12]
                 </div>
               </div>
             </div>
