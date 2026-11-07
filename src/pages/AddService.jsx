@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
 import { notifyServiceCreated } from '../toastUtils.jsx'; 
-import { AlertCircle, ShieldCheck, Briefcase, Layers, UserCheck } from 'lucide-react';
+import { AlertCircle, ShieldCheck, Briefcase, Layers, UserCheck, MapPin, Navigation } from 'lucide-react';
 import CreateBundleForm from '../components/CreateBundleForm';
 
 const AddService = () => {
   const navigate = useNavigate();
+  const mapRef = useRef(null);
   const [loading, setLoading] = useState(false);
   const [checkingStatus, setCheckingStatus] = useState(true);
   const [isVerified, setIsVerified] = useState(false);
@@ -17,6 +18,8 @@ const AddService = () => {
     business_name: '',
     category: '',
     location: '',
+    pin_x: 50, // Pin position percentage X (0-100)
+    pin_y: 50, // Pin position percentage Y (0-100)
     starting_price: '',
     min_pax: '',
     max_pax: '',
@@ -52,6 +55,47 @@ const AddService = () => {
     checkVerification();
   }, []);
 
+  // 2-Way Sync: Kapag nag-click sa mapa (Map to Text Box)
+  const handleMapClick = (e) => {
+    if (!isVerified) return;
+    const rect = mapRef.current.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+    // I-simulate ang pag-convert ng coordinates sa readable city/location name o coordinates format
+    const simulatedLocation = `Pinned Area (${Math.round(x)}°E, ${Math.round(y)}°N)`;
+
+    setServiceData(prev => ({
+      ...prev,
+      pin_x: x,
+      pin_y: y,
+      location: simulatedLocation
+    }));
+  };
+
+  // 2-Way Sync: Kapag nag-type sa Text Box (Text Box to Map Pin)
+  const handleLocationTextChange = (e) => {
+    const val = e.target.value;
+    
+    // Halimbawa ng smart mapping para sa mga sikat na siyudad para gumalaw ang pin base sa tina-type
+    let newX = serviceData.pin_x;
+    let newY = serviceData.pin_y;
+
+    const lowerVal = val.toLowerCase();
+    if (lowerVal.includes('makati')) { newX = 52; newY = 48; }
+    else if (lowerVal.includes('bgc') || lowerVal.includes('taguig')) { newX = 60; newY = 55; }
+    else if (lowerVal.includes('quezon')) { newX = 45; newY = 30; }
+    else if (lowerVal.includes('manila')) { newX = 40; newY = 45; }
+    else if (lowerVal.includes('pasay')) { newX = 48; newY = 58; }
+
+    setServiceData(prev => ({
+      ...prev,
+      location: val,
+      pin_x: newX,
+      pin_y: newY
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!isVerified) {
@@ -63,24 +107,23 @@ const AddService = () => {
     const min = parseInt(serviceData.min_pax, 10);
     const max = parseInt(serviceData.max_pax, 10);
 
-    // Mahigpit na Validation: Pinipigilan ang pag-submit kapag lumagpas sa limit o nabaliktad
     if (isNaN(min) || isNaN(max)) {
       setPaxError("Error: Please provide valid numbers for both Minimum and Maximum Pax.");
       return;
     }
 
     if (min > max) {
-      setPaxError("Error: Minimum Pax cannot be greater than Maximum Pax (looks like they were swapped).");
+      setPaxError("Error: Minimum Pax cannot be greater than Maximum Pax.");
       return;
     }
 
     if (min < 15) {
-      setPaxError("Error: Minimum Pax cannot be lower than 15. Services below 15 guests are not allowed to be published or booked.");
+      setPaxError("Error: Minimum Pax cannot be lower than 15.");
       return;
     }
 
     if (max > 100) {
-      setPaxError("Error: Maximum Pax cannot exceed 100. Services above 100 guests are not allowed to be published or booked.");
+      setPaxError("Error: Maximum Pax cannot exceed 100.");
       return;
     }
 
@@ -124,7 +167,6 @@ const AddService = () => {
         </p>
       </div>
 
-      {/* Side-by-side or stacked layout container */}
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '30px', alignItems: 'start' }}>
         
         {/* Left Column: Service Creator Form */}
@@ -139,7 +181,6 @@ const AddService = () => {
             </div>
           </div>
           
-          {/* Verification Warning Banner with Profile Redirect Button */}
           {!isVerified && (
             <div style={{ 
               backgroundColor: '#fffbeb', 
@@ -155,7 +196,7 @@ const AddService = () => {
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '14px' }}>
                 <AlertCircle size={20} style={{ flexShrink: '0', marginTop: '2px', color: '#d97706' }} />
                 <div>
-                  <strong>Verification Required:</strong> You must submit a valid identification document or business permit through your profile to publish services and unlock bundle creation.
+                  <strong>Verification Required:</strong> You must submit a valid identification document or business permit through your profile to publish services.
                 </div>
               </div>
               <button 
@@ -235,16 +276,68 @@ const AddService = () => {
                 </select>
               </div>
               <div>
-                <label style={labelStyle}>Location (City)</label>
+                <label style={labelStyle}>Location (City / Address)</label>
                 <input 
                   style={inputStyle} 
                   type="text" 
-                  placeholder="e.g., Makati City" 
+                  placeholder="e.g., Makati City o BGC Taguig" 
                   value={serviceData.location}
-                  onChange={(e) => setServiceData({...serviceData, location: e.target.value})} 
+                  onChange={handleLocationTextChange} 
                   disabled={!isVerified}
                   required 
                 />
+              </div>
+            </div>
+
+            {/* 2-Way Synced Interactive Map Section */}
+            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: '0.78rem', fontWeight: '800', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <MapPin size={15} color="#2563eb" /> Interactive Map Pin (Click to Sync)
+                </span>
+                <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: '600' }}>2-Way Synced with Location Box</span>
+              </div>
+
+              {/* Map Preview Container */}
+              <div 
+                ref={mapRef}
+                onClick={handleMapClick}
+                style={{ 
+                  height: '150px', 
+                  background: 'linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%)', 
+                  borderRadius: '12px', 
+                  position: 'relative', 
+                  overflow: 'hidden',
+                  border: '1px solid #cbd5e1',
+                  cursor: isVerified ? 'crosshair' : 'not-allowed'
+                }}
+              >
+                <div style={{ position: 'absolute', inset: 0, opacity: 0.25, backgroundImage: 'radial-gradient(#0f172a 1.5px, transparent 1.5px)', backgroundSize: '16px 16px' }} />
+                
+                {/* Synced Pin Element */}
+                <div style={{ 
+                  position: 'absolute', 
+                  left: `${serviceData.pin_x}%`, 
+                  top: `${serviceData.pin_y}%`, 
+                  transform: 'translate(-50%, -100%)',
+                  transition: 'left 0.2s ease, top 0.2s ease',
+                  pointerEvents: 'none',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  zIndex: 3
+                }}>
+                  <div style={{ background: '#ef4444', color: '#fff', padding: '4px', borderRadius: '50%', boxShadow: '0 4px 10px rgba(0,0,0,0.3)' }}>
+                    <Navigation size={14} />
+                  </div>
+                  <span style={{ background: '#0f172a', color: '#fff', fontSize: '0.65rem', fontWeight: '800', padding: '2px 6px', borderRadius: '4px', whiteSpace: 'nowrap', marginTop: '2px' }}>
+                    {serviceData.location ? serviceData.location.split(' ')[0] : 'Pin'}
+                  </span>
+                </div>
+
+                <div style={{ position: 'absolute', bottom: '8px', left: '8px', background: 'rgba(255,255,255,0.85)', padding: '4px 8px', borderRadius: '6px', fontSize: '0.7rem', fontWeight: '700', color: '#0f172a' }}>
+                  💡 I-click kahit saan sa mapa para ilipat ang pin
+                </div>
               </div>
             </div>
 
