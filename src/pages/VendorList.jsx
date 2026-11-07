@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import api from '../api';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { MapPin, Lock, AlertCircle, Power, Star, Check, Plus, Trash2, ShieldAlert, ChevronRight, ArrowLeft, Sparkles, Sliders, ShoppingBag, X, Info, Users } from 'lucide-react';
+import { MapPin, Lock, AlertCircle, Power, Star, Check, Plus, Trash2, ShieldAlert, ChevronRight, ArrowLeft, Sparkles, Sliders, ShoppingBag, X, Info, Users, CheckCircle2, AlertTriangle, XCircle } from 'lucide-react';
 import { notifyNewBooking } from '../toastUtils.jsx';
 import { toast } from 'react-hot-toast';
 
@@ -35,7 +35,8 @@ const VendorList = () => {
     const userRole = localStorage.getItem('userRole');
     
     const eventIdFromUrl = searchParams.get('event_id');
-    const eventLocation = searchParams.get('location') || 'Metro Manila'; // Kinuha ang lokasyon mula sa URL params
+    const eventLocation = searchParams.get('location') || 'Metro Manila';
+    const eventType = searchParams.get('type') || searchParams.get('category') || 'Birthday';
     
     const userBudget = useMemo(() => {
         const b = searchParams.get('budget');
@@ -65,11 +66,60 @@ const VendorList = () => {
     const [hiringLoading, setHiringLoading] = useState(false);
     const [activeCategoryView, setActiveCategoryView] = useState(null);
 
-    const [isAiOptimizing, setIsAiOptimizing] = useState(false);
-    const [aiOptimizationSummary, setAiOptimizationSummary] = useState(null);
-
     const [isCartModalOpen, setIsCartModalOpen] = useState(false);
     const [serviceToDelete, setServiceToDelete] = useState(null);
+
+    // Awtomatikong sinusuri ng AI ang budget allocation at status base sa event type at guest count
+    const aiOptimizerAnalysis = useMemo(() => {
+        let allocations = {
+            'Catering & Food': 0.40,
+            'Venue Rental': 0.25,
+            'Decoration': 0.15,
+            'Photography': 0.10,
+            'Entertainment': 0.10,
+        };
+
+        const lowerType = eventType.toLowerCase();
+        if (lowerType.includes('birthday')) {
+            allocations = { 'Catering & Food': 0.50, 'Venue Rental': 0.20, 'Decoration': 0.15, 'Entertainment': 0.10, 'Photography': 0.05 };
+        } else if (lowerType.includes('corporate') || lowerType.includes('workshop')) {
+            allocations = { 'Venue Rental': 0.40, 'Catering & Food': 0.30, 'Entertainment': 0.15, 'Decoration': 0.10, 'Photography': 0.05 };
+        } else if (lowerType.includes('wedding') || lowerType.includes('debut')) {
+            allocations = { 'Catering & Food': 0.35, 'Venue Rental': 0.30, 'Decoration': 0.15, 'Photography': 0.10, 'Entertainment': 0.10 };
+        }
+
+        const categoryRates = { 'Wedding': 800, 'Birthday': 350, 'Corporate': 500, 'Workshop': 300, 'Debut': 600 };
+        const minPerPax = categoryRates[eventType] || 350;
+        const recommendedMinTotal = guestCount * minPerPax;
+
+        let status = 'Optimal';
+        let message = 'Your budget is well-balanced for your guest count and event type.';
+        let statusColor = '#16a34a';
+        let statusBg = '#f0fdf4';
+        let StatusIcon = CheckCircle2;
+
+        if (userBudget > 0 && userBudget < recommendedMinTotal) {
+            status = 'Not Optimal';
+            message = `Your budget is lower than the recommended baseline (₱${recommendedMinTotal.toLocaleString()}) for ${guestCount} guests.`;
+            statusColor = '#dc2626';
+            statusBg = '#fef2f2';
+            StatusIcon = XCircle;
+        } else if (userBudget > 0 && userBudget >= recommendedMinTotal && userBudget < recommendedMinTotal * 1.2) {
+            status = 'Slightly Optimal';
+            message = 'Your budget meets the minimum baseline with a minimal contingency buffer.';
+            statusColor = '#d97706';
+            statusBg = '#fffbeb';
+            StatusIcon = AlertTriangle;
+        }
+
+        const breakdown = Object.entries(allocations).map(([item, pct]) => ({
+            item,
+            percentage: Math.round(pct * 100) + '%',
+            amount: Math.round(userBudget * pct)
+        }));
+
+        return { status, message, statusColor, statusBg, StatusIcon, breakdown, recommendedMinTotal };
+    }, [userBudget, guestCount, eventType]);
 
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -96,10 +146,8 @@ const VendorList = () => {
         try {
             const endpoint = userRole === 'vendor' ? '/vendor/services' : '/vendors';
             const res = await api.get(endpoint);
-            
             const rawData = res.data?.data || res.data || [];
             const uniqueData = Array.from(new Map(rawData.map(item => [item.id, item])).values());
-            
             setVendors(uniqueData);
         } catch (err) { 
             console.error("Fetch Error:", err); 
@@ -152,12 +200,18 @@ const VendorList = () => {
         return typeof raw === 'string' ? parseFloat(raw.replace(/[^0-9.]/g,"")) || 0 : parseFloat(raw) || 0;
     }, []);
 
+    // Anti-Duplicate Category Rule: Pinipigilan ang pagdagdag kung mayroon na sa parehong kategorya
     const toggleSelectService = useCallback((vendor) => {
         setSelectedServices(prev => {
             const exists = prev.some(s => s.id === vendor.id);
             if (exists) {
                 return prev.filter(s => s.id !== vendor.id);
             } else {
+                const categoryExists = prev.some(s => (s.category || '').toLowerCase() === (vendor.category || '').toLowerCase());
+                if (categoryExists) {
+                    toast.error(`You already have a service in the "${vendor.category}" category in your cart!`);
+                    return prev;
+                }
                 return [...prev, vendor];
             }
         });
@@ -172,68 +226,6 @@ const VendorList = () => {
             return updated;
         });
     }, []);
-
-    const handleRunAiSmartAllocation = async () => {
-        if (userBudget <= 0) {
-            toast.error("No budget limit has been set for this event.");
-            return;
-        }
-
-        setIsAiOptimizing(true);
-        try {
-            const response = await api.post('/ai/optimize-budget', {
-                category: activeCategoryView || 'General',
-                guest_count: Number(guestCount),
-                total_budget: Number(userBudget),
-                location: eventLocation // Ipinapasa na ang location para sa rehiyon check
-            });
-
-            if (response?.data?.optimized_items && Array.isArray(response.data.optimized_items)) {
-                const aiPicked = response.data.optimized_items.map(item => ({
-                    id: item.id,
-                    business_name: item.name || item.title || 'AI Recommended Service',
-                    category: item.category || 'General',
-                    price: Number(item.price || 0),
-                    min_pax: item.min_pax || null,
-                    max_pax: item.max_pax || null
-                }));
-
-                setSelectedServices(aiPicked);
-                setAiOptimizationSummary(response.data.message || `AI successfully found optimal services matching your budget, guest count (${guestCount} pax), and location (${eventLocation}).`);
-                toast.success("AI Budget Optimizer successfully allocated optimal services!");
-                setIsAiOptimizing(false);
-                return;
-            }
-        } catch (error) {
-            console.warn("API Optimization Endpoint fallback executed:", error);
-        }
-
-        let accumulatedCost = 0;
-        let smartPicked = [];
-        
-        const suitableVendors = vendors.filter(v => {
-            const min = v.min_pax ? Number(v.min_pax) : 0;
-            const max = v.max_pax ? Number(v.max_pax) : 99999;
-            const matchesLocation = !eventLocation || (v.location && v.location.toLowerCase().includes(eventLocation.toLowerCase()));
-            return guestCount >= min && guestCount <= max && matchesLocation;
-        });
-
-        const poolToProcess = suitableVendors.length > 0 ? suitableVendors : vendors;
-        const sortedVendors = [...poolToProcess].sort((a, b) => calculateDynamicPrice(a) - calculateDynamicPrice(b));
-
-        for (let v of sortedVendors) {
-            const p = calculateDynamicPrice(v);
-            if (accumulatedCost + p <= userBudget) {
-                smartPicked.push(v);
-                accumulatedCost += p;
-            }
-        }
-
-        setSelectedServices(smartPicked);
-        setAiOptimizationSummary(`Smart Allocation: AI automatically picked ${smartPicked.length} service(s) for ${guestCount} guests totaling ₱${accumulatedCost.toLocaleString()} matching your budget and location.`);
-        toast.success("Smart budget allocation applied successfully!");
-        setIsAiOptimizing(false);
-    };
 
     const totalSelectedCost = useMemo(() => {
         return selectedServices.reduce((sum, item) => sum + calculateDynamicPrice(item), 0);
@@ -300,8 +292,10 @@ const VendorList = () => {
 
     if (loading) return <div style={{ padding: '100px', textAlign: 'center', fontWeight: '800', fontSize: '1.2rem' }}>Loading Services...</div>;
 
+    const StatusIconComp = aiOptimizerAnalysis.StatusIcon;
+
     return (
-        <div style={{ backgroundColor: '#ffffff', minHeight: '100vh', padding: isMobile ? '20px 16px 160px' : '40px 60px 140px', fontFamily: "'Inter', sans-serif" }}>
+        <div style={{ backgroundColor: '#ffffff', minHeight: '100vh', padding: isMobile ? '20px 16px 260px' : '40px 60px 240px', fontFamily: "'Inter', sans-serif" }}>
             <div style={{ borderBottom: '2px solid #f0f0f0', paddingBottom: '20px', display: 'flex', alignItems: isMobile ? 'flex-start' : 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '15px' }}>
                 <div>
                     {activeCategoryView && (
@@ -319,19 +313,6 @@ const VendorList = () => {
 
                 {userRole !== 'vendor' && !activeCategoryView && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                        <button
-                            onClick={handleRunAiSmartAllocation}
-                            disabled={isAiOptimizing}
-                            style={{
-                                background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
-                                color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '12px',
-                                fontWeight: '800', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px',
-                                fontSize: '0.85rem', boxShadow: '0 4px 12px rgba(37, 99, 235, 0.2)'
-                            }}
-                        >
-                            <Sparkles size={16} /> {isAiOptimizing ? 'Optimizing Budget & Pax...' : 'AI Smart Allocate'}
-                        </button>
-
                         <div style={{ 
                             background: isCartOverBudget ? '#ef4444' : '#000', 
                             color: '#fff', padding: '10px 16px', borderRadius: '12px', display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: isMobile ? '0.8rem' : '0.9rem', boxSizing: 'border-box'
@@ -344,18 +325,6 @@ const VendorList = () => {
                     </div>
                 )}
             </div>
-
-            {aiOptimizationSummary && (
-                <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', color: '#1e40af', padding: '14px 18px', borderRadius: '14px', marginTop: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', fontWeight: '700', fontSize: '0.9rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <Sparkles size={18} style={{ flexShrink: 0 }} />
-                        <span>{aiOptimizationSummary}</span>
-                    </div>
-                    <button onClick={() => setAiOptimizationSummary(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#1e40af' }}>
-                        <X size={16} />
-                    </button>
-                </div>
-            )}
 
             {!activeCategoryView ? (
                 <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px', marginTop: '30px' }}>
@@ -389,11 +358,11 @@ const VendorList = () => {
                         const isTooExpensive = userBudget > 0 && dynamicPrice > userBudget;
                         const isOffline = vendor.is_available === 0;
                         
-                        const minP = vendor.min_pax ? Number(vendor.min_pax) : null;
-                        const maxP = vendor.max_pax ? Number(vendor.max_pax) : null;
-                        const isPaxUnsuitable = (minP !== null && guestCount < minP) || (maxP !== null && guestCount > maxP);
+                        const minP = vendor.min_pax ? Number(vendor.min_pax) : 15;
+                        const maxP = vendor.max_pax ? Number(vendor.max_pax) : 100;
+                        const isPaxUnsuitable = guestCount < minP || guestCount > maxP;
 
-                        const isDisabled = (isTooExpensive || isOffline) && userRole !== 'vendor';
+                        const isDisabled = (isTooExpensive || isOffline || isPaxUnsuitable) && userRole !== 'vendor';
                         const isSelected = selectedServices.some(s => s.id === vendor.id);
 
                         const serviceDescription = vendor.description || vendor.details || vendor.inclusions || vendor.notes || "No additional description provided by the vendor.";
@@ -415,7 +384,7 @@ const VendorList = () => {
                                         {isDisabled && (
                                             <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
                                                 <div style={{ background: '#fff', padding: '8px 16px', borderRadius: '20px', fontWeight: '900', fontSize: '0.75rem', color: isOffline ? '#888' : '#ff4d4d', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                    <Lock size={12} /> {isOffline ? 'OFFLINE' : 'OVER BUDGET'}
+                                                    <Lock size={12} /> {isOffline ? 'OFFLINE' : isPaxUnsuitable ? 'UNSUITABLE PAX' : 'OVER BUDGET'}
                                                 </div>
                                             </div>
                                         )}
@@ -436,11 +405,7 @@ const VendorList = () => {
                                             marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' 
                                         }}>
                                             <Users size={14} />
-                                            <span>
-                                                {minP !== null || maxP !== null 
-                                                    ? `Capacity: ${minP !== null ? minP : 1} - ${maxP !== null ? maxP : 'Any'} Pax (Event: ${guestCount} Guests)`
-                                                    : `Capacity: Flexible Pax (Event: ${guestCount} Guests)`}
-                                            </span>
+                                            <span>Capacity: {minP} - {maxP} Pax (Event: {guestCount} Guests)</span>
                                         </div>
 
                                         <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', padding: '12px 14px', borderRadius: '12px', marginBottom: '14px' }}>
@@ -480,9 +445,7 @@ const VendorList = () => {
                                                     </button>
 
                                                     <button onClick={() => setServiceToDelete(vendor)} style={{
-                                                        background: '#fee2e2',
-                                                        color: '#991b1b',
-                                                        padding: '12px 14px', borderRadius: '12px', border: 'none', fontWeight: '800', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                                        background: '#fee2e2', color: '#991b1b', padding: '12px 14px', borderRadius: '12px', border: 'none', fontWeight: '800', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
                                                     }} title="Delete Service">
                                                         <Trash2 size={16} />
                                                     </button>
@@ -511,39 +474,66 @@ const VendorList = () => {
                 </div>
             )}
 
+            {/* Floating Bottom Bar na may kasamang Automated AI Budget Optimizer Panel */}
             {selectedServices.length > 0 && userRole !== 'vendor' && (
                 <div style={{
                     position: 'fixed', bottom: '15px', left: '50%', transform: 'translateX(-50%)',
-                    width: isMobile ? '92%' : '90%', maxWidth: '1000px', background: '#ffffff', borderRadius: '24px',
-                    padding: isMobile ? '16px' : '18px 30px', boxShadow: '0 20px 50px rgba(0,0,0,0.18)', border: '1px solid #e2e8f0',
-                    display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'stretch' : 'center', gap: isMobile ? '12px' : '0', zIndex: 900
+                    width: isMobile ? '92%' : '90%', maxWidth: '1100px', background: '#ffffff', borderRadius: '24px',
+                    padding: isMobile || window.innerWidth <= 1024 ? '16px' : '18px 24px', boxShadow: '0 20px 50px rgba(0,0,0,0.18)', border: '1px solid #e2e8f0',
+                    display: 'flex', flexDirection: 'column', gap: '14px', zIndex: 900
                 }}>
-                    <div 
-                        onClick={() => setIsCartModalOpen(true)}
-                        style={{ cursor: 'pointer', userSelect: 'none' }}
-                        title="Click to view cart items"
-                    >
-                        <div style={{ fontSize: '0.8rem', color: '#2563eb', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <ShoppingBag size={15} />
-                            {selectedServices.length} Service(s) in Cart (Click to View / Edit) 🔍
+                    {/* Automated AI Budget Optimizer Breakdown Panel (Awtomatikong nakita at naka-check ang status base sa event type at guests) */}
+                    <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '18px', padding: '14px 18px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap', gap: '8px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <Sparkles size={18} color="#2563eb" />
+                                <span style={{ fontWeight: '900', fontSize: '0.9rem', color: '#0f172a' }}>AI BUDGET OPTIMIZER ({eventType.toUpperCase()})</span>
+                            </div>
+                            <div style={{ background: aiOptimizerAnalysis.statusBg, color: aiOptimizerAnalysis.statusColor, padding: '4px 12px', borderRadius: '10px', fontSize: '0.78rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                <StatusIconComp size={14} /> {aiOptimizerAnalysis.status}
+                            </div>
                         </div>
-                        <div style={{ fontSize: isMobile ? '1.2rem' : '1.4rem', fontWeight: '900', color: isCartOverBudget ? '#ef4444' : '#000', wordBreak: 'break-word' }}>
-                            Total: ₱{totalSelectedCost.toLocaleString()}
-                            {isCartOverBudget && <span style={{ fontSize: '0.75rem', color: '#ef4444', marginLeft: '8px', display: isMobile ? 'block' : 'inline' }}>(Exceeds Budget by ₱{overBudgetAmount.toLocaleString()})</span>}
+
+                        <p style={{ fontSize: '0.8rem', color: '#64748b', margin: '0 0 12px 0', fontWeight: '600' }}>
+                            {aiOptimizerAnalysis.message}
+                        </p>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(5, 1fr)', gap: '8px' }}>
+                            {aiOptimizerAnalysis.breakdown.map((b, idx) => (
+                                <div key={idx} style={{ background: '#fff', border: '1px solid #e2e8f0', padding: '8px 10px', borderRadius: '10px' }}>
+                                    <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: '700' }}>{b.item} ({b.percentage})</div>
+                                    <div style={{ fontSize: '0.88rem', fontWeight: '900', color: '#0f172a' }}>₱{b.amount.toLocaleString()}</div>
+                                </div>
+                            ))}
                         </div>
                     </div>
 
-                    <div style={{ display: 'flex', gap: '8px', flexDirection: isMobile ? 'column' : 'row' }}>
-                        <div style={{ display: 'flex', gap: '8px' }}>
+                    {/* Cart Footer Bar */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'stretch' : 'center', gap: isMobile ? '12px' : '0', flexWrap: 'wrap' }}>
+                        <div 
+                            onClick={() => setIsCartModalOpen(true)}
+                            style={{ cursor: 'pointer', userSelect: 'none' }}
+                        >
+                            <div style={{ fontSize: '0.8rem', color: '#2563eb', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <ShoppingBag size={15} />
+                                {selectedServices.length} Service(s) in Cart (Click to View / Edit) 🔍
+                            </div>
+                            <div style={{ fontSize: isMobile ? '1.2rem' : '1.3rem', fontWeight: '900', color: isCartOverBudget ? '#ef4444' : '#000', wordBreak: 'break-word' }}>
+                                Total: ₱{totalSelectedCost.toLocaleString()}
+                                {isCartOverBudget && <span style={{ fontSize: '0.75rem', color: '#ef4444', marginLeft: '8px' }}>(Exceeds Budget by ₱{overBudgetAmount.toLocaleString()})</span>}
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                             <button 
                                 onClick={() => setIsCartModalOpen(true)}
-                                style={{ background: '#f8fafc', color: '#0f172a', border: '1px solid #cbd5e1', padding: '10px 14px', borderRadius: '12px', fontWeight: '700', cursor: 'pointer', flex: isMobile ? 1 : 'unset', fontSize: '0.85rem' }}
+                                style={{ background: '#f8fafc', color: '#0f172a', border: '1px solid #cbd5e1', padding: '10px 14px', borderRadius: '12px', fontWeight: '700', cursor: 'pointer', fontSize: '0.85rem' }}
                             >
                                 View Cart
                             </button>
                             <button 
                                 onClick={() => navigate('/messages')}
-                                style={{ background: '#f1f5f9', color: '#0f172a', border: 'none', padding: '10px 14px', borderRadius: '12px', fontWeight: '700', cursor: 'pointer', flex: isMobile ? 1 : 'unset', fontSize: '0.85rem' }}
+                                style={{ background: '#f1f5f9', color: '#0f172a', border: 'none', padding: '10px 14px', borderRadius: '12px', fontWeight: '700', cursor: 'pointer', fontSize: '0.85rem' }}
                             >
                                 Chat Vendors
                             </button>
@@ -552,23 +542,23 @@ const VendorList = () => {
                                     setSelectedServices([]);
                                     localStorage.removeItem('eventease_pending_cart');
                                 }}
-                                style={{ background: '#fee2e2', color: '#991b1b', border: 'none', padding: '10px 14px', borderRadius: '12px', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', flex: isMobile ? 1 : 'unset', fontSize: '0.85rem' }}
+                                style={{ background: '#fee2e2', color: '#991b1b', border: 'none', padding: '10px 14px', borderRadius: '12px', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '0.85rem' }}
                             >
                                 <Trash2 size={15} /> Clear
                             </button>
+                            <button 
+                                onClick={handleMultiServiceCheckout}
+                                disabled={hiringLoading}
+                                style={{ background: '#000', color: '#fff', border: 'none', padding: '12px 20px', borderRadius: '12px', fontWeight: '900', cursor: 'pointer', fontSize: '0.85rem' }}
+                            >
+                                {hiringLoading ? 'PROCESSING...' : 'BOOK CART SERVICES'}
+                            </button>
                         </div>
-                        
-                        <button 
-                            onClick={handleMultiServiceCheckout}
-                            disabled={hiringLoading}
-                            style={{ background: '#000', color: '#fff', border: 'none', padding: '12px 20px', borderRadius: '12px', fontWeight: '900', cursor: 'pointer', width: isMobile ? '100%' : 'auto', fontSize: '0.85rem' }}
-                        >
-                            {hiringLoading ? 'PROCESSING...' : 'BOOK CART SERVICES'}
-                        </button>
                     </div>
                 </div>
             )}
 
+            {/* Cart Modal */}
             {isCartModalOpen && (
                 <div style={{
                     position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)',
@@ -598,7 +588,7 @@ const VendorList = () => {
                             <div style={{ background: '#fef2f2', borderBottom: '1px solid #fee2e2', padding: '12px 24px', display: 'flex', alignItems: 'center', gap: '10px', color: '#991b1b', fontSize: '0.85rem', fontWeight: '700' }}>
                                 <ShieldAlert size={18} style={{ flexShrink: 0 }} />
                                 <div>
-                                    You are exceeding your budget by <span style={{ fontWeight: '900' }}>₱{overBudgetAmount.toLocaleString()}</span>. You can use <strong>AI Smart Allocate</strong> to automatically adjust options within your budget!
+                                    You are exceeding your budget by <span style={{ fontWeight: '900' }}>₱{overBudgetAmount.toLocaleString()}</span>.
                                 </div>
                             </div>
                         )}
@@ -655,20 +645,6 @@ const VendorList = () => {
                             <button
                                 onClick={() => {
                                     setIsCartModalOpen(false);
-                                    handleRunAiSmartAllocation();
-                                }}
-                                style={{
-                                    width: '100%', background: 'linear-gradient(135deg, #2563eb, #7c3aed)', color: '#fff', border: 'none',
-                                    padding: '12px', borderRadius: '12px', fontWeight: '800', cursor: 'pointer',
-                                    fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px'
-                                }}
-                            >
-                                <Sparkles size={16} /> Optimize with AI Smart Allocate
-                            </button>
-
-                            <button
-                                onClick={() => {
-                                    setIsCartModalOpen(false);
                                     handleMultiServiceCheckout();
                                 }}
                                 style={{
@@ -684,6 +660,7 @@ const VendorList = () => {
                 </div>
             )}
 
+            {/* Delete Confirmation Modal */}
             {serviceToDelete && (
                 <div style={{
                     position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)',
@@ -693,43 +670,16 @@ const VendorList = () => {
                         background: '#ffffff', borderRadius: '24px', width: '100%', maxWidth: '400px',
                         padding: '24px', textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)'
                     }}>
-                        <div style={{ 
-                            width: '50px', height: '50px', background: '#fee2e2', color: '#991b1b', 
-                            borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', 
-                            margin: '0 auto 16px auto' 
-                        }}>
+                        <div style={{ width: '50px', height: '50px', background: '#fee2e2', color: '#991b1b', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px auto' }}>
                             <Trash2 size={24} />
                         </div>
-                        
-                        <h3 style={{ margin: '0 0 8px 0', fontWeight: '900', fontSize: '1.2rem', color: '#0f172a' }}>
-                            Delete Service?
-                        </h3>
-                        
-                        <p style={{ margin: '0 0 24px 0', fontSize: '0.88rem', color: '#64748b', fontWeight: '600', lineHeight: '1.4' }}>
-                            Are you sure you want to permanently delete <strong style={{ color: '#0f172a' }}>{serviceToDelete.business_name || serviceToDelete.name}</strong>? This action cannot be undone.
+                        <h3 style={{ margin: '0 0 8px 0', fontWeight: '900', fontSize: '1.2rem', color: '#0f172a' }}>Delete Service?</h3>
+                        <p style={{ margin: '0 0 24px 0', fontSize: '0.88rem', color: '#64748b', fontWeight: '600' }}>
+                            Are you sure you want to delete <strong style={{ color: '#0f172a' }}>{serviceToDelete.business_name || serviceToDelete.name}</strong>?
                         </p>
-
                         <div style={{ display: 'flex', gap: '10px' }}>
-                            <button
-                                onClick={() => setServiceToDelete(null)}
-                                style={{
-                                    flex: 1, background: '#f1f5f9', color: '#0f172a', border: 'none',
-                                    padding: '12px', borderRadius: '12px', fontWeight: '800', cursor: 'pointer',
-                                    fontSize: '0.85rem'
-                                }}
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={confirmDeleteService}
-                                style={{
-                                    flex: 1, background: '#ef4444', color: '#fff', border: 'none',
-                                    padding: '12px', borderRadius: '12px', fontWeight: '800', cursor: 'pointer',
-                                    fontSize: '0.85rem'
-                                }}
-                            >
-                                Yes, Delete
-                            </button>
+                            <button onClick={() => setServiceToDelete(null)} style={{ flex: 1, background: '#f1f5f9', color: '#0f172a', border: 'none', padding: '12px', borderRadius: '12px', fontWeight: '800', cursor: 'pointer', fontSize: '0.85rem' }}>Cancel</button>
+                            <button onClick={confirmDeleteService} style={{ flex: 1, background: '#ef4444', color: '#fff', border: 'none', padding: '12px', borderRadius: '12px', fontWeight: '800', cursor: 'pointer', fontSize: '0.85rem' }}>Yes, Delete</button>
                         </div>
                     </div>
                 </div>

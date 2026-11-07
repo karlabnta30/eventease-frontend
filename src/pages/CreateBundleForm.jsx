@@ -5,6 +5,8 @@ const CreateBundleForm = ({ onBundleCreated }) => {
   const [bundleName, setBundleName] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
+  const [minPax, setMinPax] = useState('15');
+  const [maxPax, setMaxPax] = useState('100');
   const [availableServices, setAvailableServices] = useState([]);
   const [selectedServices, setSelectedServices] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -32,6 +34,19 @@ const CreateBundleForm = ({ onBundleCreated }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    const min = parseInt(minPax, 10);
+    const max = parseInt(maxPax, 10);
+
+    if (min > max) {
+      setMessage('Error: Minimum Pax cannot be greater than Maximum Pax.');
+      return;
+    }
+    if (min < 15 || max > 100) {
+      setMessage('Error: Bundle guest capacity must be between 15 and 100 Pax.');
+      return;
+    }
+
     setLoading(true);
     setMessage('');
 
@@ -40,6 +55,8 @@ const CreateBundleForm = ({ onBundleCreated }) => {
         bundle_name: bundleName,
         description,
         price,
+        min_pax: min,
+        max_pax: max,
         services: selectedServices
       });
 
@@ -47,6 +64,8 @@ const CreateBundleForm = ({ onBundleCreated }) => {
       setBundleName('');
       setDescription('');
       setPrice('');
+      setMinPax('15');
+      setMaxPax('100');
       setSelectedServices([]);
       if (onBundleCreated) onBundleCreated(res.data.data);
     } catch (err) {
@@ -87,17 +106,45 @@ const CreateBundleForm = ({ onBundleCreated }) => {
           />
         </div>
 
-        <div>
-          <label style={{ fontSize: '0.75rem', fontWeight: '900', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block' }}>Package Price (₱)</label>
-          <input 
-            type="number" 
-            min="0"
-            style={inputStyle} 
-            value={price} 
-            onChange={(e) => setPrice(e.target.value)} 
-            placeholder="Enter total bundle price..." 
-            required 
-          />
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '15px' }}>
+          <div>
+            <label style={{ fontSize: '0.75rem', fontWeight: '900', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block' }}>Package Price (₱)</label>
+            <input 
+              type="number" 
+              min="0"
+              style={inputStyle} 
+              value={price} 
+              onChange={(e) => setPrice(e.target.value)} 
+              placeholder="Total price..." 
+              required 
+            />
+          </div>
+          <div>
+            <label style={{ fontSize: '0.75rem', fontWeight: '900', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block' }}>Min Pax (15)</label>
+            <input 
+              type="number" 
+              min="15"
+              max="100"
+              style={inputStyle} 
+              value={minPax} 
+              onChange={(e) => setMinPax(e.target.value)} 
+              placeholder="15" 
+              required 
+            />
+          </div>
+          <div>
+            <label style={{ fontSize: '0.75rem', fontWeight: '900', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block' }}>Max Pax (100)</label>
+            <input 
+              type="number" 
+              min="15"
+              max="100"
+              style={inputStyle} 
+              value={maxPax} 
+              onChange={(e) => setMaxPax(e.target.value)} 
+              placeholder="100" 
+              required 
+            />
+          </div>
         </div>
 
         <div style={{ marginBottom: '20px' }}>
@@ -126,7 +173,7 @@ const CreateBundleForm = ({ onBundleCreated }) => {
           disabled={loading} 
           style={{ width: '100%', padding: '16px', background: '#0f172a', color: '#fff', border: 'none', borderRadius: '14px', fontWeight: '900', cursor: 'pointer', fontSize: '0.95rem', boxShadow: '0 4px 14px rgba(15, 23, 42, 0.3)' }}
         >
-          {loading ? 'Creating Bundle...' : 'Publish Bundle'}
+          {loading ? 'Publishing Bundle...' : 'Publish Bundle'}
         </button>
       </form>
     </div>
