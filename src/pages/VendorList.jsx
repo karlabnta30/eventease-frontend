@@ -239,6 +239,63 @@ const VendorList = () => {
         });
     }, []);
 
+    const handleRunAiSmartAllocation = async () => {
+        if (userBudget <= 0) {
+            toast.error("No budget limit has been set for this event.");
+            return;
+        }
+
+        try {
+            const response = await api.post('/ai/optimize-budget', {
+                category: activeCategoryView || 'General',
+                guest_count: Number(guestCount),
+                total_budget: Number(userBudget),
+                location: eventLocation
+            });
+
+            if (response?.data?.optimized_items && Array.isArray(response.data.optimized_items)) {
+                const aiPicked = response.data.optimized_items.map(item => ({
+                    id: item.id,
+                    business_name: item.name || item.title || 'AI Recommended Service',
+                    category: item.category || 'General',
+                    price: Number(item.price || 0),
+                    min_pax: item.min_pax || null,
+                    max_pax: item.max_pax || null
+                }));
+
+                setSelectedServices(aiPicked);
+                toast.success("AI Budget Optimizer successfully allocated optimal services!");
+                return;
+            }
+        } catch (error) {
+            console.warn("API Optimization Endpoint fallback executed:", error);
+        }
+
+        let accumulatedCost = 0;
+        let smartPicked = [];
+        
+        const suitableVendors = vendors.filter(v => {
+            const min = v.min_pax ? Number(v.min_pax) : 0;
+            const max = v.max_pax ? Number(v.max_pax) : 99999;
+            const matchesLocation = !eventLocation || (v.location && v.location.toLowerCase().includes(eventLocation.toLowerCase()));
+            return guestCount >= min && guestCount <= max && matchesLocation;
+        });
+
+        const poolToProcess = suitableVendors.length > 0 ? suitableVendors : vendors;
+        const sortedVendors = [...poolToProcess].sort((a, b) => calculateDynamicPrice(a) - calculateDynamicPrice(b));
+
+        for (let v of sortedVendors) {
+            const p = calculateDynamicPrice(v);
+            if (accumulatedCost + p <= userBudget) {
+                smartPicked.push(v);
+                accumulatedCost += p;
+            }
+        }
+
+        setSelectedServices(smartPicked);
+        toast.success("Smart budget allocation applied successfully!");
+    };
+
     const totalSelectedCost = useMemo(() => {
         return selectedServices.reduce((sum, item) => sum + calculateDynamicPrice(item), 0);
     }, [selectedServices, calculateDynamicPrice]);
@@ -486,7 +543,7 @@ const VendorList = () => {
                 </div>
             )}
 
-            {/* Original Classic Black Floating Bottom Bar */}
+            {/* Classic Black Floating Bottom Bar */}
             {selectedServices.length > 0 && userRole !== 'vendor' && (
                 <div style={{
                     position: 'fixed', bottom: '20px', left: '50%', transform: 'translateX(-50%)',
@@ -519,14 +576,14 @@ const VendorList = () => {
                 </div>
             )}
 
-            {/* Cart Modal na naglalaman ng Cart Items at AI Budget Optimizer Sliders */}
+            {/* Cart Modal na may Two-Column Layout (Left: AI Sliders, Right: Selected Services) */}
             {isCartModalOpen && (
                 <div style={{
                     position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)',
                     display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1100, padding: '16px'
                 }}>
                     <div style={{
-                        background: '#ffffff', borderRadius: '28px', width: '100%', maxWidth: '650px',
+                        background: '#ffffff', borderRadius: '28px', width: '100%', maxWidth: '1000px',
                         maxHeight: '90vh', overflowY: 'auto', display: 'flex', flexDirection: 'column',
                         boxShadow: '0 25px 50px -12px rgba(0,0,0,0.3)'
                     }}>
@@ -546,34 +603,43 @@ const VendorList = () => {
                             </button>
                         </div>
 
-                        <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                            {/* AI Budget Optimizer & Sliders in Modal */}
-                            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '20px', padding: '16px' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
+                        {/* Modal Body: Two Column Layout */}
+                        <div style={{ padding: '24px', display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '24px', alignItems: 'start' }}>
+                            
+                            {/* LEFT COLUMN: AI Budget Optimizer & Sliders */}
+                            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '20px', padding: '20px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                         <Sparkles size={18} color="#2563eb" />
-                                        <span style={{ fontWeight: '900', fontSize: '0.85rem', color: '#0f172a' }}>AI BUDGET SCALE SLIDERS ({eventType.toUpperCase()})</span>
+                                        <span style={{ fontWeight: '900', fontSize: '0.85rem', color: '#0f172a' }}>AI BUDGET OPTIMIZER ({eventType.toUpperCase()})</span>
                                     </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <span style={{ fontSize: '0.75rem', fontWeight: '800', color: totalPercentage === 100 ? '#16a34a' : '#dc2626' }}>
-                                            Scale: {totalPercentage}% {totalPercentage !== 100 && '(Must be 100%)'}
-                                        </span>
-                                        <div style={{ background: aiOptimizerAnalysis.statusBg, color: aiOptimizerAnalysis.statusColor, padding: '4px 10px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                            <StatusIconComp size={13} /> {aiOptimizerAnalysis.status}
-                                        </div>
-                                    </div>
+                                    <button
+                                        onClick={handleRunAiSmartAllocation}
+                                        style={{ background: '#0f172a', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: '800', cursor: 'pointer' }}
+                                    >
+                                        RUN AI OPTIMIZER
+                                    </button>
                                 </div>
 
-                                <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '0 0 12px 0', fontWeight: '600' }}>
-                                    {aiOptimizerAnalysis.message} <span style={{ color: '#2563eb' }}>Adjust sliders to fit your preference:</span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                                    <div style={{ background: aiOptimizerAnalysis.statusBg, color: aiOptimizerAnalysis.statusColor, padding: '4px 10px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                        <StatusIconComp size={13} /> {aiOptimizerAnalysis.status} Status
+                                    </div>
+                                    <span style={{ fontSize: '0.75rem', fontWeight: '800', color: totalPercentage === 100 ? '#16a34a' : '#dc2626' }}>
+                                        Scale: {totalPercentage}% {totalPercentage !== 100 && '(Must be 100%)'}
+                                    </span>
+                                </div>
+
+                                <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '0 0 16px 0', fontWeight: '600', lineHeight: '1.4' }}>
+                                    {aiOptimizerAnalysis.message}
                                 </p>
 
-                                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '10px' }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                                     {aiOptimizerAnalysis.breakdown.map((b, idx) => (
                                         <div key={idx} style={{ background: '#fff', border: '1px solid #e2e8f0', padding: '10px 12px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: '700' }}>{b.item}</span>
-                                                <span style={{ fontSize: '0.8rem', fontWeight: '900', color: '#2563eb' }}>{b.percentage}% (₱{b.amount.toLocaleString()})</span>
+                                                <span style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: '700' }}>{b.item} ({b.percentage}%)</span>
+                                                <span style={{ fontSize: '0.85rem', fontWeight: '900', color: '#0f172a' }}>₱{b.amount.toLocaleString()}</span>
                                             </div>
                                             <input 
                                                 type="range" 
@@ -588,11 +654,11 @@ const VendorList = () => {
                                 </div>
                             </div>
 
-                            {/* Cart Items List */}
-                            <div>
-                                <h4 style={{ margin: '0 0 12px 0', fontWeight: '900', fontSize: '1rem', color: '#0f172a' }}>Selected Services</h4>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                    {selectedServices.map((item) => {
+                            {/* RIGHT COLUMN: Selected Services List */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                <h4 style={{ margin: 0, fontWeight: '900', fontSize: '1rem', color: '#0f172a' }}>Selected Services ({selectedServices.length})</h4>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '400px', overflowY: 'auto' }}>
+                                    {selectedServices.length > 0 ? selectedServices.map((item) => {
                                         const price = calculateDynamicPrice(item);
                                         return (
                                             <div 
@@ -629,7 +695,11 @@ const VendorList = () => {
                                                 </button>
                                             </div>
                                         );
-                                    })}
+                                    }) : (
+                                        <div style={{ textAlign: 'center', padding: '40px', color: '#64748b', fontSize: '0.85rem' }}>
+                                            No services selected yet.
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
