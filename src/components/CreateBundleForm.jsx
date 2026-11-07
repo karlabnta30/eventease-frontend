@@ -37,7 +37,6 @@ const CreateBundleForm = ({ onBundleCreated }) => {
     }
   };
 
-  // Kalkulahin ang total price ng mga napiling serbisyo para sa Suggested Price feature
   const calculatedOriginalTotal = useMemo(() => {
     return selectedServices.reduce((sum, id) => {
       const s = availableServices.find(item => item.id === id);
@@ -46,7 +45,6 @@ const CreateBundleForm = ({ onBundleCreated }) => {
     }, 0);
   }, [selectedServices, availableServices]);
 
-  // I-filter ang mga serbisyo base sa search query ng vendor
   const filteredServices = useMemo(() => {
     if (!searchQuery) return availableServices;
     return availableServices.filter(s => {
@@ -80,7 +78,7 @@ const CreateBundleForm = ({ onBundleCreated }) => {
       if (onBundleCreated) onBundleCreated(res.data.data);
     } catch (err) {
       console.error("Error creating bundle", err);
-      setMessage(err.response?.data?.error || 'Failed to create bundle.');
+      setMessage(err.response?.data?.error || err.response?.data?.message || 'Failed to create bundle.');
     } finally {
       setLoading(false);
     }
@@ -93,7 +91,7 @@ const CreateBundleForm = ({ onBundleCreated }) => {
     <div style={formStyle}>
       <h3 style={{ fontSize: '1.25rem', fontWeight: '900', marginBottom: '15px', color: '#0f172a' }}>Create Service Bundle</h3>
       
-      {message && <p style={{ padding: '10px', background: '#f1f5f9', borderRadius: '8px', fontSize: '0.85rem', marginBottom: '15px', fontWeight: '700' }}>{message}</p>}
+      {message && <p style={{ padding: '10px', background: message.includes('success') ? '#f0fdf4' : '#fef2f2', color: message.includes('success') ? '#166534' : '#991b1b', borderRadius: '8px', fontSize: '0.85rem', marginBottom: '15px', fontWeight: '700' }}>{message}</p>}
 
       <form onSubmit={handleSubmit}>
         <div>
@@ -131,7 +129,6 @@ const CreateBundleForm = ({ onBundleCreated }) => {
           />
         </div>
 
-        {/* Live Suggested Price Indicator */}
         {selectedServices.length > 0 && (
           <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '10px 14px', borderRadius: '10px', marginBottom: '15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.8rem', fontWeight: '700', color: '#166534' }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -147,7 +144,6 @@ const CreateBundleForm = ({ onBundleCreated }) => {
             <span style={{ fontSize: '0.75rem', color: '#0f172a', fontWeight: '800' }}>{selectedServices.length} Selected</span>
           </div>
 
-          {/* Search Bar for Vendor Services */}
           <div style={{ position: 'relative', marginBottom: '10px' }}>
             <Search size={15} color="#94a3b8" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)' }} />
             <input 
@@ -161,7 +157,7 @@ const CreateBundleForm = ({ onBundleCreated }) => {
 
           <div style={{ maxHeight: '160px', overflowY: 'auto', border: '1px solid #e2e8f0', padding: '10px', borderRadius: '8px', background: '#f8fafc' }}>
             {filteredServices.length > 0 ? (
-              filteredServices.map(service => {
+              filteredServices.main || filteredServices.map ? filteredServices.map(service => {
                 const sPrice = service.starting_price || service.price || 0;
                 const sName = service.business_name || service.name || service.service_name || service.title || `Service #${service.id}`;
                 const sCat = service.category ? `[${service.category}] ` : '';
@@ -181,7 +177,7 @@ const CreateBundleForm = ({ onBundleCreated }) => {
                     </span>
                   </label>
                 );
-              })
+              }) : null
             ) : (
               <p style={{ fontSize: '0.8rem', color: '#94a3b8', fontStyle: 'italic', margin: 0 }}>No matching services found.</p>
             )}
