@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import api from '../api';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { MapPin, Lock, AlertCircle, Power, Star, Check, Plus, Trash2, ShieldAlert, ChevronRight, ArrowLeft, Sparkles, Sliders, ShoppingBag, X, Info, Users } from 'lucide-react';
 import { notifyNewBooking } from '../toastUtils.jsx';
 import { toast } from 'react-hot-toast';
 
-const StarRating = ({ rating = 5.0, totalReviews = 12 }) => {
+const StarRating = React.memo(({ rating = 5.0, totalReviews = 12 }) => {
     const numericRating = Math.min(5, Math.max(1, parseFloat(rating) || 5.0));
     const roundedStars = Math.round(numericRating);
 
@@ -27,7 +27,7 @@ const StarRating = ({ rating = 5.0, totalReviews = 12 }) => {
             </span>
         </div>
     );
-};
+});
 
 const VendorList = () => {
     const navigate = useNavigate();
@@ -68,7 +68,6 @@ const VendorList = () => {
     const [aiOptimizationSummary, setAiOptimizationSummary] = useState(null);
 
     const [isCartModalOpen, setIsCartModalOpen] = useState(false);
-    
     const [serviceToDelete, setServiceToDelete] = useState(null);
 
     useEffect(() => {
@@ -77,9 +76,9 @@ const VendorList = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    const categories = ['Catering', 'Photography', 'Venue', 'Entertainment', 'Decoration', 'Hosting', 'Random Stuff / Miscellaneous'];
+    const categories = useMemo(() => ['Catering', 'Photography', 'Venue', 'Entertainment', 'Decoration', 'Hosting', 'Random Stuff / Miscellaneous'], []);
 
-    const getCategoryPhoto = (category) => {
+    const getCategoryPhoto = useCallback((category) => {
         const photos = {
             'Catering': 'https://images.unsplash.com/photo-1555244162-803834f70033?q=80&w=800&auto=format&fit=crop',
             'Photography': 'https://images.unsplash.com/photo-1520854221256-17451cc331bf?q=80&w=800&auto=format&fit=crop',
@@ -90,9 +89,9 @@ const VendorList = () => {
             'Random Stuff / Miscellaneous': 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=800&auto=format&fit=crop',
         };
         return photos[category] || 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=800&auto=format&fit=crop';
-    };
+    }, []);
 
-    const fetchVendors = async () => {
+    const fetchVendors = useCallback(async () => {
         try {
             const endpoint = userRole === 'vendor' ? '/vendor/services' : '/vendors';
             const res = await api.get(endpoint);
@@ -106,17 +105,17 @@ const VendorList = () => {
         } finally { 
             setLoading(false); 
         }
-    };
+    }, [userRole]);
 
     useEffect(() => {
         fetchVendors();
-    }, []);
+    }, [fetchVendors]);
 
     useEffect(() => {
         localStorage.setItem('eventease_pending_cart', JSON.stringify(selectedServices));
     }, [selectedServices]);
 
-    const handleToggleStatus = async (id) => {
+    const handleToggleStatus = useCallback(async (id) => {
         setVendors(prevVendors => 
             prevVendors.map(vendor => 
                 vendor.id === id ? { ...vendor, is_available: vendor.is_available ? 0 : 1 } : vendor
@@ -130,13 +129,9 @@ const VendorList = () => {
             fetchVendors();
             toast.error("Failed to update status.");
         }
-    };
+    }, [fetchVendors]);
 
-    const handleDeleteService = (vendor) => {
-        setServiceToDelete(vendor);
-    };
-
-    const confirmDeleteService = async () => {
+    const confirmDeleteService = useCallback(async () => {
         if (!serviceToDelete) return;
 
         try {
@@ -148,33 +143,35 @@ const VendorList = () => {
             console.error("Delete failed:", error);
             toast.error(error.response?.data?.message || "Failed to delete service.");
         }
-    };
+    }, [serviceToDelete, fetchVendors]);
 
-    const calculateDynamicPrice = (vendor) => {
+    const calculateDynamicPrice = useCallback((vendor) => {
         if (!vendor) return 0;
         const raw = vendor.starting_price || vendor.price || vendor.cost || 0;
-        const basePrice = typeof raw === 'string' ? parseFloat(raw.replace(/[^0-9.]/g,"")) || 0 : parseFloat(raw) || 0;
-        return basePrice;
-    };
+        return typeof raw === 'string' ? parseFloat(raw.replace(/[^0-9.]/g,"")) || 0 : parseFloat(raw) || 0;
+    }, []);
 
-    const toggleSelectService = (vendor) => {
-        const exists = selectedServices.some(s => s.id === vendor.id);
-        if (exists) {
-            setSelectedServices(selectedServices.filter(s => s.id !== vendor.id));
-        } else {
-            setSelectedServices([...selectedServices, vendor]);
-        }
-    };
+    const toggleSelectService = useCallback((vendor) => {
+        setSelectedServices(prev => {
+            const exists = prev.some(s => s.id === vendor.id);
+            if (exists) {
+                return prev.filter(s => s.id !== vendor.id);
+            } else {
+                return [...prev, vendor];
+            }
+        });
+    }, []);
 
-    const handleRemoveFromCart = (vendorId) => {
-        const updated = selectedServices.filter(s => s.id !== vendorId);
-        setSelectedServices(updated);
-        if (updated.length === 0) {
-            setIsCartModalOpen(false);
-        }
-    };
+    const handleRemoveFromCart = useCallback((vendorId) => {
+        setSelectedServices(prev => {
+            const updated = prev.filter(s => s.id !== vendorId);
+            if (updated.length === 0) {
+                setIsCartModalOpen(false);
+            }
+            return updated;
+        });
+    }, []);
 
-    // --- AI SMART BUDGET ALLOCATION & OPTIMIZER (WITH MIN/MAX PAX VALIDATION) ---
     const handleRunAiSmartAllocation = async () => {
         if (userBudget <= 0) {
             toast.error("No budget limit has been set for this event.");
@@ -200,7 +197,7 @@ const VendorList = () => {
                 }));
 
                 setSelectedServices(aiPicked);
-                setAiOptimizationSummary(response.data.message || `AI successfully found optimal services matching your budget and guest count (${guestCount} pax).[cite: 3]`);
+                setAiOptimizationSummary(response.data.message || `AI successfully found optimal services matching your budget and guest count (${guestCount} pax).`);
                 toast.success("AI Budget Optimizer successfully allocated optimal services!");
                 setIsAiOptimizing(false);
                 return;
@@ -209,7 +206,6 @@ const VendorList = () => {
             console.warn("API Optimization Endpoint fallback executed:", error);
         }
 
-        // Local Smart Allocation checking Min/Max Pax and Budget constraints
         let accumulatedCost = 0;
         let smartPicked = [];
         
@@ -231,14 +227,14 @@ const VendorList = () => {
         }
 
         setSelectedServices(smartPicked);
-        setAiOptimizationSummary(`Smart Allocation: AI automatically picked ${smartPicked.length} service(s) for ${guestCount} guests totaling ₱${accumulatedCost.toLocaleString()} to fit within your budget.[cite: 3]`);
+        setAiOptimizationSummary(`Smart Allocation: AI automatically picked ${smartPicked.length} service(s) for ${guestCount} guests totaling ₱${accumulatedCost.toLocaleString()} to fit within your budget.`);
         toast.success("Smart budget allocation applied successfully!");
         setIsAiOptimizing(false);
     };
 
     const totalSelectedCost = useMemo(() => {
         return selectedServices.reduce((sum, item) => sum + calculateDynamicPrice(item), 0);
-    }, [selectedServices]);
+    }, [selectedServices, calculateDynamicPrice]);
 
     const isCartOverBudget = userBudget > 0 && totalSelectedCost > userBudget;
     const overBudgetAmount = totalSelectedCost - userBudget;
@@ -339,7 +335,7 @@ const VendorList = () => {
                         }}>
                             {isCartOverBudget ? <ShieldAlert size={18} style={{ flexShrink: 0 }} /> : <AlertCircle size={18} style={{ flexShrink: 0 }} />}
                             <span style={{ fontWeight: '700', wordBreak: 'break-word' }}>
-                                BUDGET: ₱{userBudget > 0 ? userBudget.toLocaleString() : "NO LIMIT"} | GUESTS: {guestCount} PAX[cite: 3]
+                                BUDGET: ₱{userBudget > 0 ? userBudget.toLocaleString() : "NO LIMIT"} | GUESTS: {guestCount} PAX
                             </span>
                         </div>
                     </div>
@@ -429,7 +425,6 @@ const VendorList = () => {
                                         
                                         <StarRating rating={vendor.rating || 5.0} totalReviews={vendor.total_reviews || 12} />
 
-                                        {/* --- PAX CAPACITY BADGE --- */}
                                         <div style={{ 
                                             background: isPaxUnsuitable ? '#fef2f2' : '#f0fdf4', 
                                             border: `1px solid ${isPaxUnsuitable ? '#fecaca' : '#bbf7d0'}`, 
@@ -440,8 +435,8 @@ const VendorList = () => {
                                             <Users size={14} />
                                             <span>
                                                 {minP !== null || maxP !== null 
-                                                    ? `Capacity: ${minP !== null ? minP : 1} - ${maxP !== null ? maxP : 'Any'} Pax (Event: ${guestCount} Guests)[cite: 3]`
-                                                    : `Capacity: Flexible Pax (Event: ${guestCount} Guests)[cite: 3]`}
+                                                    ? `Capacity: ${minP !== null ? minP : 1} - ${maxP !== null ? maxP : 'Any'} Pax (Event: ${guestCount} Guests)`
+                                                    : `Capacity: Flexible Pax (Event: ${guestCount} Guests)`}
                                             </span>
                                         </div>
 
@@ -455,7 +450,7 @@ const VendorList = () => {
                                         </div>
 
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#666', fontSize: '0.85rem', marginBottom: '16px', wordBreak: 'break-word' }}>
-                                            <MapPin size={15} style={{ flexShrink: 0 }} /> {vendor.location || 'Metro Manila'}[cite: 1]
+                                            <MapPin size={15} style={{ flexShrink: 0 }} /> {vendor.location || 'Metro Manila'}
                                         </div>
                                     </div>
                                 </div>
@@ -481,7 +476,7 @@ const VendorList = () => {
                                                         {vendor.is_available ? 'ONLINE' : 'OFFLINE'}
                                                     </button>
 
-                                                    <button onClick={() => handleDeleteService(vendor)} style={{
+                                                    <button onClick={() => setServiceToDelete(vendor)} style={{
                                                         background: '#fee2e2',
                                                         color: '#991b1b',
                                                         padding: '12px 14px', borderRadius: '12px', border: 'none', fontWeight: '800', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
