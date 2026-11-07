@@ -69,31 +69,38 @@ const VendorList = () => {
     const [isCartModalOpen, setIsCartModalOpen] = useState(false);
     const [serviceToDelete, setServiceToDelete] = useState(null);
 
-    // Awtomatikong sinusuri ng AI ang budget allocation at status base sa event type at guest count
-    const aiOptimizerAnalysis = useMemo(() => {
-        let allocations = {
-            'Catering & Food': 0.40,
-            'Venue Rental': 0.25,
-            'Decoration': 0.15,
-            'Photography': 0.10,
-            'Entertainment': 0.10,
-        };
-
+    // Custom Allocations para sa Sliders sa loob ng Cart Modal
+    const [customAllocations, setCustomAllocations] = useState(() => {
         const lowerType = eventType.toLowerCase();
         if (lowerType.includes('birthday')) {
-            allocations = { 'Catering & Food': 0.50, 'Venue Rental': 0.20, 'Decoration': 0.15, 'Entertainment': 0.10, 'Photography': 0.05 };
+            return { 'Catering & Food': 50, 'Venue Rental': 20, 'Decoration': 15, 'Entertainment': 10, 'Photography': 5 };
         } else if (lowerType.includes('corporate') || lowerType.includes('workshop')) {
-            allocations = { 'Venue Rental': 0.40, 'Catering & Food': 0.30, 'Entertainment': 0.15, 'Decoration': 0.10, 'Photography': 0.05 };
+            return { 'Venue Rental': 40, 'Catering & Food': 30, 'Entertainment': 15, 'Decoration': 10, 'Photography': 5 };
         } else if (lowerType.includes('wedding') || lowerType.includes('debut')) {
-            allocations = { 'Catering & Food': 0.35, 'Venue Rental': 0.30, 'Decoration': 0.15, 'Photography': 0.10, 'Entertainment': 0.10 };
+            return { 'Catering & Food': 35, 'Venue Rental': 30, 'Decoration': 15, 'Photography': 10, 'Entertainment': 10 };
         }
+        return { 'Catering & Food': 40, 'Venue Rental': 25, 'Decoration': 15, 'Photography': 10, 'Entertainment': 10 };
+    });
 
+    const handleSliderChange = (itemKey, newVal) => {
+        const val = parseInt(newVal, 10) || 0;
+        setCustomAllocations(prev => ({
+            ...prev,
+            [itemKey]: val
+        }));
+    };
+
+    const totalPercentage = useMemo(() => {
+        return Object.values(customAllocations).reduce((sum, val) => sum + val, 0);
+    }, [customAllocations]);
+
+    const aiOptimizerAnalysis = useMemo(() => {
         const categoryRates = { 'Wedding': 800, 'Birthday': 350, 'Corporate': 500, 'Workshop': 300, 'Debut': 600 };
         const minPerPax = categoryRates[eventType] || 350;
         const recommendedMinTotal = guestCount * minPerPax;
 
         let status = 'Optimal';
-        let message = 'Your budget is well-balanced for your guest count and event type.';
+        let message = 'Your budget and custom scale are well-balanced for your guest count and event type.';
         let statusColor = '#16a34a';
         let statusBg = '#f0fdf4';
         let StatusIcon = CheckCircle2;
@@ -104,6 +111,12 @@ const VendorList = () => {
             statusColor = '#dc2626';
             statusBg = '#fef2f2';
             StatusIcon = XCircle;
+        } else if (totalPercentage !== 100) {
+            status = 'Not Optimal';
+            message = `Total scale is at ${totalPercentage}%. It should equal 100%.`;
+            statusColor = '#d97706';
+            statusBg = '#fffbeb';
+            StatusIcon = AlertTriangle;
         } else if (userBudget > 0 && userBudget >= recommendedMinTotal && userBudget < recommendedMinTotal * 1.2) {
             status = 'Slightly Optimal';
             message = 'Your budget meets the minimum baseline with a minimal contingency buffer.';
@@ -112,14 +125,14 @@ const VendorList = () => {
             StatusIcon = AlertTriangle;
         }
 
-        const breakdown = Object.entries(allocations).map(([item, pct]) => ({
+        const breakdown = Object.entries(customAllocations).map(([item, pct]) => ({
             item,
-            percentage: Math.round(pct * 100) + '%',
-            amount: Math.round(userBudget * pct)
+            percentage: pct,
+            amount: Math.round(userBudget * (pct / 100))
         }));
 
         return { status, message, statusColor, statusBg, StatusIcon, breakdown, recommendedMinTotal };
-    }, [userBudget, guestCount, eventType]);
+    }, [userBudget, guestCount, eventType, customAllocations, totalPercentage]);
 
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -200,7 +213,6 @@ const VendorList = () => {
         return typeof raw === 'string' ? parseFloat(raw.replace(/[^0-9.]/g,"")) || 0 : parseFloat(raw) || 0;
     }, []);
 
-    // Anti-Duplicate Category Rule: Pinipigilan ang pagdagdag kung mayroon na sa parehong kategorya
     const toggleSelectService = useCallback((vendor) => {
         setSelectedServices(prev => {
             const exists = prev.some(s => s.id === vendor.id);
@@ -295,7 +307,7 @@ const VendorList = () => {
     const StatusIconComp = aiOptimizerAnalysis.StatusIcon;
 
     return (
-        <div style={{ backgroundColor: '#ffffff', minHeight: '100vh', padding: isMobile ? '20px 16px 260px' : '40px 60px 240px', fontFamily: "'Inter', sans-serif" }}>
+        <div style={{ backgroundColor: '#ffffff', minHeight: '100vh', padding: isMobile ? '20px 16px 140px' : '40px 60px 140px', fontFamily: "'Inter', sans-serif" }}>
             <div style={{ borderBottom: '2px solid #f0f0f0', paddingBottom: '20px', display: 'flex', alignItems: isMobile ? 'flex-start' : 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '15px' }}>
                 <div>
                     {activeCategoryView && (
@@ -474,106 +486,56 @@ const VendorList = () => {
                 </div>
             )}
 
-            {/* Floating Bottom Bar na may kasamang Automated AI Budget Optimizer Panel */}
+            {/* Minimalist Floating Bottom Bar (Malinis at hindi kumakain ng space) */}
             {selectedServices.length > 0 && userRole !== 'vendor' && (
                 <div style={{
-                    position: 'fixed', bottom: '15px', left: '50%', transform: 'translateX(-50%)',
-                    width: isMobile ? '92%' : '90%', maxWidth: '1100px', background: '#ffffff', borderRadius: '24px',
-                    padding: isMobile || window.innerWidth <= 1024 ? '16px' : '18px 24px', boxShadow: '0 20px 50px rgba(0,0,0,0.18)', border: '1px solid #e2e8f0',
-                    display: 'flex', flexDirection: 'column', gap: '14px', zIndex: 900
+                    position: 'fixed', bottom: '20px', left: '50%', transform: 'translateX(-50%)',
+                    width: isMobile ? '92%' : '85%', maxWidth: '900px', background: '#0f172a', borderRadius: '24px',
+                    padding: '16px 24px', boxShadow: '0 20px 40px rgba(0,0,0,0.25)', border: '1px solid #334155',
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 900, color: '#fff', flexWrap: 'wrap', gap: '12px'
                 }}>
-                    {/* Automated AI Budget Optimizer Breakdown Panel (Awtomatikong nakita at naka-check ang status base sa event type at guests) */}
-                    <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '18px', padding: '14px 18px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap', gap: '8px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <Sparkles size={18} color="#2563eb" />
-                                <span style={{ fontWeight: '900', fontSize: '0.9rem', color: '#0f172a' }}>AI BUDGET OPTIMIZER ({eventType.toUpperCase()})</span>
-                            </div>
-                            <div style={{ background: aiOptimizerAnalysis.statusBg, color: aiOptimizerAnalysis.statusColor, padding: '4px 12px', borderRadius: '10px', fontSize: '0.78rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                                <StatusIconComp size={14} /> {aiOptimizerAnalysis.status}
-                            </div>
+                    <div onClick={() => setIsCartModalOpen(true)} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{ background: '#2563eb', padding: '10px', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <ShoppingBag size={20} color="#fff" />
                         </div>
-
-                        <p style={{ fontSize: '0.8rem', color: '#64748b', margin: '0 0 12px 0', fontWeight: '600' }}>
-                            {aiOptimizerAnalysis.message}
-                        </p>
-
-                        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(5, 1fr)', gap: '8px' }}>
-                            {aiOptimizerAnalysis.breakdown.map((b, idx) => (
-                                <div key={idx} style={{ background: '#fff', border: '1px solid #e2e8f0', padding: '8px 10px', borderRadius: '10px' }}>
-                                    <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: '700' }}>{b.item} ({b.percentage})</div>
-                                    <div style={{ fontSize: '0.88rem', fontWeight: '900', color: '#0f172a' }}>₱{b.amount.toLocaleString()}</div>
-                                </div>
-                            ))}
+                        <div>
+                            <div style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: '700' }}>
+                                {selectedServices.length} Service(s) in Cart
+                            </div>
+                            <div style={{ fontSize: '1.2rem', fontWeight: '900', color: isCartOverBudget ? '#f87171' : '#fff' }}>
+                                ₱{totalSelectedCost.toLocaleString()} {isCartOverBudget && '(Over Budget)'}
+                            </div>
                         </div>
                     </div>
 
-                    {/* Cart Footer Bar */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'stretch' : 'center', gap: isMobile ? '12px' : '0', flexWrap: 'wrap' }}>
-                        <div 
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                        <button 
                             onClick={() => setIsCartModalOpen(true)}
-                            style={{ cursor: 'pointer', userSelect: 'none' }}
+                            style={{ background: '#ffffff', color: '#0f172a', border: 'none', padding: '12px 20px', borderRadius: '14px', fontWeight: '900', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px' }}
                         >
-                            <div style={{ fontSize: '0.8rem', color: '#2563eb', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                <ShoppingBag size={15} />
-                                {selectedServices.length} Service(s) in Cart (Click to View / Edit) 🔍
-                            </div>
-                            <div style={{ fontSize: isMobile ? '1.2rem' : '1.3rem', fontWeight: '900', color: isCartOverBudget ? '#ef4444' : '#000', wordBreak: 'break-word' }}>
-                                Total: ₱{totalSelectedCost.toLocaleString()}
-                                {isCartOverBudget && <span style={{ fontSize: '0.75rem', color: '#ef4444', marginLeft: '8px' }}>(Exceeds Budget by ₱{overBudgetAmount.toLocaleString()})</span>}
-                            </div>
-                        </div>
-
-                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                            <button 
-                                onClick={() => setIsCartModalOpen(true)}
-                                style={{ background: '#f8fafc', color: '#0f172a', border: '1px solid #cbd5e1', padding: '10px 14px', borderRadius: '12px', fontWeight: '700', cursor: 'pointer', fontSize: '0.85rem' }}
-                            >
-                                View Cart
-                            </button>
-                            <button 
-                                onClick={() => navigate('/messages')}
-                                style={{ background: '#f1f5f9', color: '#0f172a', border: 'none', padding: '10px 14px', borderRadius: '12px', fontWeight: '700', cursor: 'pointer', fontSize: '0.85rem' }}
-                            >
-                                Chat Vendors
-                            </button>
-                            <button 
-                                onClick={() => {
-                                    setSelectedServices([]);
-                                    localStorage.removeItem('eventease_pending_cart');
-                                }}
-                                style={{ background: '#fee2e2', color: '#991b1b', border: 'none', padding: '10px 14px', borderRadius: '12px', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '0.85rem' }}
-                            >
-                                <Trash2 size={15} /> Clear
-                            </button>
-                            <button 
-                                onClick={handleMultiServiceCheckout}
-                                disabled={hiringLoading}
-                                style={{ background: '#000', color: '#fff', border: 'none', padding: '12px 20px', borderRadius: '12px', fontWeight: '900', cursor: 'pointer', fontSize: '0.85rem' }}
-                            >
-                                {hiringLoading ? 'PROCESSING...' : 'BOOK CART SERVICES'}
-                            </button>
-                        </div>
+                            <Sliders size={16} /> VIEW CART & AI BUDGET SLIDERS
+                        </button>
                     </div>
                 </div>
             )}
 
-            {/* Cart Modal */}
+            {/* Cart Modal na naglalaman ng Cart Items at AI Budget Optimizer Sliders */}
             {isCartModalOpen && (
                 <div style={{
-                    position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)',
+                    position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)',
                     display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1100, padding: '16px'
                 }}>
                     <div style={{
-                        background: '#ffffff', borderRadius: '24px', width: '100%', maxWidth: '520px',
-                        maxHeight: '85vh', overflow: 'hidden', display: 'flex', flexDirection: 'column',
-                        boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)'
+                        background: '#ffffff', borderRadius: '28px', width: '100%', maxWidth: '650px',
+                        maxHeight: '90vh', overflowY: 'auto', display: 'flex', flexDirection: 'column',
+                        boxShadow: '0 25px 50px -12px rgba(0,0,0,0.3)'
                     }}>
-                        <div style={{ padding: '20px 24px', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        {/* Modal Header */}
+                        <div style={{ padding: '20px 24px', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, background: '#fff', zIndex: 10 }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                 <ShoppingBag size={22} color="#0f172a" />
                                 <h3 style={{ margin: 0, fontWeight: '900', fontSize: '1.2rem', color: '#0f172a' }}>
-                                    Your Selected Services ({selectedServices.length})
+                                    Cart & AI Budget Optimizer ({selectedServices.length})
                                 </h3>
                             </div>
                             <button 
@@ -584,57 +546,96 @@ const VendorList = () => {
                             </button>
                         </div>
 
-                        {isCartOverBudget && (
-                            <div style={{ background: '#fef2f2', borderBottom: '1px solid #fee2e2', padding: '12px 24px', display: 'flex', alignItems: 'center', gap: '10px', color: '#991b1b', fontSize: '0.85rem', fontWeight: '700' }}>
-                                <ShieldAlert size={18} style={{ flexShrink: 0 }} />
-                                <div>
-                                    You are exceeding your budget by <span style={{ fontWeight: '900' }}>₱{overBudgetAmount.toLocaleString()}</span>.
+                        <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                            {/* AI Budget Optimizer & Sliders in Modal */}
+                            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '20px', padding: '16px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <Sparkles size={18} color="#2563eb" />
+                                        <span style={{ fontWeight: '900', fontSize: '0.85rem', color: '#0f172a' }}>AI BUDGET SCALE SLIDERS ({eventType.toUpperCase()})</span>
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <span style={{ fontSize: '0.75rem', fontWeight: '800', color: totalPercentage === 100 ? '#16a34a' : '#dc2626' }}>
+                                            Scale: {totalPercentage}% {totalPercentage !== 100 && '(Must be 100%)'}
+                                        </span>
+                                        <div style={{ background: aiOptimizerAnalysis.statusBg, color: aiOptimizerAnalysis.statusColor, padding: '4px 10px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                            <StatusIconComp size={13} /> {aiOptimizerAnalysis.status}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '0 0 12px 0', fontWeight: '600' }}>
+                                    {aiOptimizerAnalysis.message} <span style={{ color: '#2563eb' }}>Adjust sliders to fit your preference:</span>
+                                </p>
+
+                                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '10px' }}>
+                                    {aiOptimizerAnalysis.breakdown.map((b, idx) => (
+                                        <div key={idx} style={{ background: '#fff', border: '1px solid #e2e8f0', padding: '10px 12px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: '700' }}>{b.item}</span>
+                                                <span style={{ fontSize: '0.8rem', fontWeight: '900', color: '#2563eb' }}>{b.percentage}% (₱{b.amount.toLocaleString()})</span>
+                                            </div>
+                                            <input 
+                                                type="range" 
+                                                min="0" 
+                                                max="100" 
+                                                value={b.percentage} 
+                                                onChange={(e) => handleSliderChange(b.item, e.target.value)}
+                                                style={{ width: '100%', accentColor: '#2563eb', cursor: 'pointer', marginTop: '4px' }}
+                                            />
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
-                        )}
 
-                        <div style={{ padding: '20px 24px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                            {selectedServices.map((item) => {
-                                const price = calculateDynamicPrice(item);
-                                return (
-                                    <div 
-                                        key={item.id}
-                                        style={{
-                                            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                                            padding: '14px 16px', background: '#f8fafc', borderRadius: '16px',
-                                            border: '1px solid #e2e8f0'
-                                        }}
-                                    >
-                                        <div style={{ flex: 1, paddingRight: '12px' }}>
-                                            <div style={{ fontWeight: '800', fontSize: '0.95rem', color: '#0f172a', marginBottom: '2px' }}>
-                                                {item.business_name || item.name}
-                                            </div>
-                                            <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: '600' }}>
-                                                Category: {item.category || 'General'}
-                                            </div>
-                                            <div style={{ fontWeight: '900', fontSize: '0.9rem', color: '#16a34a', marginTop: '4px' }}>
-                                                ₱{price.toLocaleString()}
-                                            </div>
-                                        </div>
+                            {/* Cart Items List */}
+                            <div>
+                                <h4 style={{ margin: '0 0 12px 0', fontWeight: '900', fontSize: '1rem', color: '#0f172a' }}>Selected Services</h4>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                    {selectedServices.map((item) => {
+                                        const price = calculateDynamicPrice(item);
+                                        return (
+                                            <div 
+                                                key={item.id}
+                                                style={{
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                                    padding: '14px 16px', background: '#f8fafc', borderRadius: '16px',
+                                                    border: '1px solid #e2e8f0'
+                                                }}
+                                            >
+                                                <div style={{ flex: 1, paddingRight: '12px' }}>
+                                                    <div style={{ fontWeight: '800', fontSize: '0.95rem', color: '#0f172a', marginBottom: '2px' }}>
+                                                        {item.business_name || item.name}
+                                                    </div>
+                                                    <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: '600' }}>
+                                                        Category: {item.category || 'General'}
+                                                    </div>
+                                                    <div style={{ fontWeight: '900', fontSize: '0.9rem', color: '#16a34a', marginTop: '4px' }}>
+                                                        ₱{price.toLocaleString()}
+                                                    </div>
+                                                </div>
 
-                                        <button
-                                            onClick={() => handleRemoveFromCart(item.id)}
-                                            style={{
-                                                background: '#fee2e2', color: '#991b1b', border: 'none',
-                                                padding: '8px 12px', borderRadius: '10px', fontWeight: '800',
-                                                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px',
-                                                fontSize: '0.75rem', flexShrink: 0
-                                            }}
-                                            title="Remove item"
-                                        >
-                                            <Trash2 size={14} /> Remove
-                                        </button>
-                                    </div>
-                                );
-                            })}
+                                                <button
+                                                    onClick={() => handleRemoveFromCart(item.id)}
+                                                    style={{
+                                                        background: '#fee2e2', color: '#991b1b', border: 'none',
+                                                        padding: '8px 12px', borderRadius: '10px', fontWeight: '800',
+                                                        cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px',
+                                                        fontSize: '0.75rem', flexShrink: 0
+                                                    }}
+                                                    title="Remove item"
+                                                >
+                                                    <Trash2 size={14} /> Remove
+                                                </button>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
                         </div>
 
-                        <div style={{ padding: '20px 24px', borderTop: '1px solid #f1f5f9', background: '#fafafa', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        {/* Modal Footer */}
+                        <div style={{ padding: '20px 24px', borderTop: '1px solid #f1f5f9', background: '#fafafa', display: 'flex', flexDirection: 'column', gap: '12px', position: 'sticky', bottom: 0, zIndex: 10 }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <span style={{ fontWeight: '800', color: '#64748b', fontSize: '0.9rem' }}>Total Amount</span>
                                 <span style={{ fontWeight: '900', color: isCartOverBudget ? '#ef4444' : '#0f172a', fontSize: '1.3rem' }}>
@@ -642,19 +643,37 @@ const VendorList = () => {
                                 </span>
                             </div>
 
-                            <button
-                                onClick={() => {
-                                    setIsCartModalOpen(false);
-                                    handleMultiServiceCheckout();
-                                }}
-                                style={{
-                                    width: '100%', background: '#000', color: '#fff', border: 'none',
-                                    padding: '14px', borderRadius: '14px', fontWeight: '900', cursor: 'pointer',
-                                    fontSize: '0.9rem'
-                                }}
-                            >
-                                CONFIRM & BOOK SERVICES
-                            </button>
+                            {isCartOverBudget && (
+                                <div style={{ background: '#fef2f2', border: '1px solid #fee2e2', padding: '10px 14px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '8px', color: '#991b1b', fontSize: '0.8rem', fontWeight: '700' }}>
+                                    <ShieldAlert size={16} />
+                                    <span>Exceeds budget by ₱{overBudgetAmount.toLocaleString()}</span>
+                                </div>
+                            )}
+
+                            <div style={{ display: 'flex', gap: '10px' }}>
+                                <button
+                                    onClick={() => {
+                                        setSelectedServices([]);
+                                        localStorage.removeItem('eventease_pending_cart');
+                                    }}
+                                    style={{ background: '#fee2e2', color: '#991b1b', border: 'none', padding: '14px', borderRadius: '14px', fontWeight: '800', cursor: 'pointer', fontSize: '0.85rem' }}
+                                >
+                                    Clear Cart
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setIsCartModalOpen(false);
+                                        handleMultiServiceCheckout();
+                                    }}
+                                    style={{
+                                        flex: 1, background: '#000', color: '#fff', border: 'none',
+                                        padding: '14px', borderRadius: '14px', fontWeight: '900', cursor: 'pointer',
+                                        fontSize: '0.9rem'
+                                    }}
+                                >
+                                    CONFIRM & BOOK SERVICES
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
