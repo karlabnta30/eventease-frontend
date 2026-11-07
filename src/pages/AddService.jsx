@@ -1,25 +1,60 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
 import { notifyServiceCreated } from '../toastUtils.jsx'; 
-import { AlertCircle, ShieldCheck, Briefcase, Layers, UserCheck, MapPin, Navigation } from 'lucide-react';
+import { AlertCircle, ShieldCheck, Briefcase, Layers, UserCheck } from 'lucide-react';
 import CreateBundleForm from '../components/CreateBundleForm';
+import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+
+// Ayusin ang default icon issue ng Leaflet sa React
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
+
+// Helper component para mahuli ang click event sa Leaflet map at mai-update ang position/location
+const LocationSelector = ({ position, setPosition, setLocation }) => {
+  useMapEvents({
+    click(e) {
+      const { lat, lng } = e.latlng;
+      setPosition([lat, lng]);
+      
+      // I-convert ang lat/lng sa malapit na siyudad/address para sa textbox
+      if (lat >= 14.5 && lat <= 14.6 && lng >= 121.0 && lng <= 121.1) {
+        setLocation('Makati City');
+      } else if (lat >= 14.5 && lat <= 14.58 && lng >= 121.02 && lng <= 121.07) {
+        setLocation('BGC Taguig');
+      } else if (lat >= 14.6 && lat <= 14.75 && lng >= 121.0 && lng >= 121.02) {
+        setLocation('Quezon City');
+      } else if (lat >= 14.54 && lat <= 14.6 && lng >= 120.95 && lng <= 121.0) {
+        setLocation('Manila City');
+      } else {
+        setLocation(`Metro Manila (${lat.toFixed(2)}, ${lng.toFixed(2)})`);
+      }
+    },
+  });
+  return position === null ? null : <Marker position={position} />;
+};
 
 const AddService = () => {
   const navigate = useNavigate();
-  const mapRef = useRef(null);
   const [loading, setLoading] = useState(false);
   const [checkingStatus, setCheckingStatus] = useState(true);
   const [isVerified, setIsVerified] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 960);
   const [paxError, setPaxError] = useState('');
 
+  // Default center sa Metro Manila (Luzon, Pilipinas)
+  const [mapPosition, setMapPosition] = useState([14.5995, 120.9842]);
+
   const [serviceData, setServiceData] = useState({
     business_name: '',
     category: '',
-    location: 'Makati City', // Default initial location
-    pin_x: 50, // Pin X percentage position (0-100)
-    pin_y: 50, // Pin Y percentage position (0-100)
+    location: 'Makati City',
     starting_price: '',
     min_pax: '',
     max_pax: '',
@@ -55,49 +90,22 @@ const AddService = () => {
     checkVerification();
   }, []);
 
-  // 1. Kapag nag-click sa mapa: Awtomatikong alamin ang lugar base sa quadrant at i-sync sa text box[cite: 12]
-  const handleMapClick = (e) => {
-    if (!isVerified) return;
-    const rect = mapRef.current.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-
-    // Tukuyin ang lugar o siyudad base sa kung saang bahagi ng mapa pinindot
-    let detectedLocation = 'Makati City';
-    if (x < 40 && y < 40) detectedLocation = 'Quezon City';
-    else if (x >= 40 && x <= 60 && y >= 40 && y <= 60) detectedLocation = 'Makati City';
-    else if (x > 60 && y > 50) detectedLocation = 'BGC Taguig';
-    else if (x < 50 && y > 50) detectedLocation = 'Pasay City';
-    else if (x > 50 && y < 50) detectedLocation = 'Pasig City';
-
-    setServiceData(prev => ({
-      ...prev,
-      pin_x: x,
-      pin_y: y,
-      location: detectedLocation
-    }));
-  };
-
-  // 2. Kapag nag-type sa Text Box: Awtomatikong igagalaw ang pin sa tamang pwesto sa mapa[cite: 12]
+  // Kapag nag-type sa Text Box: Awtomatikong i-adjust ang lat/lng ng Leaflet map pin
   const handleLocationTextChange = (e) => {
     const val = e.target.value;
-    let newX = serviceData.pin_x;
-    let newY = serviceData.pin_y;
+    let newLat = mapPosition[0];
+    let newLng = mapPosition[1];
 
     const lowerVal = val.toLowerCase();
-    if (lowerVal.includes('makati')) { newX = 50; newY = 50; }
-    else if (lowerVal.includes('bgc') || lowerVal.includes('taguig')) { newX = 70; newY = 65; }
-    else if (lowerVal.includes('quezon')) { newX = 30; newY = 25; }
-    else if (lowerVal.includes('manila')) { newX = 35; newY = 50; }
-    else if (lowerVal.includes('pasay')) { newX = 40; newY = 70; }
-    else if (lowerVal.includes('pasig')) { newX = 65; newY = 35; }
+    if (lowerVal.includes('makati')) { newLat = 14.5547; newLng = 121.0244; }
+    else if (lowerVal.includes('bgc') || lowerVal.includes('taguig')) { newLat = 14.5525; newLng = 121.0506; }
+    else if (lowerVal.includes('quezon')) { newLat = 14.6760; newLng = 121.0437; }
+    else if (lowerVal.includes('manila')) { newLat = 14.5995; newLng = 120.9842; }
+    else if (lowerVal.includes('pasay')) { newLat = 14.5378; newLng = 121.0014; }
+    else if (lowerVal.includes('pasig')) { newLat = 14.5764; newLng = 121.0851; }
 
-    setServiceData(prev => ({
-      ...prev,
-      location: val,
-      pin_x: newX,
-      pin_y: newY
-    }));
+    setMapPosition([newLat, newLng]);
+    setServiceData(prev => ({ ...prev, location: val }));
   };
 
   const handleSubmit = async (e) => {
@@ -293,55 +301,33 @@ const AddService = () => {
               </div>
             </div>
 
-            {/* 2-Way Synced Interactive Map Section */}
+            {/* Totoong Leaflet Interactive Map Section */}
             <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: '0.78rem', fontWeight: '800', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <MapPin size={15} color="#2563eb" /> Interactive Map Pin (Click to Sync)[cite: 12]
+                <span style={{ fontSize: '0.78rem', fontWeight: '800', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  📍 Interactive Map (Philippines / Luzon Locked)
                 </span>
-                <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: '600' }}>2-Way Synced with Location Box</span>
+                <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: '600' }}>Click map to drop pin</span>
               </div>
 
-              {/* Map Preview Container */}
-              <div 
-                ref={mapRef}
-                onClick={handleMapClick}
-                style={{ 
-                  height: '160px', 
-                  background: 'linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%)', 
-                  borderRadius: '12px', 
-                  position: 'relative', 
-                  overflow: 'hidden',
-                  border: '1px solid #cbd5e1',
-                  cursor: isVerified ? 'crosshair' : 'not-allowed'
-                }}
-              >
-                <div style={{ position: 'absolute', inset: 0, opacity: 0.25, backgroundImage: 'radial-gradient(#0f172a 1.5px, transparent 1.5px)', backgroundSize: '16px 16px' }} />
-                
-                {/* Synced Pin Element */}
-                <div style={{ 
-                  position: 'absolute', 
-                  left: `${serviceData.pin_x}%`, 
-                  top: `${serviceData.pin_y}%`, 
-                  transform: 'translate(-50%, -100%)',
-                  transition: 'left 0.25s ease, top 0.25s ease',
-                  pointerEvents: 'none',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  zIndex: 3
-                }}>
-                  <div style={{ background: '#ef4444', color: '#fff', padding: '6px', borderRadius: '50%', boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
-                    <Navigation size={15} />
-                  </div>
-                  <span style={{ background: '#0f172a', color: '#fff', fontSize: '0.7rem', fontWeight: '800', padding: '2px 8px', borderRadius: '6px', whiteSpace: 'nowrap', marginTop: '2px', boxShadow: '0 2px 6px rgba(0,0,0,0.2)' }}>
-                    {serviceData.location || 'Selected Area'}
-                  </span>
-                </div>
-
-                <div style={{ position: 'absolute', bottom: '8px', left: '8px', background: 'rgba(255,255,255,0.9)', padding: '4px 8px', borderRadius: '6px', fontSize: '0.7rem', fontWeight: '700', color: '#0f172a' }}>
-                  💡 I-click kahit saan sa mapa para ilipat ang pin at i-update ang location[cite: 12]
-                </div>
+              <div style={{ height: '220px', borderRadius: '12px', overflow: 'hidden', border: '1px solid #cbd5e1', zIndex: 1 }}>
+                <MapContainer 
+                  center={mapPosition} 
+                  zoom={12} 
+                  style={{ height: '100%', width: '100%' }}
+                  dragging={isVerified}
+                  scrollWheelZoom={false}
+                >
+                  <TileLayer
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  />
+                  <LocationSelector 
+                    position={mapPosition} 
+                    setPosition={setMapPosition} 
+                    setLocation={(loc) => setServiceData(prev => ({ ...prev, location: loc }))} 
+                  />
+                </MapContainer>
               </div>
             </div>
 
