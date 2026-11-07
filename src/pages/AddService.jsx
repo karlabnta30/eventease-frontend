@@ -16,24 +16,32 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-// Helper component para mahuli ang click event sa Leaflet map at mai-update ang position/location
+// Helper component para makuha ang eksaktong address gamit ang Reverse Geocoding kapag nag-click sa mapa
 const LocationSelector = ({ position, setPosition, setLocation }) => {
   useMapEvents({
-    click(e) {
+    async click(e) {
       const { lat, lng } = e.latlng;
       setPosition([lat, lng]);
       
-      // I-convert ang lat/lng sa malapit na siyudad/address para sa textbox
-      if (lat >= 14.5 && lat <= 14.6 && lng >= 121.0 && lng <= 121.1) {
-        setLocation('Makati City');
-      } else if (lat >= 14.5 && lat <= 14.58 && lng >= 121.02 && lng <= 121.07) {
-        setLocation('BGC Taguig');
-      } else if (lat >= 14.6 && lat <= 14.75 && lng >= 121.0 && lng >= 121.02) {
-        setLocation('Quezon City');
-      } else if (lat >= 14.54 && lat <= 14.6 && lng >= 120.95 && lng <= 121.0) {
-        setLocation('Manila City');
-      } else {
-        setLocation(`Metro Manila (${lat.toFixed(2)}, ${lng.toFixed(2)})`);
+      try {
+        // Kunin ang eksaktong pangalan ng lugar mula sa OpenStreetMap Nominatim API base sa lat/lng
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
+        const data = await res.json();
+        
+        if (data && data.display_name) {
+          // Kunin ang maikli at eksaktong pangalan ng lugar (hal. Barangay, Lungsod)
+          const address = data.address;
+          const specificPlace = address.suburb || address.neighbourhood || address.city_district || address.town || address.city || 'Eksaktong Posisyon';
+          const cityOrState = address.city || address.province || address.state || '';
+          const exactText = cityOrState ? `${specificPlace}, ${cityOrState}` : specificPlace;
+          
+          setLocation(exactText);
+        } else {
+          setLocation(`Pin (${lat.toFixed(4)}, ${lng.toFixed(4)})`);
+        }
+      } catch (err) {
+        console.error("Geocoding error:", err);
+        setLocation(`Pin (${lat.toFixed(4)}, ${lng.toFixed(4)})`);
       }
     },
   });
@@ -48,7 +56,7 @@ const AddService = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 960);
   const [paxError, setPaxError] = useState('');
 
-  // Default center sa Metro Manila (Luzon, Pilipinas)
+  // Default center sa Metro Manila
   const [mapPosition, setMapPosition] = useState([14.5995, 120.9842]);
 
   const [serviceData, setServiceData] = useState({
@@ -90,22 +98,24 @@ const AddService = () => {
     checkVerification();
   }, []);
 
-  // Kapag nag-type sa Text Box: Awtomatikong i-adjust ang lat/lng ng Leaflet map pin
-  const handleLocationTextChange = (e) => {
+  // Kapag nag-type sa Text Box: Awtomatikong i-search at igagalaw ang pin sa tamang pwesto sa mapa
+  const handleLocationTextChange = async (e) => {
     const val = e.target.value;
-    let newLat = mapPosition[0];
-    let newLng = mapPosition[1];
-
-    const lowerVal = val.toLowerCase();
-    if (lowerVal.includes('makati')) { newLat = 14.5547; newLng = 121.0244; }
-    else if (lowerVal.includes('bgc') || lowerVal.includes('taguig')) { newLat = 14.5525; newLng = 121.0506; }
-    else if (lowerVal.includes('quezon')) { newLat = 14.6760; newLng = 121.0437; }
-    else if (lowerVal.includes('manila')) { newLat = 14.5995; newLng = 120.9842; }
-    else if (lowerVal.includes('pasay')) { newLat = 14.5378; newLng = 121.0014; }
-    else if (lowerVal.includes('pasig')) { newLat = 14.5764; newLng = 121.0851; }
-
-    setMapPosition([newLat, newLng]);
     setServiceData(prev => ({ ...prev, location: val }));
+
+    if (val.length > 3) {
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(val + ', Philippines')}&limit=1`);
+        const data = await res.json();
+        if (data && data.length > 0) {
+          const lat = parseFloat(data[0].lat);
+          const lon = parseFloat(data[0].lon);
+          setMapPosition([lat, lon]);
+        }
+      } catch (err) {
+        console.error("Search mapping error:", err);
+      }
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -288,11 +298,11 @@ const AddService = () => {
                 </select>
               </div>
               <div>
-                <label style={labelStyle}>Location (City / Address)</label>
+                <label style={labelStyle}>Location (Exact Pinned Address)</label>
                 <input 
                   style={inputStyle} 
                   type="text" 
-                  placeholder="e.g., Makati City o BGC Taguig" 
+                  placeholder="e.g., BGC, Taguig o Makati City" 
                   value={serviceData.location}
                   onChange={handleLocationTextChange} 
                   disabled={!isVerified}
@@ -301,19 +311,19 @@ const AddService = () => {
               </div>
             </div>
 
-            {/* Totoong Leaflet Interactive Map Section */}
+            {/* Totoong Leaflet Interactive Map Section na may Reverse Geocoding */}
             <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <span style={{ fontSize: '0.78rem', fontWeight: '800', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                   📍 Interactive Map (Philippines / Luzon Locked)
                 </span>
-                <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: '600' }}>Click map to drop pin</span>
+                <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: '600' }}>I-click ang mapa para makuha ang eksaktong address</span>
               </div>
 
               <div style={{ height: '220px', borderRadius: '12px', overflow: 'hidden', border: '1px solid #cbd5e1', zIndex: 1 }}>
                 <MapContainer 
                   center={mapPosition} 
-                  zoom={12} 
+                  zoom={13} 
                   style={{ height: '100%', width: '100%' }}
                   dragging={isVerified}
                   scrollWheelZoom={false}
