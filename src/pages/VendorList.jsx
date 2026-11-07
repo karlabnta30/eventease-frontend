@@ -35,6 +35,7 @@ const VendorList = () => {
     const userRole = localStorage.getItem('userRole');
     
     const eventIdFromUrl = searchParams.get('event_id');
+    const eventLocation = searchParams.get('location') || 'Metro Manila'; // Kinuha ang lokasyon mula sa URL params
     
     const userBudget = useMemo(() => {
         const b = searchParams.get('budget');
@@ -183,7 +184,8 @@ const VendorList = () => {
             const response = await api.post('/ai/optimize-budget', {
                 category: activeCategoryView || 'General',
                 guest_count: Number(guestCount),
-                total_budget: Number(userBudget)
+                total_budget: Number(userBudget),
+                location: eventLocation // Ipinapasa na ang location para sa rehiyon check
             });
 
             if (response?.data?.optimized_items && Array.isArray(response.data.optimized_items)) {
@@ -197,7 +199,7 @@ const VendorList = () => {
                 }));
 
                 setSelectedServices(aiPicked);
-                setAiOptimizationSummary(response.data.message || `AI successfully found optimal services matching your budget and guest count (${guestCount} pax).`);
+                setAiOptimizationSummary(response.data.message || `AI successfully found optimal services matching your budget, guest count (${guestCount} pax), and location (${eventLocation}).`);
                 toast.success("AI Budget Optimizer successfully allocated optimal services!");
                 setIsAiOptimizing(false);
                 return;
@@ -212,7 +214,8 @@ const VendorList = () => {
         const suitableVendors = vendors.filter(v => {
             const min = v.min_pax ? Number(v.min_pax) : 0;
             const max = v.max_pax ? Number(v.max_pax) : 99999;
-            return guestCount >= min && guestCount <= max;
+            const matchesLocation = !eventLocation || (v.location && v.location.toLowerCase().includes(eventLocation.toLowerCase()));
+            return guestCount >= min && guestCount <= max && matchesLocation;
         });
 
         const poolToProcess = suitableVendors.length > 0 ? suitableVendors : vendors;
@@ -227,7 +230,7 @@ const VendorList = () => {
         }
 
         setSelectedServices(smartPicked);
-        setAiOptimizationSummary(`Smart Allocation: AI automatically picked ${smartPicked.length} service(s) for ${guestCount} guests totaling ₱${accumulatedCost.toLocaleString()} to fit within your budget.`);
+        setAiOptimizationSummary(`Smart Allocation: AI automatically picked ${smartPicked.length} service(s) for ${guestCount} guests totaling ₱${accumulatedCost.toLocaleString()} matching your budget and location.`);
         toast.success("Smart budget allocation applied successfully!");
         setIsAiOptimizing(false);
     };
