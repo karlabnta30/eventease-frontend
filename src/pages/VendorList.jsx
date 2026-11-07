@@ -158,7 +158,6 @@ const VendorList = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    // Idinagdag ang 'Bundle Packages' sa mga kategorya
     const categories = useMemo(() => ['Bundle Packages', 'Catering', 'Photography', 'Venue', 'Entertainment', 'Decoration', 'Hosting', 'Random Stuff / Miscellaneous'], []);
 
     const getCategoryPhoto = useCallback((category) => {
@@ -183,7 +182,6 @@ const VendorList = () => {
             const uniqueData = Array.from(new Map(rawData.map(item => [item.id, item])).values());
             setVendors(uniqueData);
 
-            // Kunin rin ang mga bundles mula sa API
             try {
                 const bundleRes = await api.get('/bundles');
                 const rawBundles = bundleRes.data?.data || bundleRes.data || [];
@@ -222,19 +220,23 @@ const VendorList = () => {
         }
     }, [fetchVendorsAndBundles]);
 
+    // Naayos na handleDelete / confirmDeleteService function para sa Bundles at Vendors
     const confirmDeleteService = useCallback(async () => {
         if (!serviceToDelete) return;
 
         try {
-            await api.delete(`/vendors/${serviceToDelete.id}`);
-            toast.success("Service deleted successfully.");
+            const isBundle = activeCategoryView === 'Bundle Packages';
+            const endpoint = isBundle ? `/bundles/${serviceToDelete.id}` : `/vendors/${serviceToDelete.id}`;
+
+            await api.delete(endpoint);
+            toast.success(isBundle ? "Bundle deleted successfully." : "Service deleted successfully.");
             setServiceToDelete(null);
             fetchVendorsAndBundles();
         } catch (error) {
             console.error("Delete failed:", error);
-            toast.error(error.response?.data?.message || "Failed to delete service.");
+            toast.error(error.response?.data?.message || error.response?.data?.error || "Failed to delete item.");
         }
-    }, [serviceToDelete, fetchVendorsAndBundles]);
+    }, [serviceToDelete, activeCategoryView, fetchVendorsAndBundles]);
 
     const calculateDynamicPrice = useCallback((vendor) => {
         if (!vendor) return 0;
@@ -410,7 +412,6 @@ const VendorList = () => {
         }
     };
 
-    // Salain ang mga items kung Bundle Packages ba o Standalone Services ang tinitingnan
     const filteredItems = useMemo(() => {
         if (!activeCategoryView) return [];
 
