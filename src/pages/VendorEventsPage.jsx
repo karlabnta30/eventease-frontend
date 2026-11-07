@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
-import { X, Eye, Trash2, CheckCircle } from 'lucide-react';
+import { X, Eye, Trash2, CheckCircle, AlertTriangle } from 'lucide-react';
 
 const VendorEventsPage = () => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('monitor'); // 'monitor', 'history', 'all'
   const [selectedEventDetails, setSelectedEventDetails] = useState(null); // Para sa View Details Modal
+  const [confirmModalData, setConfirmModalData] = useState(null); // Para sa Custom Confirmation Modal
 
   useEffect(() => {
     fetchVendorBookings();
@@ -27,8 +28,6 @@ const VendorEventsPage = () => {
 
   // Function para markahan ang booking bilang Paid Fully at ilipat sa Booking History
   const handleMarkAsPaidFully = async (bookingId) => {
-    if (!window.confirm("Mark this event as fully paid? This will move it to your Booking History.")) return;
-
     try {
       await api.patch(`/bookings/${bookingId}/status`, { payment_status: 'fully_paid', status: 'completed' }, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
@@ -42,7 +41,7 @@ const VendorEventsPage = () => {
         return event;
       }));
 
-      alert("Event marked as fully paid and moved to Booking History!");
+      setConfirmModalData(null);
     } catch (error) {
       console.error("Failed to update status:", error);
       setEvents(events.map(event => {
@@ -52,20 +51,19 @@ const VendorEventsPage = () => {
         }
         return event;
       }));
-      alert("Event updated locally and moved to history.");
+      setConfirmModalData(null);
     }
   };
 
   // Function para mag-delete ng event/booking record
   const handleDeleteEvent = async (bookingId) => {
-    if (!window.confirm("Are you sure you want to delete this event?")) return;
-
     try {
       await api.delete(`/bookings/${bookingId}`);
       setEvents(events.filter(event => (event.id || event.booking_id) !== bookingId));
-      alert("Event successfully deleted.");
+      setConfirmModalData(null);
     } catch (error) {
       alert("Failed to delete the event: " + (error.response?.data?.message || "Please try again."));
+      setConfirmModalData(null);
     }
   };
 
@@ -79,7 +77,7 @@ const VendorEventsPage = () => {
   });
 
   return (
-    <div style={{ padding: '30px', fontFamily: 'Inter', backgroundColor: '#f8fafc', minHeight: '100vh', color: '#0f172a' }}>
+    <div style={{ padding: '30px', fontFamily: 'Inter', backgroundColor: '#f8fafc', minHeight: '100vh', color: '#0f172a', boxSizing: 'border-box' }}>
       
       {/* Header Section */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px', flexWrap: 'wrap', gap: '15px' }}>
@@ -119,7 +117,7 @@ const VendorEventsPage = () => {
         <div style={{ textAlign: 'center', padding: '50px', color: '#64748b', fontWeight: '600' }}>Loading events...</div>
       ) : filteredEvents.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '50px', backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #e2e8f0', color: '#64748b', fontWeight: '600' }}>
-          Wala pang makikitang mga kaganapan sa kategoryang ito.
+          Wala pang makikitang mga kaganapan sa kategoryang ito[cite: 7].
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -192,7 +190,7 @@ const VendorEventsPage = () => {
 
                   {!isFullyPaid && (
                     <button 
-                      onClick={() => handleMarkAsPaidFully(bookingId)}
+                      onClick={() => setConfirmModalData({ type: 'paid', id: bookingId, name: event.event_name || 'Event' })}
                       style={{ 
                         backgroundColor: '#10b981', 
                         color: '#fff', 
@@ -210,7 +208,7 @@ const VendorEventsPage = () => {
                   )}
 
                   <button 
-                    onClick={() => handleDeleteEvent(bookingId)}
+                    onClick={() => setConfirmModalData({ type: 'delete', id: bookingId, name: event.event_name || 'Event' })}
                     style={{ 
                       backgroundColor: '#fee2e2', 
                       color: '#dc2626', 
@@ -233,7 +231,7 @@ const VendorEventsPage = () => {
         </div>
       )}
 
-      {/* --- POPUP MODAL PARA SA BUONG IMPORMASYON NG EVENT --- */}
+      {/* --- MODAL PARA SA VIEW DETAILS --- */}
       {selectedEventDetails && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0, 0, 0, 0.6)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: '15px', boxSizing: 'border-box' }} onClick={() => setSelectedEventDetails(null)}>
           <div style={{ position: 'relative', width: '100%', maxWidth: '600px', backgroundColor: '#fff', padding: '30px', borderRadius: '24px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', boxSizing: 'border-box', maxHeight: '90vh', overflowY: 'auto' }} onClick={(e) => e.stopPropagation()}>
@@ -292,6 +290,49 @@ const VendorEventsPage = () => {
               </button>
             </div>
 
+          </div>
+        </div>
+      )}
+
+      {/* --- CUSTOM ALERT / CONFIRMATION MODAL (Inalis ang lumang browser alert) --- */}
+      {confirmModalData && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0, 0, 0, 0.6)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1100, padding: '15px', boxSizing: 'border-box' }} onClick={() => setConfirmModalData(null)}>
+          <div style={{ backgroundColor: '#fff', padding: '30px', borderRadius: '20px', maxWidth: '400px', width: '100%', textAlign: 'center', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.2)', boxSizing: 'border-box' }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ width: '50px', height: '50px', borderRadius: '50%', backgroundColor: confirmModalData.type === 'delete' ? '#fee2e2' : '#dcfce7', color: confirmModalData.type === 'delete' ? '#dc2626' : '#166534', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px auto' }}>
+              <AlertTriangle size={24} />
+            </div>
+            
+            <h3 style={{ margin: '0 0 8px 0', fontWeight: '900', fontSize: '1.2rem', color: '#0f172a' }}>
+              {confirmModalData.type === 'delete' ? 'Kumpirmahin ang Pagtanggal' : 'Kumpirmahin ang Fully Paid'}
+            </h3>
+            
+            <p style={{ margin: '0 0 24px 0', fontSize: '0.9rem', color: '#64748b', lineHeight: '1.5' }}>
+              {confirmModalData.type === 'delete' 
+                ? `Sigurado ka bang nais mong tanggalin ang event na "${confirmModalData.name}"?` 
+                : `Gusto mo bang markahan ang "${confirmModalData.name}" bilang fully paid? Ililipat ito sa iyong Booking History.`}
+            </p>
+
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button 
+                onClick={() => setConfirmModalData(null)}
+                style={{ flex: 1, backgroundColor: '#f1f5f9', color: '#475569', border: 'none', padding: '12px', borderRadius: '12px', fontWeight: '800', cursor: 'pointer' }}
+              >
+                Kanselahin
+              </button>
+              
+              <button 
+                onClick={() => {
+                  if (confirmModalData.type === 'delete') {
+                    handleDeleteEvent(confirmModalData.id);
+                  } else {
+                    handleMarkAsPaidFully(confirmModalData.id);
+                  }
+                }}
+                style={{ flex: 1, backgroundColor: confirmModalData.type === 'delete' ? '#dc2626' : '#10b981', color: '#fff', border: 'none', padding: '12px', borderRadius: '12px', fontWeight: '800', cursor: 'pointer' }}
+              >
+                {confirmModalData.type === 'delete' ? 'Oo, Tanggalin' : 'Oo, Paid Fully'}
+              </button>
+            </div>
           </div>
         </div>
       )}
