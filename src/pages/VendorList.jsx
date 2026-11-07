@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import api from '../api';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { MapPin, Lock, AlertCircle, Power, Star, Check, Plus, Trash2, ShieldAlert, ChevronRight, ArrowLeft, Sparkles, Sliders, ShoppingBag, X, Info, Users, CheckCircle2, AlertTriangle, XCircle, MessageSquare, Search } from 'lucide-react';
+import { MapPin, Lock, AlertCircle, Power, Star, Check, Plus, Trash2, ShieldAlert, ChevronRight, ArrowLeft, Sparkles, Sliders, ShoppingBag, X, Info, Users, CheckCircle2, AlertTriangle, XCircle, MessageSquare, Search, ExternalLink, Columns } from 'lucide-react';
 import { notifyNewBooking } from '../toastUtils.jsx';
 import { toast } from 'react-hot-toast';
 
@@ -68,6 +68,11 @@ const VendorList = () => {
 
     const [isCartModalOpen, setIsCartModalOpen] = useState(false);
     const [serviceToDelete, setServiceToDelete] = useState(null);
+
+    // Feature States
+    const [comparedVendorIds, setComparedVendorIds] = useState([]);
+    const [isCompareDrawerOpen, setIsCompareDrawerOpen] = useState(false);
+    const [mapModalUrl, setMapModalUrl] = useState(null);
 
     const defaultAllocations = useMemo(() => {
         const lowerType = eventType.toLowerCase();
@@ -249,6 +254,21 @@ const VendorList = () => {
         });
     }, []);
 
+    // Feature 1: Compare Toggle Handler
+    const toggleCompareVendor = useCallback((vendorId) => {
+        setComparedVendorIds(prev => {
+            if (prev.includes(vendorId)) {
+                return prev.filter(id => id !== vendorId);
+            } else {
+                if (prev.length >= 3) {
+                    toast.error("You can compare up to 3 vendors at a time.");
+                    return prev;
+                }
+                return [...prev, vendorId];
+            }
+        });
+    }, []);
+
     const handleRunAiSmartAllocation = async () => {
         if (userBudget <= 0) {
             toast.error("No budget limit has been set for this event.");
@@ -313,6 +333,12 @@ const VendorList = () => {
     const isCartOverBudget = userBudget > 0 && totalSelectedCost > userBudget;
     const overBudgetAmount = totalSelectedCost - userBudget;
 
+    // Feature 2: Burn-down Percentage Calculation
+    const budgetBurnPercentage = useMemo(() => {
+        if (!userBudget || userBudget <= 0) return 0;
+        return Math.min(100, Math.round((totalSelectedCost / userBudget) * 100));
+    }, [totalSelectedCost, userBudget]);
+
     const handleMultiServiceCheckout = async () => {
         if (selectedServices.length === 0) {
             toast.error("No services selected in your cart! Please choose at least one service.");
@@ -369,6 +395,17 @@ const VendorList = () => {
         return Array.from(new Map(matching.map(item => [item.id, item])).values());
     }, [vendors, activeCategoryView]);
 
+    // Feature 3: Smart Category Recommendation Helper
+    const recommendedCategories = useMemo(() => {
+        const cartCategories = selectedServices.map(s => (s.category || '').toLowerCase());
+        if (cartCategories.some(c => c.includes('venue'))) {
+            return ['Catering', 'Decoration'];
+        } else if (cartCategories.some(c => c.includes('catering'))) {
+            return ['Venue', 'Entertainment'];
+        }
+        return [];
+    }, [selectedServices]);
+
     if (loading) return <div style={{ padding: '100px', textAlign: 'center', fontWeight: '800', fontSize: '1.2rem' }}>Loading Services...</div>;
 
     const StatusIconComp = aiOptimizerAnalysis.StatusIcon;
@@ -408,28 +445,36 @@ const VendorList = () => {
 
             {!activeCategoryView ? (
                 <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(320px, 1fr))', gap: '20px', marginTop: '30px' }}>
-                    {categories.map(cat => (
-                        <div 
-                            key={cat} 
-                            onClick={() => setActiveCategoryView(cat)}
-                            style={{
-                                background: '#fff', borderRadius: '28px', overflow: 'hidden', border: '1px solid #f0f0f0',
-                                cursor: 'pointer', boxShadow: '0 10px 20px rgba(0,0,0,0.03)', transition: 'all 0.2s ease',
-                                display: 'flex', flexDirection: 'column'
-                            }}
-                        >
-                            <div style={{ height: '160px', backgroundImage: `url(${getCategoryPhoto(cat)})`, backgroundSize: 'cover', backgroundPosition: 'center', position: 'relative' }}>
-                                <div style={{ position: 'absolute', inset: '0', background: 'rgba(0,0,0,0.3)' }} />
-                                <div style={{ position: 'absolute', bottom: '15px', left: '20px', color: '#fff' }}>
-                                    <h3 style={{ margin: 0, fontSize: '1.3rem', fontWeight: '900' }}>{cat}</h3>
+                    {categories.map(cat => {
+                        const isRecommended = recommendedCategories.some(rc => cat.toLowerCase().includes(rc.toLowerCase()));
+                        return (
+                            <div 
+                                key={cat} 
+                                onClick={() => setActiveCategoryView(cat)}
+                                style={{
+                                    background: '#fff', borderRadius: '28px', overflow: 'hidden', border: isRecommended ? '2px solid #2563eb' : '1px solid #f0f0f0',
+                                    cursor: 'pointer', boxShadow: '0 10px 20px rgba(0,0,0,0.03)', transition: 'all 0.2s ease',
+                                    display: 'flex', flexDirection: 'column', position: 'relative'
+                                }}
+                            >
+                                {isRecommended && (
+                                    <div style={{ position: 'absolute', top: '15px', right: '15px', background: '#2563eb', color: '#fff', padding: '4px 10px', borderRadius: '8px', fontSize: '0.7rem', fontWeight: '800', zIndex: 2 }}>
+                                        Recommended Match
+                                    </div>
+                                )}
+                                <div style={{ height: '160px', backgroundImage: `url(${getCategoryPhoto(cat)})`, backgroundSize: 'cover', backgroundPosition: 'center', position: 'relative' }}>
+                                    <div style={{ position: 'absolute', inset: '0', background: 'rgba(0,0,0,0.3)' }} />
+                                    <div style={{ position: 'absolute', bottom: '15px', left: '20px', color: '#fff' }}>
+                                        <h3 style={{ margin: 0, fontSize: '1.3rem', fontWeight: '900' }}>{cat}</h3>
+                                    </div>
+                                </div>
+                                <div style={{ padding: '18px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <span style={{ fontWeight: '800', fontSize: '0.9rem', color: '#0f172a' }}>View Listed Services</span>
+                                    <ChevronRight size={18} color="#0f172a" />
                                 </div>
                             </div>
-                            <div style={{ padding: '18px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <span style={{ fontWeight: '800', fontSize: '0.9rem', color: '#0f172a' }}>View Listed Services</span>
-                                <ChevronRight size={18} color="#0f172a" />
-                            </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             ) : (
                 <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(320px, 1fr))', gap: '25px', marginTop: '30px' }}>
@@ -444,6 +489,7 @@ const VendorList = () => {
 
                         const isDisabled = (isTooExpensive || isOffline || isPaxUnsuitable) && userRole !== 'vendor';
                         const isSelected = selectedServices.some(s => s.id === vendor.id);
+                        const isCompared = comparedVendorIds.includes(vendor.id);
 
                         const serviceDescription = vendor.description || vendor.details || vendor.inclusions || vendor.notes || "No additional description provided by the vendor.";
 
@@ -460,6 +506,12 @@ const VendorList = () => {
                                         <div style={{ position: 'absolute', top: '15px', left: '15px', background: '#fff', padding: '5px 12px', borderRadius: '8px', fontSize: '0.7rem', fontWeight: '800' }}>
                                             {vendor.category || 'General'}
                                         </div>
+
+                                        {userRole !== 'vendor' && (
+                                            <div style={{ position: 'absolute', top: '15px', right: '15px', background: isCompared ? '#000' : 'rgba(255,255,255,0.9)', color: isCompared ? '#fff' : '#0f172a', padding: '6px 10px', borderRadius: '8px', fontSize: '0.7rem', fontWeight: '800', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }} onClick={() => toggleCompareVendor(vendor.id)}>
+                                                <input type="checkbox" checked={isCompared} onChange={() => {}} style={{ cursor: 'pointer' }} /> Compare
+                                            </div>
+                                        )}
                                         
                                         {isDisabled && (
                                             <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
@@ -497,8 +549,16 @@ const VendorList = () => {
                                             </p>
                                         </div>
 
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#666', fontSize: '0.85rem', marginBottom: '16px', wordBreak: 'break-word' }}>
-                                            <MapPin size={15} style={{ flexShrink: 0 }} /> {vendor.location || 'Metro Manila'}
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', color: '#666', fontSize: '0.85rem', marginBottom: '16px', wordBreak: 'break-word' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: 1 }}>
+                                                <MapPin size={15} style={{ flexShrink: 0 }} /> {vendor.location || 'Metro Manila'}
+                                            </div>
+                                            <button 
+                                                onClick={() => setMapModalUrl(`https://maps.google.com/?q=${encodeURIComponent(vendor.location || eventLocation)}`)}
+                                                style={{ background: '#f1f5f9', border: 'none', color: '#2563eb', padding: '4px 8px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: '800', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                                            >
+                                                <ExternalLink size={12} /> Map
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -551,6 +611,46 @@ const VendorList = () => {
                             No services found in this category.
                         </div>
                     )}
+                </div>
+            )}
+
+            {/* Feature 1: Side-by-Side Comparison Floating Trigger & Drawer */}
+            {comparedVendorIds.length > 0 && userRole !== 'vendor' && (
+                <div style={{ position: 'fixed', top: '20px', right: '20px', zIndex: 950, background: '#0f172a', color: '#fff', padding: '12px 20px', borderRadius: '16px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <Columns size={18} />
+                    <span style={{ fontWeight: '800', fontSize: '0.85rem' }}>Comparing ({comparedVendorIds.length}/3)</span>
+                    <button onClick={() => setIsCompareDrawerOpen(true)} style={{ background: '#2563eb', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: '800', cursor: 'pointer' }}>
+                        View Side-by-Side
+                    </button>
+                </div>
+            )}
+
+            {isCompareDrawerOpen && (
+                <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1250, padding: '16px' }}>
+                    <div style={{ background: '#fff', borderRadius: '28px', width: '100%', maxWidth: '900px', maxHeight: '90vh', overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #f1f5f9', paddingBottom: '12px' }}>
+                            <h3 style={{ margin: 0, fontWeight: '900', fontSize: '1.3rem' }}>Vendor Comparison Mode</h3>
+                            <button onClick={() => setIsCompareDrawerOpen(false)} style={{ background: '#f1f5f9', border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><X size={18} /></button>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${comparedVendorIds.length}, 1fr)`, gap: '16px' }}>
+                            {comparedVendorIds.map(id => {
+                                const v = vendors.find(item => item.id === id);
+                                if (!v) return null;
+                                const p = calculateDynamicPrice(v);
+                                return (
+                                    <div key={v.id} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '20px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                        <div style={{ fontWeight: '900', fontSize: '1.1rem' }}>{v.business_name || v.name}</div>
+                                        <div style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: '700' }}>Category: {v.category}</div>
+                                        <div style={{ fontSize: '1.1rem', fontWeight: '900', color: '#16a34a' }}>₱{p.toLocaleString()}</div>
+                                        <div style={{ fontSize: '0.8rem', fontWeight: '700' }}>Rating: {v.rating || 5.0} ⭐</div>
+                                        <div style={{ fontSize: '0.8rem', fontWeight: '700' }}>Capacity: {v.min_pax || 15} - {v.max_pax || 100} Pax</div>
+                                        <div style={{ fontSize: '0.8rem', color: '#334155', background: '#fff', padding: '8px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>{v.description || 'No description'}</div>
+                                        <button onClick={() => setComparedVendorIds(prev => prev.filter(item => item !== id))} style={{ background: '#fee2e2', color: '#991b1b', border: 'none', padding: '6px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: '800', cursor: 'pointer' }}>Remove from Compare</button>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
                 </div>
             )}
 
@@ -637,6 +737,19 @@ const VendorList = () => {
                                 <X size={18} color="#64748b" />
                             </button>
                         </div>
+
+                        {/* Feature 2: Live Budget Burn-Down Progress Bar */}
+                        {userBudget > 0 && (
+                            <div style={{ padding: '16px 24px 0 24px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', fontWeight: '800', marginBottom: '6px' }}>
+                                    <span style={{ color: '#64748b' }}>Budget Burn-Down Progress</span>
+                                    <span style={{ color: budgetBurnPercentage > 100 ? '#ef4444' : '#16a34a' }}>{budgetBurnPercentage}% Spent</span>
+                                </div>
+                                <div style={{ width: '100%', height: '10px', background: '#f1f5f9', borderRadius: '5px', overflow: 'hidden' }}>
+                                    <div style={{ width: `${budgetBurnPercentage}%`, height: '100%', background: budgetBurnPercentage > 100 ? '#ef4444' : budgetBurnPercentage > 80 ? '#f59e0b' : '#10b981', transition: 'width 0.3s ease' }} />
+                                </div>
+                            </div>
+                        )}
 
                         {/* Modal Body: Two Column Layout */}
                         <div style={{ padding: '24px', display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '24px', alignItems: 'start' }}>
@@ -804,6 +917,18 @@ const VendorList = () => {
                                 </button>
                             </div>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Map Preview Modal */}
+            {mapModalUrl && (
+                <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1300, padding: '16px' }}>
+                    <div style={{ background: '#fff', borderRadius: '24px', width: '100%', maxWidth: '500px', padding: '24px', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        <h3 style={{ margin: 0, fontWeight: '900', fontSize: '1.2rem' }}>Vendor Location Preview</h3>
+                        <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b' }}>I-click ang link sa ibaba para buksan ang lokasyon sa Google Maps.</p>
+                        <a href={mapModalUrl} target="_blank" rel="noreferrer" style={{ background: '#2563eb', color: '#fff', padding: '12px', borderRadius: '12px', fontWeight: '800', textDecoration: 'none' }}>Open in Google Maps</a>
+                        <button onClick={() => setMapModalUrl(null)} style={{ background: '#f1f5f9', border: 'none', padding: '10px', borderRadius: '12px', fontWeight: '800', cursor: 'pointer' }}>Close</button>
                     </div>
                 </div>
             )}
