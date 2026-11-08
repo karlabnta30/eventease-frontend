@@ -158,7 +158,8 @@ const VendorList = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    const categories = useMemo(() => ['Bundle Packages', 'Catering', 'Photography', 'Venue', 'Entertainment', 'Decoration', 'Hosting', 'Random Stuff / Miscellaneous'], []);
+    // TINANGGAL ANG 'Random Stuff / Miscellaneous' SA CATEGORIES LIST
+    const categories = useMemo(() => ['Bundle Packages', 'Catering', 'Photography', 'Venue', 'Entertainment', 'Decoration', 'Hosting'], []);
 
     const getCategoryPhoto = useCallback((category) => {
         const photos = {
@@ -169,7 +170,6 @@ const VendorList = () => {
             'Entertainment': 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=800&auto=format&fit=crop',
             'Decoration': 'https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=800&auto=format&fit=crop',
             'Hosting': 'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?q=80&w=800&auto=format&fit=crop',
-            'Random Stuff / Miscellaneous': 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=800&auto=format&fit=crop',
         };
         return photos[category] || 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=800&auto=format&fit=crop';
     }, []);
@@ -426,10 +426,6 @@ const VendorList = () => {
         const matching = vendors.filter(v => {
             const vCat = (v.category || '').toLowerCase();
             const active = activeCategoryView.toLowerCase();
-            
-            if (active.includes('miscellaneous') || active.includes('random')) {
-                return !['catering', 'photography', 'venue', 'entertainment', 'decoration', 'hosting'].some(c => vCat.includes(c));
-            }
             return vCat.includes(active);
         });
 
