@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
 import { notifyEventCancelled } from "../toastUtils.jsx";
-import { Trash2, MapPin, CreditCard, Plus, ArrowRight, Calendar, Users, CheckCircle, ShieldCheck } from 'lucide-react';
+import { Trash2, MapPin, CreditCard, Plus, ArrowRight, Users, CheckCircle, ShieldCheck } from 'lucide-react';
 
 const SuccessDeleteModal = ({ isOpen, onClose, eventName }) => {
   if (!isOpen) return null;
@@ -134,6 +134,8 @@ const LiveEvents = () => {
 
     const currentPaymentStatus = (eventToDelete.payment_status || '').toLowerCase().trim();
     const isSecuredPaid = currentPaymentStatus === 'paid' || 
+                          currentPaymentStatus === 'fully_paid' ||
+                          currentPaymentStatus === 'fully paid' ||
                           currentPaymentStatus === 'downpayment_paid' || 
                           currentPaymentStatus === 'paid (50% down payment)' || 
                           currentPaymentStatus === 'completed' || 
@@ -316,9 +318,10 @@ const LiveEvents = () => {
           <div style={styles.grid}>
             {bookings.length > 0 ? bookings.map((item) => {
               const paymentStatus = (item.payment_status || '').toLowerCase().trim();
+              const isFullyPaid = paymentStatus === 'fully_paid' || paymentStatus === 'fully paid';
               
-              // Mahigpit at eksaktong susuriin kung bayad na ba talaga
               const isPaid = paymentStatus === 'paid' || 
+                             isFullyPaid ||
                              paymentStatus === 'downpayment_paid' || 
                              paymentStatus === 'paid (50% down payment)' || 
                              paymentStatus === 'completed' || 
@@ -372,7 +375,7 @@ const LiveEvents = () => {
                     <span>{assignedVendorName ? `Hired: ${assignedVendorName}` : 'No Vendor Assigned'}</span>
                   </div>
 
-                <div style={styles.infoRow}>
+                  <div style={styles.infoRow}>
                     <MapPin size={16} color="#000" style={{ flexShrink: 0 }} />
                     <span style={{ fontWeight: '600' }}>{item.location || 'Venue TBD'}</span>
                   </div>
@@ -402,7 +405,7 @@ const LiveEvents = () => {
 
                   {isPaid && (
                       <div style={{ marginTop: '12px', color: '#047857', fontWeight: '900', display: 'flex', alignItems: 'center', gap: '8px', background: '#ecfdf5', padding: '12px', borderRadius: '12px', justifyContent: 'center', fontSize: '0.8rem', border: '1px solid #a7f3d0' }}>
-                          <CheckCircle size={16} /> DOWNPAYMENT FULLY PAID
+                          <CheckCircle size={16} /> {isFullyPaid ? 'FULLY PAID' : 'DOWNPAYMENT FULLY PAID'}
                       </div>
                   )}
 
