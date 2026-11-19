@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../api';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
-import { Check, X, CreditCard, Package, Bell, Calendar as CalendarIcon, Clock, MapPin, LayoutGrid, Trash2, Edit3, Users, Briefcase } from 'lucide-react';
+import { Check, X, CreditCard, Package, Bell, Calendar as CalendarIcon, Clock, MapPin, LayoutGrid, Trash2, Edit3, Users, Briefcase, User, Mail, Layers } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { notifyNewBooking, notifySuccess } from '../toastUtils.jsx'; 
 import { Toaster } from 'react-hot-toast';
@@ -129,14 +129,16 @@ const VendorDashboard = () => {
     b.status === 'accepted' && new Date(b.event_date).toDateString() === selectedDate.toDateString()
   );
 
+  const pendingBookings = bookings.filter(b => b.status === 'pending');
+
   return (
     <div style={{ padding: isMobile ? '16px 12px' : '40px', backgroundColor: '#ffffff', minHeight: '100vh', fontFamily: "'Inter', sans-serif" }}>
       <Toaster position="top-right" />
       
-      <div style={{ marginBottom: isMobile ? '20px' : '40px', display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'flex-start', flexWrap: 'wrap', gap: '15px' }}>
+      <div style={{ marginBottom: isMobile ? '20px' : '40px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '15px' }}>
         <div>
             <h1 style={{ fontSize: isMobile ? '1.5rem' : '2.5rem', fontWeight: '900', letterSpacing: '-1.5px', color: '#1a1a1a', margin: 0, wordBreak: 'break-word' }}>Vendor Command Center</h1>
-            <p style={{ color: '#666', fontWeight: '500', marginTop: '6px', fontSize: isMobile, fontSize: isMobile ? '0.85rem' : '1rem' }}>Your central hub for event management, bill adjustments, and scheduling.</p>
+            <p style={{ color: '#666', fontWeight: '500', marginTop: '6px', fontSize: isMobile ? '0.85rem' : '1rem' }}>Your central hub for event management, bill adjustments, and scheduling.</p>
         </div>
         <div style={{ display: 'flex', gap: '10px', width: isMobile ? '100%' : 'auto', flexWrap: 'wrap' }}>
             <button onClick={() => navigate('/vendor-services')} style={{ ...styles.manageBtn, flex: isMobile ? 1 : 'unset', justifyContent: 'center' }}>
@@ -286,26 +288,104 @@ const VendorDashboard = () => {
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
-        <h2 style={{ fontSize: isMobile ? '1.2rem' : '1.4rem', fontWeight: '800', margin: 0 }}>Pending Hire Requests</h2>
+        <h2 style={{ fontSize: isMobile ? '1.2rem' : '1.4rem', fontWeight: '800', margin: 0 }}>
+          Pending Hire Requests ({pendingBookings.length})
+        </h2>
         <div style={{ flex: 1, height: '1px', background: '#f0f0f0', minWidth: '40px' }}></div>
       </div>
 
       <div style={styles.requestList}>
-        {bookings.filter(b => b.status === 'pending').map(job => (
-          <div key={job.id} style={{ ...styles.requestCard, flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', gap: isMobile ? '16px' : '0' }}>
-            <div style={{ flex: 1, width: '100%' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
-                  <span style={styles.categoryBadge}>{job.category}</span>
-                  <h4 style={{ margin: 0, fontWeight: '900', fontSize: '1rem', wordBreak: 'break-word' }}>{job.event_name}</h4>
+        {pendingBookings.length > 0 ? pendingBookings.map(job => {
+          const attachedServicesList = Array.isArray(job.services) && job.services.length > 0
+            ? job.services.map(s => s.business_name || s.name || s.title).join(', ')
+            : (job.service?.business_name || job.service?.name || job.service?.title || job.bundle_name || null);
+
+          return (
+            <div key={job.id} style={{ ...styles.requestCard, flexDirection: 'column', alignItems: 'stretch', gap: '16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px', flexWrap: 'wrap' }}>
+                    <span style={styles.categoryBadge}>{job.category || 'General'}</span>
+                    <span style={styles.idBadge}>Booking #00{job.id}</span>
+                    <span style={styles.paymentPill}>{job.payment_status || 'Unpaid'}</span>
+                  </div>
+                  <h4 style={{ margin: 0, fontWeight: '900', fontSize: '1.15rem', color: '#0f172a', wordBreak: 'break-word' }}>
+                    {job.event_name}
+                  </h4>
+                </div>
+
+                <div style={{ textAlign: isMobile ? 'left' : 'right' }}>
+                  <div style={{ fontSize: '0.7rem', fontWeight: '800', color: '#64748b', textTransform: 'uppercase' }}>Event Budget</div>
+                  <div style={{ fontSize: '1.15rem', fontWeight: '900', color: '#059669' }}>
+                    ₱{parseFloat(job.budget || 0).toLocaleString()}
+                  </div>
+                </div>
               </div>
-              <p style={{ fontSize: '0.85rem', color: '#555', margin: 0, fontWeight: '500', wordBreak: 'break-word' }}>📍 {job.location} | ₱{parseFloat(job.budget || 0).toLocaleString()}</p>
+
+              <div style={styles.pendingDetailsGrid}>
+                <div style={styles.detailCell}>
+                  <CalendarIcon size={14} color="#475569" style={{ flexShrink: 0 }} />
+                  <span>
+                    <strong>Schedule:</strong> {job.event_date ? new Date(job.event_date).toLocaleString() : 'TBD'}
+                    {job.end_time ? ` — ${new Date(job.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : ''}
+                  </span>
+                </div>
+
+                <div style={styles.detailCell}>
+                  <MapPin size={14} color="#475569" style={{ flexShrink: 0 }} />
+                  <span style={{ wordBreak: 'break-word' }}>
+                    <strong>Location:</strong> {job.location || 'TBD'}
+                  </span>
+                </div>
+
+                <div style={styles.detailCell}>
+                  <Users size={14} color="#475569" style={{ flexShrink: 0 }} />
+                  <span>
+                    <strong>Guests:</strong> {job.guest_count || 0} pax
+                  </span>
+                </div>
+
+                <div style={styles.detailCell}>
+                  <User size={14} color="#475569" style={{ flexShrink: 0 }} />
+                  <span style={{ wordBreak: 'break-word' }}>
+                    <strong>Client:</strong> {job.user?.name || job.client_name || 'N/A'}
+                  </span>
+                </div>
+
+                {(job.user?.email || job.client_email) && (
+                  <div style={styles.detailCell}>
+                    <Mail size={14} color="#475569" style={{ flexShrink: 0 }} />
+                    <span style={{ wordBreak: 'break-word' }}>
+                      <strong>Email:</strong> {job.user?.email || job.client_email}
+                    </span>
+                  </div>
+                )}
+
+                {attachedServicesList && (
+                  <div style={styles.detailCell}>
+                    <Layers size={14} color="#475569" style={{ flexShrink: 0 }} />
+                    <span style={{ wordBreak: 'break-word' }}>
+                      <strong>Requested Service/Bundle:</strong> {attachedServicesList}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', width: '100%', borderTop: '1px solid #f1f5f9', paddingTop: '14px' }}>
+                <button onClick={() => handleStatus(job.id, 'accepted')} style={{ ...styles.acceptBtn, flex: isMobile ? 1 : 'unset', justifyContent: 'center' }}>
+                  <Check size={16}/> Accept Request
+                </button>
+                <button onClick={() => handleStatus(job.id, 'rejected')} style={{ ...styles.rejectBtn, flex: isMobile ? 1 : 'unset', justifyContent: 'center' }}>
+                  <X size={16}/> Reject Request
+                </button>
+              </div>
             </div>
-            <div style={{ display: 'flex', gap: '8px', width: isMobile ? '100%' : 'auto' }}>
-              <button onClick={() => handleStatus(job.id, 'accepted')} style={{ ...styles.acceptBtn, flex: isMobile ? 1 : 'unset', justifyContent: 'center' }}><Check size={16}/> Accept</button>
-              <button onClick={() => handleStatus(job.id, 'rejected')} style={{ ...styles.rejectBtn, flex: isMobile ? 1 : 'unset', justifyContent: 'center' }}><X size={16}/> Reject</button>
-            </div>
+          );
+        }) : (
+          <div style={{ textAlign: 'center', padding: '32px', background: '#f8fafc', borderRadius: '20px', border: '1px solid #e2e8f0', color: '#64748b', fontWeight: '700', fontSize: '0.9rem' }}>
+            No pending hire requests right now.
           </div>
-        ))}
+        )}
       </div>
     </div>
   );
@@ -316,10 +396,15 @@ const styles = {
   mainCard: { background: '#fff', padding: '20px', borderRadius: '24px', border: '1px solid #f0f0f0', boxShadow: '0 15px 30px rgba(0,0,0,0.02)', boxSizing: 'border-box' },
   statLabel: { margin: 0, color: '#888', fontSize: '0.7rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.5px' },
   statValue: { margin: 0, fontWeight: '900', color: '#1a1a1a' },
-  requestCard: { background: '#fff', padding: '18px 20px', borderRadius: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', border: '1px solid #f0f0f0', boxShadow: '0 4px 15px rgba(0,0,0,0.02)', boxSizing: 'border-box', width: '100%' },
-  categoryBadge: { background: '#f0f0f0', color: '#000', padding: '4px 10px', borderRadius: '8px', fontSize: '0.65rem', fontWeight: '800', textTransform: 'uppercase' },
-  acceptBtn: { background: '#000', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '12px', fontWeight: '800', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem' },
-  rejectBtn: { background: '#fff', color: '#ff4d4d', border: '1px solid #fee2e2', padding: '10px 14px', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontWeight: '800', fontSize: '0.8rem' },
+  requestList: { display: 'flex', flexDirection: 'column', gap: '14px' },
+  requestCard: { background: '#fff', padding: '20px', borderRadius: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid #e2e8f0', boxShadow: '0 4px 15px rgba(0,0,0,0.02)', boxSizing: 'border-box', width: '100%' },
+  categoryBadge: { background: '#0f172a', color: '#fff', padding: '4px 10px', borderRadius: '8px', fontSize: '0.65rem', fontWeight: '800', textTransform: 'uppercase' },
+  idBadge: { background: '#f1f5f9', color: '#475569', padding: '4px 10px', borderRadius: '8px', fontSize: '0.68rem', fontWeight: '800' },
+  paymentPill: { background: '#fef3c7', color: '#92400e', padding: '4px 10px', borderRadius: '8px', fontSize: '0.68rem', fontWeight: '800', textTransform: 'uppercase' },
+  pendingDetailsGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '10px', background: '#f8fafc', padding: '14px', borderRadius: '14px', border: '1px solid #e2e8f0' },
+  detailCell: { display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.82rem', color: '#334155', fontWeight: '600' },
+  acceptBtn: { background: '#000', color: '#fff', border: 'none', padding: '10px 18px', borderRadius: '12px', fontWeight: '800', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.82rem' },
+  rejectBtn: { background: '#fff', color: '#ff4d4d', border: '1px solid #fee2e2', padding: '10px 16px', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontWeight: '800', fontSize: '0.82rem' },
   notifBtn: { background: '#fff', border: '2px solid #f0f0f0', padding: '10px 14px', borderRadius: '12px', fontWeight: '800', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem' },
   manageBtn: { background: '#1a1a1a', color: '#fff', border: 'none', padding: '10px 14px', borderRadius: '12px', fontWeight: '800', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem' },
   eventItem: { padding: '14px', background: '#fcfcfc', borderRadius: '16px', borderLeft: '4px solid #000', marginBottom: '12px', boxSizing: 'border-box' }
