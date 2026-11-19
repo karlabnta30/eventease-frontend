@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import api from '../api';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { MapPin, Lock, AlertCircle, Power, Star, Check, Plus, Trash2, ShieldAlert, ChevronRight, ArrowLeft, Sparkles, Sliders, ShoppingBag, X, Info, Users, CheckCircle2, AlertTriangle, XCircle, MessageSquare, Search, ExternalLink, Columns, Ban, Layers } from 'lucide-react';
+import { MapPin, Lock, AlertCircle, Power, Star, Check, Plus, Trash2, ShieldAlert, ChevronRight, ArrowLeft, Sparkles, ShoppingBag, X, Info, Users, CheckCircle2, MessageSquare, Search, ExternalLink, Ban, Edit3, Save } from 'lucide-react';
 import { notifyNewBooking } from '../toastUtils.jsx';
 import { toast } from 'react-hot-toast';
 
@@ -72,12 +72,13 @@ const VendorList = () => {
 
     // Feature States
     const [comparedVendorIds, setComparedVendorIds] = useState([]);
-    const [isCompareDrawerOpen, setIsCompareDrawerOpen] = useState(false);
     const [mapModalUrl, setMapModalUrl] = useState(null);
     const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
     const [cancellingEvent, setCancellingEvent] = useState(false);
 
-    const defaultAllocations = useMemo(() => {
+    // Editable Budget Percentage States (No strict scaling lock)
+    const [isEditingBudgetPct, setIsEditingBudgetPct] = useState(false);
+    const [budgetAllocations, setBudgetAllocations] = useState(() => {
         const lowerType = eventType.toLowerCase();
         if (lowerType.includes('birthday')) {
             return { 'Catering & Food': 50, 'Venue Rental': 20, 'Decoration': 15, 'Entertainment': 10, 'Photography': 5 };
@@ -87,70 +88,52 @@ const VendorList = () => {
             return { 'Catering & Food': 35, 'Venue Rental': 30, 'Decoration': 15, 'Photography': 10, 'Entertainment': 10 };
         }
         return { 'Catering & Food': 40, 'Venue Rental': 25, 'Decoration': 15, 'Photography': 10, 'Entertainment': 10 };
-    }, [eventType]);
+    });
 
-    const [customAllocations, setCustomAllocations] = useState(defaultAllocations);
-
-    const handleSliderChange = (itemKey, newVal) => {
-        const val = parseInt(newVal, 10) || 0;
-        setCustomAllocations(prev => ({
+    const handlePercentageChange = (itemKey, newVal) => {
+        const numeric = Math.max(0, Math.min(100, parseFloat(newVal) || 0));
+        setBudgetAllocations(prev => ({
             ...prev,
-            [itemKey]: val
+            [itemKey]: numeric
         }));
     };
 
-    const handleRemoveSliderCategory = (itemKey) => {
-        setCustomAllocations(prev => {
-            const copy = { ...prev };
-            delete copy[itemKey];
-            return copy;
+    const handleRemoveAllocationItem = (itemKey) => {
+        setBudgetAllocations(prev => {
+            const updated = { ...prev };
+            delete updated[itemKey];
+            return updated;
         });
     };
 
-    const handleAddSliderCategory = (itemKey) => {
-        setCustomAllocations(prev => ({
+    const handleAddAllocationItem = () => {
+        const name = window.prompt("Enter category name (e.g., Sound System, Host, Cake):");
+        if (!name || !name.trim()) return;
+        const cleanName = name.trim();
+        if (cleanName in budgetAllocations) {
+            toast.error("Category already exists in budget breakdown.");
+            return;
+        }
+        setBudgetAllocations(prev => ({
             ...prev,
-            [itemKey]: 10
+            [cleanName]: 10
         }));
     };
 
-    const totalPercentage = useMemo(() => {
-        return Object.values(customAllocations).reduce((sum, val) => sum + val, 0);
-    }, [customAllocations]);
+    const totalAllocatedPct = useMemo(() => {
+        return Object.values(budgetAllocations).reduce((sum, val) => sum + (parseFloat(val) || 0), 0);
+    }, [budgetAllocations]);
 
-    const aiOptimizerAnalysis = useMemo(() => {
-        const categoryRates = { 'Wedding': 800, 'Birthday': 350, 'Corporate': 500, 'Workshop': 300, 'Debut': 600 };
-        const minPerPax = categoryRates[eventType] || 350;
-        const recommendedMinTotal = guestCount * minPerPax;
-
-        let status = 'Optimal';
-        let message = 'Your budget and custom scale are well-balanced for your guest count and event type.';
-        let statusColor = '#16a34a';
-        let statusBg = '#f0fdf4';
-        let StatusIcon = CheckCircle2;
-
-        if (userBudget > 0 && userBudget < recommendedMinTotal) {
-            status = 'Not Optimal';
-            message = `Your budget is lower than recommended baseline (₱${recommendedMinTotal.toLocaleString()}) for ${guestCount} guests.`;
-            statusColor = '#dc2626';
-            statusBg = '#fef2f2';
-            StatusIcon = XCircle;
-        } else if (totalPercentage !== 100) {
-            status = 'Not Optimal';
-            message = `Total scale is at ${totalPercentage}%. It must equal exactly 100% to be optimal.`;
-            statusColor = '#d97706';
-            statusBg = '#fffbeb';
-            StatusIcon = AlertTriangle;
-        }
-
-        const breakdown = Object.entries(customAllocations).map(([item, pct]) => ({
-            item,
-            percentage: pct,
-            amount: Math.round(userBudget * (pct / 100))
-        }));
-
-        return { status, message, statusColor, statusBg, StatusIcon, breakdown, recommendedMinTotal };
-    }, [userBudget, guestCount, eventType, customAllocations, totalPercentage]);
+    const budgetBreakdown = useMemo(() => {
+        return Object.entries(budgetAllocations).map(([item, pct]) => {
+            const safePct = parseFloat(pct) || 0;
+            return {
+                item,
+                percentage: safePct,
+                amount: Math.round(userBudget * (safePct / 100))
+            };
+        });
+    }, [budgetAllocations, userBudget]);
 
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -158,7 +141,6 @@ const VendorList = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    // TINANGGAL ANG 'Random Stuff / Miscellaneous' SA CATEGORIES LIST
     const categories = useMemo(() => ['Bundle Packages', 'Catering', 'Photography', 'Venue', 'Entertainment', 'Decoration', 'Hosting'], []);
 
     const getCategoryPhoto = useCallback((category) => {
@@ -443,9 +425,6 @@ const VendorList = () => {
     }, [selectedServices]);
 
     if (loading) return <div style={{ padding: '100px', textAlign: 'center', fontWeight: '800', fontSize: '1.2rem' }}>Loading Services...</div>;
-
-    const StatusIconComp = aiOptimizerAnalysis.StatusIcon;
-    const availableCategoriesToRestore = Object.keys(defaultAllocations).filter(k => !(k in customAllocations));
 
     return (
         <div style={{ backgroundColor: '#ffffff', minHeight: '100vh', padding: isMobile ? '20px 16px 140px' : '40px 60px 140px', fontFamily: "'Inter', sans-serif" }}>
@@ -766,7 +745,10 @@ const VendorList = () => {
                                 </h3>
                             </div>
                             <button 
-                                onClick={() => setIsCartModalOpen(false)}
+                                onClick={() => {
+                                    setIsEditingBudgetPct(false);
+                                    setIsCartModalOpen(false);
+                                }}
                                 style={{ background: '#f1f5f9', border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
                             >
                                 <X size={18} color="#64748b" />
@@ -790,69 +772,118 @@ const VendorList = () => {
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                         <Sparkles size={18} color="#2563eb" />
-                                        <span style={{ fontWeight: '900', fontSize: '0.85rem', color: '#0f172a' }}>AI BUDGET OPTIMIZER ({eventType.toUpperCase()})</span>
+                                        <span style={{ fontWeight: '900', fontSize: '0.85rem', color: '#0f172a' }}>
+                                            BUDGET ALLOCATION ({eventType.toUpperCase()})
+                                        </span>
                                     </div>
-                                    <button
-                                        onClick={handleRunAiSmartAllocation}
-                                        style={{ background: '#0f172a', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: '800', cursor: 'pointer' }}
-                                    >
-                                        RUN AI OPTIMIZER
-                                    </button>
+                                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                                        <button
+                                            onClick={() => {
+                                                if (isEditingBudgetPct) {
+                                                    toast.success("Budget percentage changes saved!");
+                                                }
+                                                setIsEditingBudgetPct(prev => !prev);
+                                            }}
+                                            style={{
+                                                background: isEditingBudgetPct ? '#16a34a' : '#e2e8f0',
+                                                color: isEditingBudgetPct ? '#fff' : '#0f172a',
+                                                border: 'none',
+                                                padding: '6px 10px',
+                                                borderRadius: '8px',
+                                                fontSize: '0.72rem',
+                                                fontWeight: '800',
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '4px'
+                                            }}
+                                        >
+                                            {isEditingBudgetPct ? <><Save size={12} /> Save</> : <><Edit3 size={12} /> Edit</>}
+                                        </button>
+                                        <button
+                                            onClick={handleRunAiSmartAllocation}
+                                            style={{ background: '#0f172a', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '8px', fontSize: '0.72rem', fontWeight: '800', cursor: 'pointer' }}
+                                        >
+                                            RUN AI OPTIMIZER
+                                        </button>
+                                    </div>
                                 </div>
 
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', flexWrap: 'wrap' }}>
-                                    <div style={{ background: aiOptimizerAnalysis.statusBg, color: aiOptimizerAnalysis.statusColor, padding: '4px 10px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                        <StatusIconComp size={13} /> {aiOptimizerAnalysis.status} Status
-                                    </div>
-                                    <span style={{ fontSize: '0.75rem', fontWeight: '800', color: totalPercentage === 100 ? '#16a34a' : '#dc2626' }}>
-                                        Scale: {totalPercentage}% {totalPercentage !== 100 && '(Must be 100%)'}
-                                    </span>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', fontSize: '0.75rem', fontWeight: '800', color: '#475569' }}>
+                                    <span>Total Budget: ₱{userBudget.toLocaleString()}</span>
+                                    <span>Allocated: {totalAllocatedPct}%</span>
                                 </div>
 
-                                <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '0 0 16px 0', fontWeight: '600', lineHeight: '1.4' }}>
-                                    {aiOptimizerAnalysis.message}
-                                </p>
-
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                    {aiOptimizerAnalysis.breakdown.map((b) => (
-                                        <div key={b.item} style={{ background: '#fff', border: '1px solid #e2e8f0', padding: '10px 12px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '4px', position: 'relative' }}>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                <span style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: '700' }}>{b.item} ({b.percentage}%)</span>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                    <span style={{ fontSize: '0.85rem', fontWeight: '900', color: '#0f172a' }}>₱{b.amount.toLocaleString()}</span>
-                                                    <button 
-                                                        onClick={() => handleRemoveSliderCategory(b.item)}
-                                                        style={{ background: '#fee2e2', color: '#991b1b', border: 'none', borderRadius: '6px', padding: '2px 6px', fontSize: '0.65rem', fontWeight: '800', cursor: 'pointer' }}
-                                                        title="Remove category slider"
-                                                    >
-                                                        <Trash2 size={12} />
-                                                    </button>
-                                                </div>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                    {budgetBreakdown.map((b) => (
+                                        <div key={b.item} style={{ background: '#fff', border: '1px solid #e2e8f0', padding: '10px 12px', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px' }}>
+                                            <div style={{ flex: 1 }}>
+                                                <div style={{ fontSize: '0.8rem', color: '#0f172a', fontWeight: '800' }}>{b.item}</div>
+                                                {isEditingBudgetPct ? (
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '6px' }}>
+                                                        <input
+                                                            type="number"
+                                                            min="0"
+                                                            max="100"
+                                                            value={b.percentage}
+                                                            onChange={(e) => handlePercentageChange(b.item, e.target.value)}
+                                                            style={{
+                                                                width: '72px',
+                                                                padding: '5px 8px',
+                                                                borderRadius: '8px',
+                                                                border: '1px solid #94a3b8',
+                                                                fontSize: '0.8rem',
+                                                                fontWeight: '800',
+                                                                color: '#0f172a'
+                                                            }}
+                                                        />
+                                                        <span style={{ fontSize: '0.75rem', fontWeight: '800', color: '#64748b' }}>%</span>
+                                                    </div>
+                                                ) : (
+                                                    <div style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: '700', marginTop: '2px' }}>
+                                                        {b.percentage}% of budget
+                                                    </div>
+                                                )}
                                             </div>
-                                            <input 
-                                                type="range" 
-                                                min="0" 
-                                                max="100" 
-                                                value={b.percentage} 
-                                                onChange={(e) => handleSliderChange(b.item, e.target.value)}
-                                                style={{ width: '100%', accentColor: '#2563eb', cursor: 'pointer', marginTop: '4px' }}
-                                            />
+
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                <span style={{ fontSize: '0.88rem', fontWeight: '900', color: '#0f172a' }}>
+                                                    ₱{b.amount.toLocaleString()}
+                                                </span>
+                                                {isEditingBudgetPct && (
+                                                    <button
+                                                        onClick={() => handleRemoveAllocationItem(b.item)}
+                                                        style={{ background: '#fee2e2', color: '#991b1b', border: 'none', borderRadius: '8px', padding: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                                        title="Remove category"
+                                                    >
+                                                        <Trash2 size={13} />
+                                                    </button>
+                                                )}
+                                            </div>
                                         </div>
                                     ))}
 
-                                    {availableCategoriesToRestore.length > 0 && (
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px', flexWrap: 'wrap' }}>
-                                            <span style={{ fontSize: '0.75rem', fontWeight: '700', color: '#64748b' }}>Add category:</span>
-                                            {availableCategoriesToRestore.map(cat => (
-                                                <button
-                                                    key={cat}
-                                                    onClick={() => handleAddSliderCategory(cat)}
-                                                    style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#0f172a', padding: '4px 8px', borderRadius: '8px', fontSize: '0.7rem', fontWeight: '800', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
-                                                >
-                                                    <Plus size={12} /> {cat}
-                                                </button>
-                                            ))}
-                                        </div>
+                                    {isEditingBudgetPct && (
+                                        <button
+                                            onClick={handleAddAllocationItem}
+                                            style={{
+                                                background: '#eff6ff',
+                                                color: '#2563eb',
+                                                border: '1px dashed #93c5fd',
+                                                padding: '10px',
+                                                borderRadius: '12px',
+                                                fontSize: '0.78rem',
+                                                fontWeight: '800',
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                gap: '6px',
+                                                marginTop: '4px'
+                                            }}
+                                        >
+                                            <Plus size={14} /> Add Budget Category
+                                        </button>
                                     )}
                                 </div>
                             </div>
@@ -933,6 +964,7 @@ const VendorList = () => {
                                 </button>
                                 <button
                                     onClick={() => {
+                                        setIsEditingBudgetPct(false);
                                         setIsCartModalOpen(false);
                                         handleMultiServiceCheckout();
                                     }}

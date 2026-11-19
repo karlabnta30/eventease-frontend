@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -7,7 +7,7 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import api from '../api';
 import { notifyNewBooking } from '../toastUtils.jsx';
-import { Calendar, MapPin, Tag, Users, Wallet, CheckCircle2, Info, Sparkles, FileText, CheckCircle, AlertTriangle, Navigation } from 'lucide-react';
+import { Calendar, MapPin, Tag, Users, Wallet, CheckCircle2, Info, Sparkles, FileText, AlertTriangle, Navigation } from 'lucide-react';
 
 // --- LEAFLET MARKER ICON FIX ---
 delete L.Icon.Default.prototype._getIconUrl;
@@ -30,8 +30,8 @@ const MapViewController = ({ center }) => {
 
 // --- SUCCESS MODAL ---
 const SuccessModal = ({ isOpen, eventId, currentBudget }) => {
-  if (!isOpen) return null;
   const navigate = useNavigate();
+  if (!isOpen) return null;
 
   return (
     <div style={{
@@ -139,14 +139,35 @@ const categoryRates = {
   Birthday: 350,
   Corporate: 500,
   Workshop: 300,
-  Debut: 600
+  Debut: 600,
+  Others: 350
 };
 
-const getRatePerPerson = (category) => categoryRates[category] || 300;
+const getRatePerPerson = (category) => categoryRates[category] || 350;
 
 const getRecommendedBudget = (pax, category) => {
   const rate = getRatePerPerson(category);
   return pax ? Number(pax) * rate : 0;
+};
+
+// --- NEXT-DAY HELPER (NO SAME-DAY BOOKING) ---
+const getTomorrowStart = () => {
+  const tomorrow = new Date();
+  tomorrow.setHours(0, 0, 0, 0);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  return tomorrow;
+};
+
+const getDefaultStartDate = () => {
+  const d = getTomorrowStart();
+  d.setHours(9, 0, 0, 0);
+  return d;
+};
+
+const getDefaultEndDate = () => {
+  const d = getTomorrowStart();
+  d.setHours(11, 0, 0, 0);
+  return d;
 };
 
 // --- MODERN CUSTOM DATEPICKER INPUT COMPONENT ---
@@ -182,18 +203,21 @@ const CreateEvent = () => {
   const [mapCenter, setMapCenter] = useState([14.5995, 120.9842]);
   const [markerPosition, setMarkerPosition] = useState(null);
 
-  const [eventData, setEventData] = useState({
+  const minNextDayDate = useMemo(() => getTomorrowStart(), []);
+
+  const [eventData, setEventData] = useState(() => ({
     name: '',
     address: '',
     latitude: '',
     longitude: '',
-    startDate: new Date(),
-    endDate: new Date(new Date().setHours(new Date().getHours() + 2)),
+    startDate: getDefaultStartDate(),
+    endDate: getDefaultEndDate(),
     category: '',
+    customCategory: '',
     pax: '',
     budget: '',
     service_id: prefilledServiceId ? parseInt(prefilledServiceId) : null
-  });
+  }));
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 900);
@@ -237,6 +261,32 @@ const CreateEvent = () => {
 
   const handleChange = (field, value) => {
     setEventData(prev => ({ ...prev, [field]: value }));
+    if (formError) setFormError("");
+  };
+
+  const handleStartDateChange = (date) => {
+    if (!date) return;
+    const enforcedStart = date < minNextDayDate ? getDefaultStartDate() : date;
+    setEventData(prev => {
+      const nextEnd = prev.endDate && prev.endDate < enforcedStart
+        ? new Date(enforcedStart.getTime() + 2 * 60 * 60 * 1000)
+        : prev.endDate;
+      return {
+        ...prev,
+        startDate: enforcedStart,
+        endDate: nextEnd
+      };
+    });
+    if (formError) setFormError("");
+  };
+
+  const handleEndDateChange = (date) => {
+    if (!date) return;
+    const enforcedEnd = date < minNextDayDate ? getDefaultEndDate() : date;
+    setEventData(prev => ({
+      ...prev,
+      endDate: enforcedEnd
+    }));
     if (formError) setFormError("");
   };
 
@@ -325,7 +375,7 @@ const CreateEvent = () => {
           address: resolvedAddress || `Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`
         }));
       },
-      (error) => {
+      () => {
         alert("Unable to retrieve your location. Please check your permissions.");
       }
     );
@@ -338,12 +388,25 @@ const CreateEvent = () => {
     }
   };
 
+  const resolvedCategory = eventData.category === 'Others'
+    ? eventData.customCategory.trim()
+    : eventData.category;
+
   const handleInitiateClick = () => {
     const token = localStorage.getItem('token');
     if (!token) { navigate('/login'); return; }
     
-    if (!eventData.name || !eventData.address || !eventData.category || !eventData.pax || !eventData.budget) {
-        setFormError("Please fill in all required event fields including guest count and budget.");
+    if (!eventData.name || !eventData.address || !resolvedCategory || !eventData.pax || !eventData.budget) {
+        setFormError(
+          eventData.category === 'Others' && !eventData.customCategory.trim()
+            ? "Please specify your event type under Others."
+            : "Please fill in all required event fields including guest count and budget."
+        );
+        return;
+    }
+
+    if (!eventData.startDate || eventData.startDate < minNextDayDate) {
+        setFormError("Same-day booking is not allowed. Please select a date starting tomorrow.");
         return;
     }
 
@@ -376,7 +439,7 @@ const CreateEvent = () => {
       location: eventData.address,
       latitude: eventData.latitude ? parseFloat(eventData.latitude) : null,
       longitude: eventData.longitude ? parseFloat(eventData.longitude) : null,
-      category: eventData.category,
+      category: resolvedCategory,
       event_date: formatMySQLDate(eventData.startDate),
       end_time: formatMySQLDate(eventData.endDate),
       guest_count: parseInt(eventData.pax) || 0,
@@ -536,8 +599,22 @@ const CreateEvent = () => {
                     <option value="Corporate">Corporate (₱500/pax)</option>
                     <option value="Workshop">Workshop (₱300/pax)</option>
                     <option value="Debut">Debut (₱600/pax)</option>
+                    <option value="Others">Others (Specify Event)</option>
                 </select>
             </div>
+
+            {eventData.category === 'Others' && (
+              <div style={{ marginTop: '16px' }}>
+                <label style={styles.label}>Specify Event Type</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Engagement Party, Baptismal, Seminar"
+                  style={styles.input}
+                  value={eventData.customCategory}
+                  onChange={(e) => handleChange('customCategory', e.target.value)}
+                />
+              </div>
+            )}
           </div>
 
           <div style={styles.card}>
@@ -591,13 +668,13 @@ const CreateEvent = () => {
         <div className="right-column">
           <div style={styles.card}>
             <div style={styles.sectionHeader}><Calendar size={20} color="#3b82f6"/><h3 style={{fontWeight: '900', margin: 0, fontSize: '1.1rem'}}>Schedule</h3></div>
-            <label style={styles.label}>Starts</label>
+            <label style={styles.label}>Starts (Next Day Onwards)</label>
             <DatePicker 
               selected={eventData.startDate} 
-              onChange={(date) => handleChange('startDate', date)} 
+              onChange={handleStartDateChange} 
               showTimeSelect 
               dateFormat="MMMM d, yyyy h:mm aa" 
-              minDate={new Date()}
+              minDate={minNextDayDate}
               excludeDates={bookedDates} 
               customInput={<CustomDateInput placeholder="Select start date & time" />} 
             />
@@ -605,10 +682,10 @@ const CreateEvent = () => {
                 <label style={styles.label}>Ends</label>
                 <DatePicker 
                   selected={eventData.endDate} 
-                  onChange={(date) => handleChange('endDate', date)} 
+                  onChange={handleEndDateChange} 
                   showTimeSelect 
                   dateFormat="MMMM d, yyyy h:mm aa" 
-                  minDate={eventData.startDate || new Date()} 
+                  minDate={eventData.startDate || minNextDayDate} 
                   excludeDates={bookedDates}
                   customInput={<CustomDateInput placeholder="Select end date & time" />} 
                 />
@@ -672,7 +749,7 @@ const CreateEvent = () => {
               <div>
                 <div style={{ fontWeight: '800', color: '#0f172a', fontSize: '0.85rem' }}>
                   Baseline Rate: ₱{currentRate.toLocaleString()}/pax
-                  {eventData.category ? ` (${eventData.category})` : ''}
+                  {resolvedCategory ? ` (${resolvedCategory})` : ''}
                 </div>
                 <div style={{ color: '#64748b', fontSize: '0.75rem', marginTop: '2px', fontWeight: '600' }}>
                   Est. Total for {eventData.pax || 0} pax: <strong style={{ color: '#059669' }}>₱{recommendedBudget.toLocaleString()}</strong>

@@ -235,13 +235,16 @@ const styles = {
     color: status === 'pending' ? '#d97706' : '#0f172a'
   }),
   paymentIndicator: (pay) => {
-    const isPaid = ((pay || '').toLowerCase().trim() === 'paid' || 
-                    (pay || '').toLowerCase().includes('downpayment') || 
-                    (pay || '').toLowerCase().includes('completed'));
+    const normalized = (pay || '').toLowerCase().trim();
+    const isPaidBadge = normalized === 'paid' ||
+                        normalized.includes('downpayment') ||
+                        normalized.includes('down payment') ||
+                        normalized.includes('completed') ||
+                        (normalized.includes('paid') && !normalized.includes('unpaid'));
     return {
       padding: '6px 14px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: '900', textTransform: 'uppercase',
-      background: isPaid ? '#d1fae5' : '#fee2e2',
-      color: isPaid ? '#059669' : '#ef4444'
+      background: isPaidBadge ? '#d1fae5' : '#fee2e2',
+      color: isPaidBadge ? '#059669' : '#ef4444'
     };
   },
   modalOverlay: { position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(15, 23, 42, 0.85)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, backdropFilter: 'blur(10px)', padding: '16px', boxSizing: 'border-box' },

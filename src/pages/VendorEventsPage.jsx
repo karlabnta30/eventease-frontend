@@ -182,7 +182,7 @@ const VendorEventsPage = () => {
                       color: isFullyPaid ? '#166534' : (isDownpaymentPaid ? '#059669' : '#d97706'),
                       border: isFullyPaid ? '1px solid #bbf7d0' : (isDownpaymentPaid ? '1px solid #a7f3d0' : '1px solid #fde68a')
                     }}>
-                      {isFullyPaid ? '✅ Paid Fully (History)' : (isDownpaymentPaid ? '✔ 50% Down Payment Paid' : '⏳ Pending Payment')}
+                      {isFullyPaid ? '✅ Fully Paid (History)' : (isDownpaymentPaid ? '✔ 50% Down Payment Paid' : '⏳ Pending Payment')}
                     </span>
                   </div>
                   
@@ -233,7 +233,7 @@ const VendorEventsPage = () => {
                         boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)'
                       }}
                     >
-                      Paid Fully 💰
+                      Fully Paid 💰
                     </button>
                   )}
 
@@ -369,7 +369,7 @@ const VendorEventsPage = () => {
                 }}
                 style={{ flex: 1, backgroundColor: confirmModalData.type === 'delete' ? '#dc2626' : '#10b981', color: '#fff', border: 'none', padding: '12px', borderRadius: '12px', fontWeight: '800', cursor: 'pointer' }}
               >
-                {confirmModalData.type === 'delete' ? 'Yes, Delete' : 'Yes, Paid Fully'}
+                {confirmModalData.type === 'delete' ? 'Yes, Delete' : 'Yes, Fully Paid'}
               </button>
             </div>
           </div>
