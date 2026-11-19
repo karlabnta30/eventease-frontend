@@ -3,6 +3,28 @@ import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api';
 import { ArrowLeft, MapPin, Calendar, Users, CreditCard, Clock, ShieldCheck, Trash2, Edit3, Lock, ShieldAlert } from 'lucide-react';
 
+const formatPaymentStatus = (status) => {
+  if (!status) return 'Unpaid';
+  const normalized = String(status).trim().toLowerCase();
+  if (normalized === 'fully_paid' || normalized === 'fully paid') {
+    return 'FULLY PAID';
+  }
+  return String(status).replace(/_/g, ' ');
+};
+
+const checkIsPaidStatus = (paymentStatusRaw, isPaidFlag) => {
+  const normalized = (paymentStatusRaw || '').toLowerCase().trim();
+  return (
+    normalized === 'paid' ||
+    normalized === 'fully_paid' ||
+    normalized === 'fully paid' ||
+    normalized === 'downpayment_paid' ||
+    normalized === 'paid (50% down payment)' ||
+    normalized === 'completed' ||
+    isPaidFlag === true
+  );
+};
+
 const DeleteConfirmationModal = ({ isOpen, onCancel, onConfirm }) => {
   if (!isOpen) return null;
   return (
@@ -62,12 +84,7 @@ const BookingDetails = () => {
   }, [id, navigate]);
 
   const handleConfirmDelete = async () => {
-    const currentPaymentStatus = (event?.payment_status || '').toLowerCase().trim();
-    const isSecuredPaid = currentPaymentStatus === 'paid' || 
-                          currentPaymentStatus === 'downpayment_paid' || 
-                          currentPaymentStatus === 'paid (50% down payment)' || 
-                          currentPaymentStatus === 'completed' || 
-                          event?.is_paid === true;
+    const isSecuredPaid = checkIsPaidStatus(event?.payment_status, event?.is_paid);
 
     if (isSecuredPaid && userRole !== 'admin') {
         alert("Action Restricted: Paid events cannot be cancelled by clients.");
@@ -94,19 +111,10 @@ const BookingDetails = () => {
   if (loading) return <div style={styles.loadingState}>Synchronizing event data...</div>;
   if (!event) return <div style={styles.loadingState}>Event not found.</div>;
 
-  const paymentStatus = (event.payment_status || '').toLowerCase().trim();
-  
-  // Mahigpit na susuriin kung bayad na ba talaga upang hindi sumabit sa salitang "unpaid"
-  const isPaid = paymentStatus === 'paid' || 
-                 paymentStatus === 'downpayment_paid' || 
-                 paymentStatus === 'paid (50% down payment)' || 
-                 paymentStatus === 'completed' || 
-                 event.is_paid === true;
-
+  const isPaid = checkIsPaidStatus(event.payment_status, event.is_paid);
   const isLocked = isPaid && userRole !== 'admin';
   const isAdminOverride = isPaid && userRole === 'admin';
 
-  // Nasusunod ang iba't ibang posibleng relasyon ng vendors/services galing sa database
   const assignedVendorName = 
     (event.services && event.services.length > 0) 
       ? event.services.map(s => s.business_name || s.name).join(', ')
@@ -114,7 +122,6 @@ const BookingDetails = () => {
       ? event.vendors.map(v => v.business_name || v.name).join(', ')
       : (event.service?.business_name || event.service?.name || event.vendor?.business_name || event.vendor?.name || event.vendor_name || 'Awaiting Vendor');
 
-  // Kalkulasyon ng Total Services Cost at 50% Downpayment
   const calculatedServicesTotal = event.services && event.services.length > 0
     ? event.services.reduce((sum, s) => sum + (parseFloat(s.price || s.starting_price || s.cost || 0)), 0)
     : event.vendors && event.vendors.length > 0
@@ -126,6 +133,7 @@ const BookingDetails = () => {
     : (parseFloat(event.service_price || event.price || event.total_price || event.budget || 0) || 0);
 
   const downpaymentAmount = payableAmount / 2;
+  const displayPaymentStatus = formatPaymentStatus(event.payment_status);
 
   return (
     <div style={{ ...styles.pageWrapper, padding: isMobile ? '20px 16px' : '50px 20px' }}>
@@ -143,7 +151,7 @@ const BookingDetails = () => {
             </div>
             <div style={{ ...styles.statusGroup, alignItems: isMobile ? 'flex-start' : 'flex-end', marginTop: isMobile ? '12px' : '0' }}>
                 <div style={styles.statusIndicator(event.status)}>{event.status}</div>
-                <div style={styles.paymentIndicator(event.payment_status)}>{event.payment_status || 'Unpaid'}</div>
+                <div style={styles.paymentIndicator(event.payment_status)}>{displayPaymentStatus}</div>
             </div>
           </div>
 
@@ -235,12 +243,7 @@ const styles = {
     color: status === 'pending' ? '#d97706' : '#0f172a'
   }),
   paymentIndicator: (pay) => {
-    const normalized = (pay || '').toLowerCase().trim();
-    const isPaidBadge = normalized === 'paid' ||
-                        normalized.includes('downpayment') ||
-                        normalized.includes('down payment') ||
-                        normalized.includes('completed') ||
-                        (normalized.includes('paid') && !normalized.includes('unpaid'));
+    const isPaidBadge = checkIsPaidStatus(pay, false);
     return {
       padding: '6px 14px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: '900', textTransform: 'uppercase',
       background: isPaidBadge ? '#d1fae5' : '#fee2e2',
