@@ -5,6 +5,15 @@ import { MapPin, Lock, AlertCircle, Power, Star, Check, Plus, Trash2, ShieldAler
 import { notifyNewBooking } from '../toastUtils.jsx';
 import { toast } from 'react-hot-toast';
 
+const normalizeCategory = (cat) => String(cat || '').trim().toLowerCase();
+
+const categoryMatchesAllocation = (serviceCategory, allocationKey) => {
+    const srvCat = normalizeCategory(serviceCategory);
+    const allocCat = normalizeCategory(allocationKey);
+    if (!srvCat || !allocCat) return false;
+    return srvCat === allocCat || srvCat.includes(allocCat) || allocCat.includes(srvCat);
+};
+
 const StarRating = React.memo(({ rating = 5.0, totalReviews = 12 }) => {
     const numericRating = Math.min(5, Math.max(1, parseFloat(rating) || 5.0));
     const roundedStars = Math.round(numericRating);
@@ -90,12 +99,39 @@ const VendorList = () => {
         return { 'Catering & Food': 40, 'Venue Rental': 25, 'Decoration': 15, 'Photography': 10, 'Entertainment': 10 };
     });
 
+    const removeServicesByCategory = useCallback((categoryKey) => {
+        if (!categoryKey) return;
+        setSelectedServices(prev => {
+            const filtered = prev.filter(srv => !categoryMatchesAllocation(srv.category, categoryKey));
+            if (filtered.length < prev.length) {
+                toast(`${categoryKey} services removed from cart (0% allocation).`);
+            }
+            return filtered;
+        });
+    }, []);
+
+    const syncCartWithAllocations = useCallback((allocationsObj) => {
+        const zeroCategories = Object.entries(allocationsObj || {})
+            .filter(([, pct]) => (parseFloat(pct) || 0) <= 0)
+            .map(([key]) => key);
+
+        if (zeroCategories.length === 0) return;
+
+        setSelectedServices(prev =>
+            prev.filter(srv => !zeroCategories.some(catKey => categoryMatchesAllocation(srv.category, catKey)))
+        );
+    }, []);
+
     const handlePercentageChange = (itemKey, newVal) => {
         const numeric = Math.max(0, Math.min(100, parseFloat(newVal) || 0));
         setBudgetAllocations(prev => ({
             ...prev,
             [itemKey]: numeric
         }));
+
+        if (numeric === 0) {
+            removeServicesByCategory(itemKey);
+        }
     };
 
     const handleRemoveAllocationItem = (itemKey) => {
@@ -104,6 +140,7 @@ const VendorList = () => {
             delete updated[itemKey];
             return updated;
         });
+        removeServicesByCategory(itemKey);
     };
 
     const handleAddAllocationItem = () => {
@@ -328,6 +365,11 @@ const VendorList = () => {
 
     const isCartOverBudget = userBudget > 0 && totalSelectedCost > userBudget;
     const overBudgetAmount = totalSelectedCost - userBudget;
+
+    const isBudgetOptimal = useMemo(() => {
+        if (userBudget <= 0 || selectedServices.length === 0) return false;
+        return totalSelectedCost <= userBudget;
+    }, [userBudget, selectedServices.length, totalSelectedCost]);
 
     const budgetBurnPercentage = useMemo(() => {
         if (!userBudget || userBudget <= 0) return 0;
@@ -646,23 +688,23 @@ const VendorList = () => {
                         <div style={{ width: '50px', height: '50px', background: '#fee2e2', color: '#991b1b', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto' }}>
                             <Ban size={24} />
                         </div>
-                        <h3 style={{ margin: 0, fontWeight: '900', fontSize: '1.2rem', color: '#0f172a' }}>Kanselahin ang Event?</h3>
+                        <h3 style={{ margin: 0, fontWeight: '900', fontSize: '1.2rem', color: '#0f172a' }}>Cancel Event?</h3>
                         <p style={{ margin: 0, fontSize: '0.88rem', color: '#64748b', fontWeight: '600', lineHeight: '1.4' }}>
-                            Sigurado ka bang gusto mong kanselahin ang event na ito? Mabubura ang lahat ng napili mong serbisyo sa cart at mawawala ang kasalukuyang session.
+                            Are you sure you want to cancel this event? All selected services in your cart will be cleared and the current session will end.
                         </p>
                         <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
                             <button 
                                 onClick={() => setIsCancelModalOpen(false)}
                                 style={{ flex: 1, background: '#f1f5f9', color: '#0f172a', border: 'none', padding: '12px', borderRadius: '12px', fontWeight: '800', cursor: 'pointer', fontSize: '0.85rem' }}
                             >
-                                Huwag Muna
+                                Keep Event
                             </button>
                             <button 
                                 onClick={handleConfirmCancelEvent}
                                 disabled={cancellingEvent}
                                 style={{ flex: 1, background: '#ef4444', color: '#fff', border: 'none', padding: '12px', borderRadius: '12px', fontWeight: '800', cursor: 'pointer', fontSize: '0.85rem' }}
                             >
-                                {cancellingEvent ? 'Kinakansela...' : 'Oo, Kanselahin'}
+                                {cancellingEvent ? 'Cancelling...' : 'Yes, Cancel'}
                             </button>
                         </div>
                     </div>
@@ -780,6 +822,7 @@ const VendorList = () => {
                                         <button
                                             onClick={() => {
                                                 if (isEditingBudgetPct) {
+                                                    syncCartWithAllocations(budgetAllocations);
                                                     toast.success("Budget percentage changes saved!");
                                                 }
                                                 setIsEditingBudgetPct(prev => !prev);
@@ -809,9 +852,23 @@ const VendorList = () => {
                                     </div>
                                 </div>
 
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', fontSize: '0.75rem', fontWeight: '800', color: '#475569' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', fontSize: '0.75rem', fontWeight: '800', color: '#475569', flexWrap: 'wrap', gap: '8px' }}>
                                     <span>Total Budget: ₱{userBudget.toLocaleString()}</span>
                                     <span>Allocated: {totalAllocatedPct}%</span>
+                                    <span style={{
+                                        background: isBudgetOptimal ? '#dcfce7' : '#fee2e2',
+                                        color: isBudgetOptimal ? '#15803d' : '#b91c1c',
+                                        padding: '3px 8px',
+                                        borderRadius: '999px',
+                                        fontSize: '0.7rem',
+                                        fontWeight: '900',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '4px'
+                                    }}>
+                                        <CheckCircle2 size={12} />
+                                        {isBudgetOptimal ? 'Optimal' : 'Not Optimal'}
+                                    </span>
                                 </div>
 
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -987,7 +1044,7 @@ const VendorList = () => {
                 <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1300, padding: '16px' }}>
                     <div style={{ background: '#fff', borderRadius: '24px', width: '100%', maxWidth: '500px', padding: '24px', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '16px' }}>
                         <h3 style={{ margin: 0, fontWeight: '900', fontSize: '1.2rem' }}>Vendor Location Preview</h3>
-                        <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b' }}>I-click ang link sa ibaba para buksan ang lokasyon sa Google Maps.</p>
+                        <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b' }}>Click the link below to view the location on Google Maps.</p>
                         <a href={mapModalUrl} target="_blank" rel="noreferrer" style={{ background: '#2563eb', color: '#fff', padding: '12px', borderRadius: '12px', fontWeight: '800', textDecoration: 'none' }}>Open in Google Maps</a>
                         <button onClick={() => setMapModalUrl(null)} style={{ background: '#f1f5f9', border: 'none', padding: '10px', borderRadius: '12px', fontWeight: '800', cursor: 'pointer' }}>Close</button>
                     </div>
